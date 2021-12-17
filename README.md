@@ -1,1 +1,2 @@
-# es-vue
+# es-javascript
+es-javascript

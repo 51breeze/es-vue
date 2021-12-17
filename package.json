@@ -1,0 +1,37 @@
+{
+  "name": "es-javascript",
+  "version": "0.0.15",
+  "description": "test",
+  "main": "index.js",
+  "scripts": {
+    "es": "es -V",
+    "dev-test": "jasmine ./test/index.js",
+    "dev-run": "jasmine ./test/build/main.js",
+    "dev-test-run": "npm run dev-test & npm run dev-run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/51breeze/es-javascript.git"
+  },
+  "keywords": [
+    "es",
+    "javascript",
+    "web"
+  ],
+  "author": "Jun Ye",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/51breeze/es-javascript/issues"
+  },
+  "homepage": "https://github.com/51breeze/es-javascript#readme",
+  "dependencies": {
+    "element-ui": "^2.15.6",
+    "lodash": "^4.17.21",
+    "vue-router": "^3.5.3"
+  },
+  "devDependencies": {
+    "easescript": "0.0.59",
+    "jasmine": "^3.10.0",
+    "vue": "^2.6.14"
+  }
+}
