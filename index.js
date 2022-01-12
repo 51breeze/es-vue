@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const Builder = require("./core/Builder");
 const Core = require("./core/Core");
+const Polyfill = require("./core/Polyfill");
 const {merge} = require("lodash");
 const modules = new Map();
 const loadStack=()=>{
@@ -17,6 +18,7 @@ const defaultConfig = merge({},Core.plugin.defaultConfig,{
     "reserved":[
         '_data',
         '_props',
+        '_init',
         '$data',
         '$props',
         '$forceUpdate',
@@ -55,6 +57,9 @@ const properties ={
         }
         return configData;
     },
+    getPolyfill(name){
+        return Polyfill.modules.get(name);
+    },
     getStack(name){
         return modules.get(name) || Core.plugin.modules.get(name)
     },
@@ -76,11 +81,11 @@ const properties ={
 
 function plugin(complier){
     if( modules.size === 0 ){
-        Core.plugin.loadStack();
+        new Core.plugin(complier);
         loadStack();
     }
     this.complier = complier;
-    complier.loadTypes([require.resolve('./types/index.d.es')],true)
+    complier.loadTypes([require.resolve('./types/index.d.es')],true, null, true)
 };
 
 for(var name in properties){
@@ -89,6 +94,14 @@ for(var name in properties){
         enumerable:false,
         configurable:false
     });
+
+    if( ['name','platform','version'].includes(name) ){
+        Object.defineProperty(plugin,name,{
+            value:properties[name],
+            enumerable:false,
+            configurable:false
+        });
+    }
 }
 
 Object.defineProperty(plugin,'modules',{

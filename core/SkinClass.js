@@ -2,9 +2,14 @@ const Syntax = require("./Syntax");
 const Core = require("./Core.js");
 const Constant = Core.constant;
 class SkinClass extends Syntax{
-
+    getReserved(){
+        return this._reserved || (this._reserved = this.getConfig('reserved') || []);
+    }
     emitStack(item,name,isStatic,properties,modifier){
         if( !item )return null;
+        if( this.getReserved().includes( name ) && this.isInheritWebComponent( item.module ) ){
+            (item.key || item.id || item).error(1124, name);
+        }
         const value = this.make(item);
         if( value ){
             if( item.isPropertyDefinition ){
@@ -82,7 +87,6 @@ class SkinClass extends Syntax{
             }
         }
 
-        refs.push(`var ${_private}=Symbol("private");`);
         classScope.removeAllListeners("insertTopRefsToClassBefore");
         classScope.addListener("insertTopRefsToClassBefore",(object)=>{
             topRefs.set(object.name,object.value);
@@ -131,6 +135,8 @@ class SkinClass extends Syntax{
         const description = this.createClassDescription(module, inherit, imps, _methods, _members, _private);
 
         this.createDependencies(module,refs);
+
+        refs.push(`var ${_private}=Symbol("private");`);
         
         //alias refs
         if( topRefs.size > 0 ){

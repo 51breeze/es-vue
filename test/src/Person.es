@@ -18,7 +18,7 @@ package{
         }
 
         @override
-        mounted(){
+        onMounted(){
              setTimeout( ()=>{
                  this.data('name', '=====手动设置不再接收上级的值 66666=====')
              }, 1000);
@@ -30,11 +30,13 @@ package{
             return <div xmlns:slot="@slots">
                         <PersonSkin name={this.name} >
                             <slot:foot scope="props">
-                                <div>the is PersonSkin child==========foot {props.props}</div>
+                                <div>====the is PersonSkin child====</div>
+                                <div>the scope value:{props.props}</div>
                             </slot:foot>
                         </PersonSkin>
+                        <div id="person-root-child">Person page</div>
                         <slot:default />
-                </div>
+                    </div>
         }
 
     }

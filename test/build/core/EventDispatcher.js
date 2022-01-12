@@ -221,5 +221,5 @@ Class.creator(5,EventDispatcher,{
 	'global':true,
 	'dynamic':false,
 	'name':'EventDispatcher'
-});
+}, false);
 export default EventDispatcher;

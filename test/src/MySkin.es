@@ -1,15 +1,15 @@
 <s:Skin 
-    xmlns:s="web.components"
+    xmlns:s="web"
     xmlns:cmd="@directives" 
     xmlns:slot="@slots" 
     >
 
    <script>
 
-    @HostComponent(Test)
+    @HostComponent(MyView)
 
     get name():string{
-        return this.data<string>('name');
+        return this.hostComponent.name;
     }
 
     set name(value:string){
@@ -21,11 +21,11 @@
     }
 
     onChange(){
-        console.log('======onChange=======', this.getElementByRefName('iss'), this  );
+       
     }
 
     set value(val:string){
-        console.log("===value======", val)
+      
         this.data('value', val)
     }
 
@@ -37,11 +37,11 @@
 
    <style>
       .bg{
-          background:url('../assets/logo.png');
+          background:url('./assets/logo.png');
       }
    </style>
 
-   <style file="../assets/index.css" />
+   <style file="./assets/index.css" />
 
     <div cmd:if="name" class='bg'>1</div>
     <div cmd:elseif="!(name)">2</div>
@@ -59,7 +59,7 @@
     </div>
 
     <div class="" ref='iss'>
-       <div>item =====PersonSkin====  {name} =====</div>
+       <div>item =====MySkin====  {name} =====</div>
     </div>
 
     <input bind:value={value} on:change={onChange} />

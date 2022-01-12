@@ -5,9 +5,9 @@
  * @author Jun Ye <664371281@qq.com>
  */
 
-///<import from='vue' to='Vue'/>
+///<references from='web.components.Vue' />
 ///<references from='Class' />
-///<references from='web.Router' />
+///<references from='web.components.Router' />
 ///<namespaces name='web.ui' />
 Vue.use( Router );
 var Link = Vue.component('RouterLink');

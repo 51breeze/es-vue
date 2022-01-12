@@ -6,6 +6,8 @@ xmlns:slot="@slots"
 
    <script>
 
+       address:string='address';
+
       get name():string{
         return this.data<string>('name');
       }
@@ -18,12 +20,14 @@ xmlns:slot="@slots"
           return ['one','two','three','four','five']
       }
 
-      onChange(){
-          console.log('======onChange=======', this.getElementByRefName('iss'), this  );
+      onChange(e){
+
+          this.address = e.target.value +'---';
+         
       }
 
        set value(val:string){
-           console.log("===value======", val)
+          
             this.data('value', val)
         }
 
@@ -35,11 +39,11 @@ xmlns:slot="@slots"
 
    <style>
       .bg{
-          background:url('../assets/logo.png');
+          background:url('./assets/logo.png');
       }
    </style>
 
-   <style file="../assets/index.css" />
+   <style file="./assets/index.css" />
 
     <div cmd:if="name" class='bg'>1</div>
     <div cmd:elseif="!(name)">2</div>
@@ -67,5 +71,7 @@ xmlns:slot="@slots"
     <slot:foot props={this.list}>
         <div>===============the is foot slot ==============</div>
     </slot:foot>
+
+    <div>the is property {this.address}</div>
 
 </s:Component>

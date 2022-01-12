@@ -1,10 +1,16 @@
 const Syntax = require("./Syntax");
 const Core = require("./Core.js");
 const Constant = Core.constant;
+const Polyfill = require("../core/Polyfill");
 class VueClass extends Syntax{
-
+    getReserved(){
+        return this._reserved || (this._reserved = this.getConfig('reserved') || []);
+    }
     emitStack(item,name,isStatic,properties,modifier){
         if( !item )return null;
+        if( this.getReserved().includes( name ) && this.isInheritWebComponent( item.module )){
+            (item.key || item.id || item).error(1124, name);
+        }
         const metaTypes = item.metatypes;
         const annotations = item.annotations;
         if( !this.checkMetaTypeSyntax(metaTypes) ){
@@ -49,16 +55,14 @@ class VueClass extends Syntax{
         const imps    = this.getImps(module);
         const inherit = this.getInherit(module);
         const refs = [];
-        const props = [];
-        const data = [];
         const isWeb = this.isInheritWebComponent( module );
         const reserved = isWeb ? this.getConfig('reserved.vue') : [];
-        const _private = Constant.REFS_DECLARE_PRIVATE_NAME;
         const classScope = this.stack.scope.getScopeByType("class");
         const topRefs = new Map();
         const methodContent = [];
         const memberContent = [];
         const mainEnterMethods=[];
+        const Component = this.getGlobalModuleById('web.components.Component');
         const emitter=(target,proto,content,isStatic,descriptive)=>{
             for( var name in target ){
                 const item = target[ name ];
@@ -68,30 +72,32 @@ class VueClass extends Syntax{
                 }
                 if( item.isPropertyDefinition ){
                     const value = this.emitStack(item,name,isStatic,properties,modifier);
-                    const kind = item.kind ==="var" ?  Constant.DECLARE_PROPERTY_VAR : Constant.DECLARE_PROPERTY_CONST;
-                    content.push(this.definePropertyDescription(
-                        proto,
-                        name,
-                        value,
-                        false,
-                        modifier,
-                        kind,
-                        descriptive,
-                        isWeb
-                    ));
-
+                    let kind = item.kind ==="var" ?  Constant.DECLARE_PROPERTY_VAR : Constant.DECLARE_PROPERTY_CONST;
+                    let makeValue = value;
+                    let isAccessor = false;
                     if( !isStatic ){
                         if( modifier ==="public" ){
                             const type = this.getAvailableOriginType( item.type() );
                             if( value ){
-                                props.push( `${name}:{type:${type},default:${value}}` );
+                                //props.push( `${name}:{type:${type},default:${value}}` );
+                                makeValue = {get:`function ${name}(){return this.data('${name}') || ${value}}`,set:`function ${name}(value){this.data('${name}',value)}`}
                             }else{
-                                props.push( `${name}:{type:${type}}` );
+                                //props.push( `${name}:{type:${type}}` );
+                                makeValue = {get:`function ${name}(){return this.data('${name}')}`,set:`function ${name}(value){this.data('${name}',value)}`}
                             }
-                        }else{
-                            data.push( `${name}:${value || null}` );
+                            isAccessor = true;
+                            kind = Constant.DECLARE_PROPERTY_ACCESSOR;
                         }
                     }
+                    content.push(this.definePropertyDescription(
+                        proto,
+                        name,
+                        makeValue,
+                        isAccessor,
+                        modifier,
+                        kind,
+                        descriptive
+                    ));
                     
                 }else if( item.isAccessor ){
                     content.push(this.definePropertyDescription(
@@ -104,17 +110,17 @@ class VueClass extends Syntax{
                         true,
                         modifier,
                         Constant.DECLARE_PROPERTY_ACCESSOR,
-                        descriptive,
-                        isWeb
+                        descriptive
                     ));
-                    if( !isStatic && item.set ){
-                        if( modifier === "public" ){
-                            const type = this.getAvailableOriginType( item.set.params[0] && item.set.params[0].type() );
-                            props.push( `${name}:{type:${type}}` );
-                        }else{
-                            data.push( `${name}:${null}` );
+                    if( !isStatic ){
+                        if( item.set ){
+                            if( modifier === "public" ){
+                                const type = this.getAvailableOriginType( item.set.params[0] && item.set.params[0].type() );
+                                //props.push( `${name}:{type:${type}}` );
+                            }
                         }
                     }
+
                 }else{
                     if(isStatic && modifier ==="public" && item.isEnterMethod && !mainEnterMethods.length ){
                         mainEnterMethods.push( this.semicolon(`${module.id}.${name}()`) )
@@ -133,7 +139,6 @@ class VueClass extends Syntax{
             }
         }
 
-        refs.push(`var ${_private}=Symbol("private");`);
         classScope.removeAllListeners("insertTopRefsToClassBefore");
         classScope.addListener("insertTopRefsToClassBefore",(object)=>{
             topRefs.set(object.name,object.value);
@@ -155,7 +160,6 @@ class VueClass extends Syntax{
         emitter( members , `members`, memberContent , false);
 
         const iteratorType = this.getGlobalModuleById("Iterator")
-        const Component = this.getGlobalModuleById('web.components.Component');
         this.addDepend( Component );
         this.addDepend( this.getGlobalModuleById('Class') );
         
@@ -165,16 +169,26 @@ class VueClass extends Syntax{
 
         if( module.methodConstructor ){
             module.methodConstructor.once("fetchClassProperty",(event)=>{
-                event.properties = `{${properties.join(",")}}`;
-                event.initialProps = initialProps.join("\r\n");
+                if( properties.length > 0 ){
+                    event.properties = `{${properties.join(",")}}`;
+                }
+                if( initialProps.length > 0 ){
+                    event.initialProps = initialProps.join("\r\n");
+                }
             });
         }
 
-        const construct = module.methodConstructor ? this.make(module.methodConstructor) : this.createDefaultConstructor(module, inherit, properties, initialProps);
-        const callConstructor = [
-            this.semicolon(`(${construct}).call(this,options)`),
-        ]
-        memberContent.push(`members._init={value:function _init(options){\r\n${callConstructor.join('\r\n')}\r\n}}`)
+        let construct = module.methodConstructor ? this.make(module.methodConstructor) : null;
+        if( !construct && (properties.length > 0 || initialProps.length > 0) ){
+            construct =  this.createDefaultConstructor(module, inherit, properties, initialProps);
+        }
+
+        if( construct ){
+            const callConstructor = [
+                this.semicolon(`(${construct}).call(this,options)`),
+            ]
+            memberContent.push(`members._init={value:function _init(options){\r\n${callConstructor.join('\r\n')}\r\n}}`)
+        }
 
         let _methods = null;
         let _members = null;
@@ -190,10 +204,12 @@ class VueClass extends Syntax{
             _members = 'members';
         }
 
-        const description = this.createClassDescription(module, inherit, imps, _methods, _members, _private);
-        const createConstructor = this.semicolon(`var ${module.id} = ${this.getModuleReferenceName(Component, module)}.createComponent(${this.createOptions(module.id,inherit,props,data)})`);
-        
         this.createDependencies(module,refs);
+
+        const _private = properties.length > 0 ? Constant.REFS_DECLARE_PRIVATE_NAME : null;
+        if( _private ){
+            refs.push(`var ${_private}=Symbol("private");`);
+        }
         
         //alias refs
         if( topRefs.size > 0 ){
@@ -202,7 +218,9 @@ class VueClass extends Syntax{
             });
         }
 
-        const parts = refs.concat(createConstructor,content);
+        const createConstructor = this.semicolon(`var ${module.id} = ${this.getModuleReferenceName(Component, module)}.createComponent(${this.createOptions(module.id,inherit)})`);
+        const description = this.createClassDescription(module, inherit, imps, _methods, _members, _private);
+        const parts = refs.concat(content,createConstructor);
         const external = this.buildExternal();
         parts.push( this.emitCreateClassDescription( module, description) );
         parts.push( this.emitExportClass(module) );
@@ -245,6 +263,23 @@ class VueClass extends Syntax{
         });
     }
 
+    isDependModule(depModule,context){
+        const result = super.isDependModule(depModule,context);
+        if( result || !depModule.isDeclaratorModule ){
+            return result;
+        }
+        if( this.compilation.isPolicy(2,depModule) ){
+            return false;
+        }
+        const isUsed = this.isUsed(depModule);
+        const isRequire = !depModule.isDeclaratorModule && 
+                            isUsed &&
+                            this.compiler.callUtils("isLocalModule", depModule) && 
+                            !this.compiler.callUtils("checkDepend",this.module, depModule);         
+        const isPolyfill = depModule.isDeclaratorModule && Polyfill.modules.has( depModule.getName() );
+        return isRequire || isPolyfill;
+    }
+
     createClassDescription(module, inherit, imps, methods, members, _private){
         const description = [
             `'id':${Constant.DECLARE_CLASS}`,
@@ -284,17 +319,14 @@ class VueClass extends Syntax{
         return defaultConstructor.join("\r\n");
     }
 
-    createOptions(name,inherit,props,data){
-        const properties = [`name:'${name}'`];
+    createOptions(name,inherit){
+        const properties = [`name:'es-${name}'`];
         const indent = this.getIndent();
         if( inherit ){
-            properties.push( `extends:${this.getModuleReferenceName(inherit)}` );
-        }
-        if( props.length > 0 ){
-            properties.push( `props:{\r\n\t\t${indent}${props.join(`,\r\n\t\t${indent}`)}\r\n\t${indent}}` );
-        }
-        if( data.length > 0 ){
-            properties.push( `data:function data(){return {\r\n\t\t${indent}${data.join(`,\r\n\t\t${indent}`)}\r\n\t${indent}};}` );
+            const Component = this.getGlobalModuleById('web.components.Component');
+            if( Component !== inherit ){
+                properties.push( `extends:${this.getModuleReferenceName(inherit)}` );
+            }
         }
         return `{\r\n\t${indent}${properties.join(`,\r\n\t${indent}`)}\r\n}`;
     }

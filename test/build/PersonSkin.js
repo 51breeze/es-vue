@@ -1,18 +1,18 @@
-var _private=Symbol("private");
 import web_components_Component from "./web/components/Component.js";
+import Reflect from "./core/Reflect.js";
 import Class from "./core/Class.js";
-var PersonSkin = web_components_Component.createComponent({
-	name:'PersonSkin',
-	extends:web_components_Component,
-	props:{
-		name:{type:String},
-		value:{type:String}
-	}
-});
 var members = {};
 members.render={m:3,d:3,value:function render(){
 	var createElement = this.createElement.bind(this);
-	return createElement('div', null, [
+	return createElement('div', {
+		"scopedSlots":{
+		"foot":(this.slot('foot',true,true,{props:this.list}) || [
+			createElement('div',{
+				"slot":'foot'
+				}, ['===============the is foot slot =============='])
+		])
+		}
+		}, [
 		this.name ? createElement('div',{
 			"class":'bg'
 			}, ['1']) : 
@@ -56,41 +56,42 @@ members.render={m:3,d:3,value:function render(){
 			"domProps":{
 			"value":this.value
 			}
-			})
-	].concat((this.slot('foot',true,true,{props:this.list}) || [
-			createElement('div',{
-				"slot":'foot'
-				}, ['===============the is foot slot =============='])
-		])));
+			}),
+		createElement('div',null, ['the is property',this.address
+		])
+	]);
 }};
-members.name={m:3,d:4,configurable:true,enumerable:true,get:function name(){
+members.address={m:3,d:1,writable:true,enumerable:true,value:'address'};
+members.name={m:3,d:4,enumerable:true,get:function name(){
 	return this.data('name');
 },set:function name(value){
 	this.data('name',value);
 }};
-members.list={m:3,d:4,configurable:true,enumerable:true,get:function list(){
+members.list={m:3,d:4,enumerable:true,get:function list(){
 	return ['one','two','three','four','five'];
 }};
-members.onChange={m:3,d:3,value:function onChange(){
-	console.log('======onChange=======',this.getElementByRefName('iss'),this);
+members.onChange={m:3,d:3,value:function onChange(e){
+	this.address=Reflect.get(PersonSkin,Reflect.get(PersonSkin,e,"target"),"value") + '---';
 }};
-members.value={m:3,d:4,configurable:true,enumerable:true,get:function value(){
+members.value={m:3,d:4,enumerable:true,get:function value(){
 	return this.data('value') || '9999';
 },set:function value(val){
-	console.log("===value======",val);
 	this.data('value',val);
 }};
-members._init={value:function _init(options){
-(function (options){
-web_components_Component.prototype._init.call(this,options);
-}).call(this,options);
-}}
-Class.creator(10,PersonSkin,{
+var PersonSkin = web_components_Component.createComponent({
+	name:'PersonSkin',
+	extends:web_components_Component,
+	props:{
+		address:{type:String,default:'address'},
+		name:{type:String},
+		value:{type:String}
+	}
+});
+Class.creator(16,PersonSkin,{
 	'id':1,
 	'ns':'',
 	'name':'PersonSkin',
-	'private':_private,
 	'inherit':web_components_Component,
 	'members':members
-});
+}, false);
 export default PersonSkin;

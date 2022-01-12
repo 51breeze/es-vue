@@ -6,85 +6,76 @@
  * @author Jun Ye <664371281@qq.com>
  */
 
-///<import from='vue' to='Vue'/>
+///<references from='web.components.Vue'/>
 ///<references from='Class' />
 ///<references from='EventDispatcher' />
 ///<references from='web.components.ComponentEvent' />
 ///<namespaces name='web.components' />
-
+var classKey = Class.key;
 var key = Symbol('private');
 var baseOptions = {};
 var mixins = [{
     render(){
         return this.render.apply(this, Array.prototype.slice.call(arguments));
     },
-    beforeCreate(){
-        this.beforeCreate();
+    created(){
+        this.onInitialized();
     },
     beforeMount(){
         if( this.hasEventListener(ComponentEvent.BEFORE_MOUNT) ){
             this.dispatchEvent( new ComponentEvent( ComponentEvent.BEFORE_MOUNT ) );
         }
-        this.beforeMount();
-    },
-    beforeUpdate(){
-        if( this.hasEventListener(ComponentEvent.BEFORE_UPDATE) ){
-            this.dispatchEvent( new ComponentEvent( ComponentEvent.BEFORE_UPDATE ) );
-        }
-        this.beforeUpdate();
-    },
-    beforeDestroy(){
-        if( this.hasEventListener(ComponentEvent.BEFORE_DESTROY) ){
-            this.dispatchEvent( new ComponentEvent( ComponentEvent.BEFORE_DESTROY ) );
-        }
-        this.beforeDestroy();
-    },
-    errorCaptured(){
-        if( this.hasEventListener(ComponentEvent.ERROR_CAPTURED) ){
-            this.dispatchEvent( new ComponentEvent( ComponentEvent.ERROR_CAPTURED ) );
-        }
-        this.errorCaptured();
-    },
-    created(){
-        if( this.hasEventListener(ComponentEvent.CREATED) ){
-            this.dispatchEvent( new ComponentEvent( ComponentEvent.CREATED ) );
-        }
-        this.created();
+        this.onBeforeMount();
     },
     mounted(){
         if( this.hasEventListener(ComponentEvent.MOUNTED) ){
             this.dispatchEvent( new ComponentEvent( ComponentEvent.MOUNTED ) );
         }
-        this.mounted();
+        this.onMounted();
+    },
+    beforeUpdate(){
+        if( this.hasEventListener(ComponentEvent.BEFORE_UPDATE) ){
+            this.dispatchEvent( new ComponentEvent( ComponentEvent.BEFORE_UPDATE ) );
+        }
+        this.onBeforeUpdate();
     },
     updated(){
         if( this.hasEventListener(ComponentEvent.UPDATED) ){
             this.dispatchEvent( new ComponentEvent( ComponentEvent.UPDATED ) );
         }
-        this.updated();
+        this.onUpdated();
+    },
+    beforeDestroy(){
+        if( this.hasEventListener(ComponentEvent.BEFORE_DESTROY) ){
+            this.dispatchEvent( new ComponentEvent( ComponentEvent.BEFORE_DESTROY ) );
+        }
+        this.onBeforeUnmount();
     },
     destroyed(){
         if( this.hasEventListener(ComponentEvent.DESTROYED) ){
             this.dispatchEvent( new ComponentEvent( ComponentEvent.DESTROYED ) );
         }
-        this.destroyed();
+        this.onUnmount();
+    },
+    errorCaptured(){
+        if( this.hasEventListener(ComponentEvent.ERROR_CAPTURED) ){
+            this.dispatchEvent( new ComponentEvent( ComponentEvent.ERROR_CAPTURED ) );
+        }
+        this.onErrorCaptured();
     },
     activated(){
         if( this.hasEventListener(ComponentEvent.ACTIVATED) ){
             this.dispatchEvent( new ComponentEvent( ComponentEvent.ACTIVATED ) );
         }
-        this.activated();
+        this.onActivated();
     },
     deactivated(){
         if( this.hasEventListener(ComponentEvent.DEACTIVATED) ){
             this.dispatchEvent( new ComponentEvent( ComponentEvent.DEACTIVATED ) );
         }
-        this.activated();
+        this.onDeactivated();
     }
 }];
-
-//var Component = Vue.extend( Object.assign({name:"web.components.Component"}, baseOptions) );
-//Object.defineProperty( Component, 'name', {value:'web.components.Component'})
 
 function Component(options){
     Component.options = Vue.options;
@@ -105,87 +96,127 @@ function createProperties( classConstructor , superClass ){
                     return callback.apply( context, args );
                 }else{
                     return callback.call( context ); 
-                } 
+                }
             }
         }
         return null;
     }
     Object.defineProperty( proto, '_init', {value:function _init(options){
+        this[key] = Object.create(null);
         this[key].event=new EventDispatcher();
+        this[key].initialized=false;
+        this[key].options = options && options._parentVnode && options._parentVnode.componentOptions && options._parentVnode.componentOptions || {};
+        var classModule = this.constructor;
+        var opts = classModule && classModule.options;
+        if( opts && opts.methods ){
+            var description = classModule[classKey];
+            var members = description.members || {};
+            for(var name in opts.methods ){
+                if(Object.hasOwnProperty.call(members, name)){
+                    delete opts.methods[name];
+                }
+            }
+        }
+        var propsData = this.onReceiveProps( this[key].options.propsData );
+        if( propsData ){
+            for(var name in propsData ){
+                if( this.hasOwnProperty( name ) ){
+                    this[name] = propsData[name];
+                }
+            }
+        }
         Vue.prototype._init.call(this,options);
+        this[key].initialized=true;
     }});
-    Object.defineProperty( proto, key, {value:Object.create(null)});
-    Object.defineProperty( proto, 'beforeCreate', {value:function beforeCreate(){
-        return invoke(this,'beforeCreate');
+
+    Object.defineProperty( proto, 'isWebComponent', {value:true});
+
+    Object.defineProperty( proto, 'onReceiveProps', {value: function onReceiveProps(props){
+        return props;
     }});
-    Object.defineProperty( proto, 'created', {value:function created(){
+
+    Object.defineProperty( proto, 'onInitialized', {value:function onInitialized(){
         return invoke(this,'created');
     }});
-    Object.defineProperty( proto, 'beforeMount', {value:function beforeMount(){
+
+    Object.defineProperty( proto, 'onBeforeMount', {value:function onBeforeMount(){
         return invoke(this,'beforeMount');
     }});
-    Object.defineProperty( proto, 'mounted', {value:function mounted(){
+
+    Object.defineProperty( proto, 'onMounted', {value:function onMounted(){
         return invoke(this,'mounted');
     }});
-    Object.defineProperty( proto, 'beforeUpdate', {value:function beforeUpdate(){
+
+    Object.defineProperty( proto, 'onShouldUpdate', {value: function onShouldUpdate(newValue,oldValue){
+        return newValue !== oldValue;
+    }});
+
+    Object.defineProperty( proto, 'onBeforeUpdate', {value:function onBeforeUpdate(){
         return invoke(this,'beforeUpdate');
     }});
-    Object.defineProperty( proto, 'updated', {value:function updated(){
+
+    Object.defineProperty( proto, 'onUpdated', {value:function onUpdated(){
         return invoke(this,'updated');
     }});
-    Object.defineProperty( proto, 'beforeDestroy', {value:function beforeDestroy(){
+
+    Object.defineProperty( proto, 'onBeforeUnmount', {value:function onBeforeUnmount(){
         return invoke(this,'beforeDestroy');
     }});
-    Object.defineProperty( proto, 'activated', {value:function activated(){
-        return invoke(this,'activated');
-    }});
-    Object.defineProperty( proto, 'destroyed', {value:function destroyed(){
+
+    Object.defineProperty( proto, 'onUnmounted', {value:function onUnmounted(){
         return invoke(this,'destroyed');
     }});
-    Object.defineProperty( proto, 'errorCaptured', {value:function errorCaptured(e){
+
+    Object.defineProperty( proto, 'onErrorCaptured', {value:function onErrorCaptured(e){
         return invoke(this,'destroyed',[e]);
     }});
-    Object.defineProperty( proto, 'deactivated', {value:function deactivated(){
+
+    Object.defineProperty( proto, 'onActivated', {value:function onActivated(){
+        return invoke(this,'activated');
+    }});
+
+    Object.defineProperty( proto, 'onDeactivated', {value:function onDeactivated(){
         return invoke(this,'deactivated');
     }});
-    Object.defineProperty( proto, 'render', {value: function render(a){
-        return invoke(this,'render',[a||this.$createElement]);
+
+    Object.defineProperty( proto, 'render', {value: function render(){
+        return invoke(this,'render', Array.prototype.slice.call(arguments) );
     }});
+
     Object.defineProperty( proto, 'data', {value:function data(name, value){
         var data = this._data;
-        var props = this._props;
         if( name ){
             if( value === void 0 ){
-                return data[name] || props[name];
+                return data[name];
             }else{
                 var old = data[name];
-                if( old !== value ){
+                if( this.onShouldUpdate(old,value) ){
                     data[name] = value;
-                    this.$forceUpdate();
+                    if( this[key].initialized ){
+                        this.$forceUpdate();
+                    }
                 }
                 return value;
             }
         }else{
-            var _data = Object.assign({}, props);
-            for(var key in data){
-                if( data[key] !== void 0 ){
-                    _data[key] = data[key];
-                }
-            }
-            return _data;
+            return Object.assign({}, data);
         }
     }});
 
-    Object.defineProperty( proto, 'mount', {value:function mount(element){
-        this.$mount( element );
+    Object.defineProperty( proto, 'forceUpdate', {value:function forceUpdate(){
+        this.$forceUpdate();
     }});
 
-    Object.defineProperty( proto, 'slot', {value:function slot(name,scoped,called,params){
+    Object.defineProperty( proto, 'mount', {value:function mount(element){
+        return this.$mount( element );
+    }});
+
+    Object.defineProperty( proto, 'slot', {value:function slot(name,scoped,called,args){
         name = name || 'default';
         if( scoped ){
            var value = this.$scopedSlots[name];
            if( called ){
-               return value && typeof value === "function" ? value(params) : null;
+               return value && typeof value === "function" ? value(args) : null;
            }
            return value;
         }
@@ -200,10 +231,6 @@ function createProperties( classConstructor , superClass ){
         return this.$children;
     }});
 
-    Object.defineProperty( proto, 'config', {get:function config(){
-        return this.$vnode && this.$vnode.data ? this.$vnode.data : {};
-    }});
-
     Object.defineProperty( proto, 'createElement', {value:function createElement(name,config,children){
         return this.$createElement(name, config, children);
     }});
@@ -212,8 +239,8 @@ function createProperties( classConstructor , superClass ){
         return this.$refs[name];
     }});
 
-    Object.defineProperty( proto, 'addEventListener', {value:function addEventListener(type, listener){
-        return this[key].event.addEventListener(type, listener);
+    Object.defineProperty( proto, 'addEventListener', {value:function addEventListener(type, listener,useCapture,priority,reference){
+        return this[key].event.addEventListener(type,listener,useCapture,priority,reference);
     }});
 
     Object.defineProperty( proto, 'dispatchEvent', {value:function dispatchEvent(event){
@@ -221,38 +248,59 @@ function createProperties( classConstructor , superClass ){
     }});
 
     Object.defineProperty( proto, 'removeEventListener', {value:function removeEventListener(type, listener){
-        return this[key].event.addEventListener(type, listener);
+        return this[key].event.removeEventListener(type, listener);
     }});
 
     Object.defineProperty( proto, 'hasEventListener', {value:function hasEventListener(type, listener){
         return this[key].event.hasEventListener(type, listener);
     }});
 
+    Object.defineProperty( proto, 'on', {value:function on(type, listener){
+        return this.$on(type,listener);
+    }});
+
+    Object.defineProperty( proto, 'off', {value:function off(type, listener){
+        return this.$off( type, listener);
+    }});
+
+    Object.defineProperty( proto, 'emit', {value:function emit(type, args){
+        return this.$emit(type, args);
+    }});
+
+    Object.defineProperty( proto, 'watch', {value:function watch(name, callback){
+        return this.$watch(name, callback);
+    }});
+
+    Object.defineProperty( proto, 'nextTick', {value:function nextTick(callback){
+        return this.$nextTick(callback);
+    }});
+
+    Object.defineProperty( proto, 'destroy', {value:function destroy(){
+        return this.$destroy();
+    }});
+
     return classConstructor;
 }
 
 createProperties(Component);
+
 Object.defineProperty( Component, 'createComponent', {value:function createComponent(options, inheritComponent){
     options = options || {};
+    options.mixins = mixins;
     if( inheritComponent ){
         var superClass = inheritComponent;
-        if(typeof superClass === 'function'){
-            if( !(superClass.prototype instanceof Vue) ){
-                throw new Error('The specified component is not vue instanced');
-            }else if( superClass.prototype && superClass.prototype[key] ){
-                return superClass;
-            }
-        }else if( typeof superClass === 'object' ){
-            superClass = Vue.extend(inheritComponent);
-        }else{
-            return superClass;
+        if( typeof superClass === 'function' && superClass.prototype.isWebComponent===true ){
+            return superClass; 
         }
+        superClass = Vue.extend(inheritComponent);
         options.extends = superClass;
-        options.mixins = mixins;
         var inheritClass = Vue.extend(options);
         createProperties(inheritClass, superClass.options);
+        if( inheritClass.options.methods ){
+            Object.assign( inheritClass.prototype, inheritClass.options.methods )
+        }
         return inheritClass;
     }
-    options.mixins = mixins;
-    return Vue.extend( Object.assign({}, baseOptions, options || {}) );
+    var subClass = Vue.extend( options );
+    return subClass;
 }});

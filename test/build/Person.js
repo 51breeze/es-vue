@@ -1,16 +1,8 @@
-var _private=Symbol("private");
 import Component from "./web/components/Component.js";
 import PersonSkin from "./PersonSkin.js";
 import Class from "./core/Class.js";
-var Person = Component.createComponent({
-	name:'Person',
-	extends:Component,
-	props:{
-		name:{type:String}
-	}
-});
 var members = {};
-members.name={m:3,d:4,configurable:true,enumerable:true,get:function name(){
+members.name={m:3,d:4,enumerable:true,get:function name(){
 	return this.data('name');
 },set:function name(value){
 	this.data('name',value);
@@ -32,25 +24,38 @@ members.render={m:3,d:3,value:function render(){
 				"foot":this.slot('foot',true) || (function(props){return [
 					createElement('div',{
 						"slot":'foot'
-						}, ['the is PersonSkin child==========foot',props.props
+						}, ['====the is PersonSkin child====']),
+					createElement('div',{
+						"slot":'foot'
+						}, ['the scope value:',props.props
 					])
 				]}).bind(this)
 				}
-				})
+				}),
+			createElement('div',{
+				"attrs":{
+				"id":"person-root-child"
+				}
+				}, ['Person page'])
 		].concat((this.slot('default') || [])));
 }};
 members._init={value:function _init(options){
 (function Person(options){
-	Object.defineProperty(this,_private,{value:{}});
 	Component.prototype._init.call(this,options);
 }).call(this,options);
 }}
-Class.creator(9,Person,{
+var Person = Component.createComponent({
+	name:'Person',
+	extends:Component,
+	props:{
+		name:{type:String}
+	}
+});
+Class.creator(15,Person,{
 	'id':1,
 	'ns':'',
 	'name':'Person',
-	'private':_private,
 	'inherit':Component,
 	'members':members
-});
+}, false);
 export default Person;

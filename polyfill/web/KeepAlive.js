@@ -4,9 +4,7 @@
  * https://github.com/51breeze/EaseScript
  * @author Jun Ye <664371281@qq.com>
  */
+
 ///<references from='web.components.Vue' />
 ///<references from='Class' />
-///<references from='web.components.Router' />
-///<namespaces name='web.ui' />
-Vue.use( Router );
-var Viewport = Vue.component('RouterView');
+var KeepAlive = Vue.component('KeepAlive');

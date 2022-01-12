@@ -1,6 +1,7 @@
 import Router from "vue-router";
-import Class from "./../core/Class.js";
+import Component from "./Component.js";
 import Vue from "vue";
+import Class from "./../../core/Class.js";
 /*
  * Copyright © 2017 EaseScript All rights reserved.
  * Released under the MIT license
@@ -11,12 +12,11 @@ import Vue from "vue";
 
 
 
-
 Vue.use( Router );
-Class.creator(1,Router,{
+Class.creator(11,Router,{
 	'id':1,
 	'global':true,
 	'dynamic':false,
 	'name':'Router'
-});
+}, false);
 export default Router;

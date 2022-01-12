@@ -1,6 +1,6 @@
-var _private=Symbol("private");
 import Event from "./../../core/Event.js";
 import Class from "./../../core/Class.js";
+var _private=Symbol("private");
 function ComponentEvent(type,bubbles,cancelable){
 	Event.call(this,type);
 }
@@ -23,5 +23,5 @@ Class.creator(6,ComponentEvent,{
 	'private':_private,
 	'inherit':Event,
 	'methods':methods
-});
+}, false);
 export default ComponentEvent;

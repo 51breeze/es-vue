@@ -3,6 +3,7 @@ const Diagnostic = require("../../easescript2/lib/core/Diagnostic");
 const Compilation = require("../../easescript2/lib/core/Compilation");
 const path =require("path");
 const plugin = require("../index");
+
 class Creator {
     constructor(options){
         const compiler = new Compiler(Object.assign({
@@ -18,7 +19,7 @@ class Creator {
         compiler.initialize();
         this._compiler = compiler;
         this.plugin = new plugin(compiler);
-        this.plugin.config({pack:false,emitFile:true});
+        this.plugin.config({pack:false,emitFile:true,module:'es'});
         
     }
 
@@ -57,12 +58,13 @@ class Creator {
         return this.plugin.make( stack );
     }
 
-    build( compilation ){
+    build( compilation , done){
         return this.plugin.start( compilation, (e)=>{
                if( e ){
                    console.log(e);
                }else{
                    console.log("build done!!")
+                   done && done()
                }
         });
     }

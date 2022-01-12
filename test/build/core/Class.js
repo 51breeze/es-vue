@@ -14,16 +14,18 @@ var Class={
     'require':function(id){
         return __MODULES__[id];
     },
-    'creator':function(id,moduleClass,description){
+    'creator':function(id,moduleClass,description, flag){
         if( description ){
             if( description.inherit ){
                 Object.defineProperty(moduleClass,'prototype',{value:Object.create(description.inherit.prototype)});
             }
-            if( description.methods ){
-                Object.defineProperties(moduleClass,description.methods);
-            }
-            if( description.members ){
-                Object.defineProperties(moduleClass.prototype,description.members);
+            if( !flag ){
+                if( description.methods ){
+                    Object.defineProperties(moduleClass,description.methods);
+                }
+                if( description.members ){
+                    Object.defineProperties(moduleClass.prototype,description.members);
+                }
             }
             Object.defineProperty(moduleClass,key,{value:description});
             Object.defineProperty(moduleClass,'name',{value:description.name});
