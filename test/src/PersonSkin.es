@@ -1,7 +1,10 @@
 <s:Component 
 xmlns:s="web.components"
 xmlns:cmd="@directives" 
+xmlns:d="@directives" 
 xmlns:slot="@slots" 
+xmlns:te="@events::web.ui.TransitionEvent"
+xmlns:ui="web.ui"
 >
 
    <script>
@@ -34,6 +37,12 @@ xmlns:slot="@slots"
         get value():string{
             return this.data<string>('value') || '9999';
         }
+
+        beforeEnter(){
+            console.log('=========PersonSkin=====enter')
+        }
+
+        isShow = true;
 
    </script>
 
@@ -72,6 +81,16 @@ xmlns:slot="@slots"
         <div>===============the is foot slot ==============</div>
     </slot:foot>
 
-    <div>the is property {this.address}</div>
+    <div d:show="this.isShow">the is property {this.address}</div>
+
+     <button on:click={this.isShow = !this.isShow}>
+        Toggle
+    </button>
+
+    <ui:TransitionGroup name="fade" duration={{enter: 5000, leave: 5000}} te:BEFORE_ENTER={this.beforeEnter}>
+        <p d:if="this.isShow" key="1" >hello</p>
+        <p d:if="this.isShow" key="2" >hello</p>
+        <p d:if="this.isShow" key="3" >hello</p>
+    </ui:TransitionGroup>
 
 </s:Component>

@@ -6,7 +6,7 @@ members.render={m:3,d:3,value:function render(){
 	return Option.prototype.render.call(this);
 }};
 var MyOption = Component.createComponent({
-	name:'MyOption',
+	name:'es-MyOption',
 	extends:Option
 });
 Class.creator(9,MyOption,{

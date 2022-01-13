@@ -77,12 +77,9 @@ class VueClass extends Syntax{
                     let isAccessor = false;
                     if( !isStatic ){
                         if( modifier ==="public" ){
-                            const type = this.getAvailableOriginType( item.type() );
                             if( value ){
-                                //props.push( `${name}:{type:${type},default:${value}}` );
-                                makeValue = {get:`function ${name}(){return this.data('${name}') || ${value}}`,set:`function ${name}(value){this.data('${name}',value)}`}
+                                makeValue = {get:`function ${name}(){var res=this.data('${name}');return res === void 0 ? ${value} : res;}`,set:`function ${name}(value){this.data('${name}',value)}`}
                             }else{
-                                //props.push( `${name}:{type:${type}}` );
                                 makeValue = {get:`function ${name}(){return this.data('${name}')}`,set:`function ${name}(value){this.data('${name}',value)}`}
                             }
                             isAccessor = true;
@@ -112,15 +109,6 @@ class VueClass extends Syntax{
                         Constant.DECLARE_PROPERTY_ACCESSOR,
                         descriptive
                     ));
-                    if( !isStatic ){
-                        if( item.set ){
-                            if( modifier === "public" ){
-                                const type = this.getAvailableOriginType( item.set.params[0] && item.set.params[0].type() );
-                                //props.push( `${name}:{type:${type}}` );
-                            }
-                        }
-                    }
-
                 }else{
                     if(isStatic && modifier ==="public" && item.isEnterMethod && !mainEnterMethods.length ){
                         mainEnterMethods.push( this.semicolon(`${module.id}.${name}()`) )
@@ -240,12 +228,10 @@ class VueClass extends Syntax{
                 refs.push( value );
             }
         }
-        
         this.createModuleAssets( module, refs );
         this.createModuleRequires( module, refs );
-        
         this.getDependencies(module).forEach( depModule=>{
-             const declareComponent = depModule.isDeclaratorModule && depModule.requires.has( depModule.id ) && this.isInheritWebComponent(depModule);
+            const declareComponent = depModule.isDeclaratorModule && depModule.requires.has( depModule.id ) && this.isInheritWebComponent(depModule);
             if( declareComponent || this.isDependModule(depModule) ){
                 const name = this.getModuleReferenceName(depModule, module);
                 if( config.pack ){
@@ -264,12 +250,12 @@ class VueClass extends Syntax{
     }
 
     isDependModule(depModule,context){
-        const result = super.isDependModule(depModule,context);
-        if( result || !depModule.isDeclaratorModule ){
-            return result;
-        }
         if( this.compilation.isPolicy(2,depModule) ){
             return false;
+        }
+        const result = super.isDependModule(depModule,context);
+        if( result ){
+            return result;
         }
         const isUsed = this.isUsed(depModule);
         const isRequire = !depModule.isDeclaratorModule && 

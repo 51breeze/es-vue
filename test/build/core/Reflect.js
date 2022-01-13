@@ -233,7 +233,7 @@ var _Reflect = (function(_Reflect){
     return Reflect;
 
 }(Reflect));
-Class.creator(17,_Reflect,{
+Class.creator(21,_Reflect,{
 	'id':1,
 	'global':true,
 	'dynamic':false,

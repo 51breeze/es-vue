@@ -55,7 +55,7 @@ var mixins = [{
         if( this.hasEventListener(ComponentEvent.DESTROYED) ){
             this.dispatchEvent( new ComponentEvent( ComponentEvent.DESTROYED ) );
         }
-        this.onUnmount();
+        this.onUnmounted();
     },
     errorCaptured(){
         if( this.hasEventListener(ComponentEvent.ERROR_CAPTURED) ){
@@ -190,11 +190,13 @@ function createProperties( classConstructor , superClass ){
                 return data[name];
             }else{
                 var old = data[name];
-                if( this.onShouldUpdate(old,value) ){
-                    data[name] = value;
-                    if( this[key].initialized ){
+                if( this[key].initialized ){
+                    if( this.onShouldUpdate(old,value) ){
+                        data[name] = value;
                         this.$forceUpdate();
                     }
+                }else{
+                    data[name] = value;
                 }
                 return value;
             }
@@ -289,13 +291,13 @@ Object.defineProperty( Component, 'createComponent', {value:function createCompo
     options.mixins = mixins;
     if( inheritComponent ){
         var superClass = inheritComponent;
-        if( typeof superClass === 'function' && superClass.prototype.isWebComponent===true ){
+        var isFun = typeof superClass === 'function';
+        if( isFun && superClass.prototype.isWebComponent===true ){
             return superClass; 
         }
-        superClass = Vue.extend(inheritComponent);
         options.extends = superClass;
         var inheritClass = Vue.extend(options);
-        createProperties(inheritClass, superClass.options);
+        createProperties(inheritClass, isFun ? superClass.options : superClass );
         if( inheritClass.options.methods ){
             Object.assign( inheritClass.prototype, inheritClass.options.methods )
         }

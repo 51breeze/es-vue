@@ -5,14 +5,14 @@ var members = {};
 members.focus={m:3,d:3,value:function focus(){
 	ElSelect.prototype.focus.call(this);
 }};
-members.mounted={m:3,d:3,value:function mounted(){
+members.onMounted={m:3,d:3,value:function onMounted(){
 	this.focus();
 	this.watch('value',function(newValue,oldValue){
 		console.log('-------',newValue,oldValue);
 	});
 }};
 var Select = web_components_Component.createComponent({
-	name:'Select',
+	name:'es-Select',
 	extends:ElSelect
 });
 Class.creator(8,Select,{

@@ -1,7 +1,6 @@
 import Component from "./../components/Component.js";
 import Vue from "vue";
 import Class from "./../../core/Class.js";
-import Router from "./../components/Router.js";
 /*
  * Copyright © 2017 EaseScript All rights reserved.
  * Released under the MIT license
@@ -12,13 +11,12 @@ import Router from "./../components/Router.js";
 
 
 
-Vue.use( Router );
-var Viewport = Vue.component('RouterView');
-Class.creator(13,Viewport,{
+var Transition = Vue.component('Transition');
+Class.creator(19,Transition,{
 	'id':1,
 	'global':true,
 	'dynamic':false,
-	'name':'Viewport',
+	'name':'Transition',
 	'inherit':Component
 }, false);
-export default Viewport;
+export default Transition;

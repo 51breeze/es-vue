@@ -20,37 +20,82 @@ class JSXElement extends _JSXElement{
             tag:void 0,
             staticClass:void 0,
             class:void 0,
+            show:void 0,
             staticStyle:{},
             style:{},
             staticStyle:{},
             hook:{},
-            transition:{}
+            model:{},
+            transition:{},
+            directives:[]
         };
     }
 
     createAttributes( data, spreadAttributes ){
+
+        const pushEvent=(name,callback, category)=>{
+            const events =  data[ category ];
+            if( events[name] ){
+                if( !Array.isArray( events[name] ) ){
+                    events[name] = [ events[name] ];
+                }
+                if( !events[name].includes( callback ) ){
+                    events[name].push( callback );
+                }
+            }else{
+                events[name] = callback;
+            }
+        }
+
+        const toFun = (item,content)=>{
+            if( item.value.isJSXExpressionContainer ){
+                const expr = item.value.expression;
+                if( expr.isAssignmentExpression ){
+                    return `(function(){${content}}).bind(this)`
+                }
+            }
+            return content;
+        }
+
         this.stack.openingElement.attributes.forEach(item=>{
             if( item.isAttributeXmlns || item.isAttributeDirective ){
+                if( item.isAttributeDirective ){
+                    const name = item.name.value();
+                    if( name === 'show'){
+                       data.directives.push({name:`'show'`, value:this.make( item.valueArgument.expression )});
+                    }
+                }
                 return;
             }else if( item.isJSXSpreadAttribute ){
                 spreadAttributes && spreadAttributes.push( this.make( item ) );
                 return;
             }
-            const [name,value,ns] = this.make( item );
+            let [name,value,ns] = this.make( item );
             if( !value )return;
+
+            if(ns && ns.includes('::') ){
+                let [seg,className] = ns.split('::',2);
+                ns = seg;
+                const moduleClass = this.getModuleReferenceName( this.getModuleById(className) );
+                name = `[${moduleClass}.${name}]`;
+            }
+
             if( ns ==="@events" ){
-                data['on'][name] = value;
+                pushEvent( name, toFun(item,value), 'on')
                 return;
             }else if( ns ==="@natives" ){
-                data['nativeOn'][name] = value;
+                pushEvent( name, toFun(item,value), 'nativeOn')
                 return;
             }else if( ns ==="@binding" ){
-                data['on']['input'] = `(function(event){${value}=event && event.target && event.target.nodeType===1 ? event.target.value : event;}).bind(this)`;
+                data.directives.push({name:`'model'`, value:value});
+                pushEvent('input',`(function(event){${value}=event && event.target && event.target.nodeType===1 ? event.target.value : event;}).bind(this)`, 'on');
             }
+
             if( item.isMemberProperty ){
                 data.props[name] = value;
                 return;
             }
+
             switch(name){
                 case "class" :
                 case "style" :
@@ -63,8 +108,9 @@ class JSXElement extends _JSXElement{
                     data[name] = value;
                     break;
                 case "innerHTML" :
-                case "value" :   
                     data['domProps'][name] = value;
+                    break;
+                case "value" :
                 default:
                     data.attrs[name] = value;
             }

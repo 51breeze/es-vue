@@ -7,7 +7,7 @@ members.name={m:3,d:4,enumerable:true,get:function name(){
 },set:function name(value){
 	this.data('name',value);
 }};
-members.mounted={m:3,d:3,value:function mounted(){
+members.onMounted={m:3,d:3,value:function onMounted(){
 	var _this = this;
 	setTimeout(function(){
 		_this.data('name','=====手动设置不再接收上级的值 66666=====');
@@ -18,10 +18,10 @@ members.render={m:3,d:3,value:function render(){
 	return createElement('div',null, [
 			createElement(PersonSkin,{
 				"props":{
-				"name":this.name
-				},
+					"name":this.name
+					},
 				"scopedSlots":{
-				"foot":this.slot('foot',true) || (function(props){return [
+					"foot":this.slot('foot',true) || (function(props){return [
 					createElement('div',{
 						"slot":'foot'
 						}, ['====the is PersonSkin child====']),
@@ -30,12 +30,12 @@ members.render={m:3,d:3,value:function render(){
 						}, ['the scope value:',props.props
 					])
 				]}).bind(this)
-				}
+					}
 				}),
 			createElement('div',{
 				"attrs":{
-				"id":"person-root-child"
-				}
+					"id":"person-root-child"
+					}
 				}, ['Person page'])
 		].concat((this.slot('default') || [])));
 }};
@@ -45,13 +45,9 @@ members._init={value:function _init(options){
 }).call(this,options);
 }}
 var Person = Component.createComponent({
-	name:'Person',
-	extends:Component,
-	props:{
-		name:{type:String}
-	}
+	name:'es-Person'
 });
-Class.creator(15,Person,{
+Class.creator(16,Person,{
 	'id':1,
 	'ns':'',
 	'name':'Person',

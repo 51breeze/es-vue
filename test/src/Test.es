@@ -10,6 +10,9 @@ package{
     import MySkin;
     import web.ui.Viewport
     import web.ui.Link;
+    import web.ui.Transition;
+    import web.ui.TransitionGroup;
+    import web.ui.KeepAlive;
     import MyOption;
 
     @Embed('./assets/test.css')
@@ -97,9 +100,10 @@ package{
                         <br />
                         <Link to='/index'>首页面</Link>
                         <div>
-                            <Viewport />
+                            <KeepAlive>
+                                <Viewport />
+                            </KeepAlive>
                         </div>
-                        <div>{this.childElements}</div>
                 </div>
 
         
@@ -117,6 +121,34 @@ package{
             //             </Person>
             //             {this.skin.render()}
             //     </div>
+
+
+
+
+            // return <div xmlns:d="@directives" xmlns:on="@events"  xmlns:te="@events::web.ui.TransitionEvent" >
+            //             <button on:click={this.toggle}>
+            //                 Toggle
+            //             </button>
+            //             <TransitionGroup name="fade" duration={{enter: 5000, leave: 5000}} te:BEFORE_ENTER={this.beforeEnter}>
+            //                 <p d:if="this.isShow" key="1" >hello</p>
+            //                 <p d:if="this.isShow" key="2" >hello</p>
+            //                 <p d:if="this.isShow" key="3" >hello</p>
+            //             </TransitionGroup>
+            //         </div>
+
+        }
+
+        beforeEnter(...args){
+
+            console.log( args )
+
+        }
+
+        isShow:boolean = true;
+
+        toggle(){
+            this.isShow = !this.isShow;
+            console.log('--------', this.isShow )
         }
 
     }

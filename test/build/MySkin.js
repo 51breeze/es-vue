@@ -10,12 +10,12 @@ members.render={m:3,d:3,value:function render(){
 	var createElement = this.createElement.bind(this);
 	return createElement('div', {
 		"scopedSlots":{
-		"foot":(this.slot('foot',true,true,{props:this.list}) || [
+			"foot":(this.slot('foot',true,true,{props:this.list}) || [
 			createElement('div',{
 				"slot":'foot'
 				}, ['===============the is foot slot =============='])
 		])
-		}
+			}
 		}, [
 		this.name ? createElement('div',{
 			"class":'bg'
@@ -42,24 +42,15 @@ members.render={m:3,d:3,value:function render(){
 			])
 		]),
 		createElement('input',{
-			"attrs":{
-			"value":this.value
-			},
 			"on":{
-			"input":(function(event){this.value=event && event.target && event.target.nodeType===1 ? event.target.value : event;}).bind(this),
-			"change":this.onChange.bind(this)
-			},
-			"domProps":{
-			"value":this.value
-			}
+				"input":(function(event){this.value=event && event.target && event.target.nodeType===1 ? event.target.value : event;}).bind(this),
+				"change":this.onChange.bind(this)
+				}
 			}),
 		createElement('input',{
 			"attrs":{
-			"value":this.value
-			},
-			"domProps":{
-			"value":this.value
-			}
+				"value":this.value
+				}
 			})
 	]);
 }};
@@ -79,7 +70,7 @@ members.value={m:3,d:4,enumerable:true,get:function value(){
 },set:function value(val){
 	this.data('value',val);
 }};
-Class.creator(13,MySkin,{
+Class.creator(14,MySkin,{
 	'id':1,
 	'ns':'',
 	'name':'MySkin',

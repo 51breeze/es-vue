@@ -27,14 +27,7 @@ Component.prototype._init.call(this,options);
 }).call(this,options);
 }}
 var View = Component.createComponent({
-	name:'View',
-	extends:Component,
-	props:{
-		skinClass:{type:null}
-	},
-	data:function data(){return {
-		_skinClass:null
-	};}
+	name:'es-View'
 });
 Class.creator(2,View,{
 	'id':1,

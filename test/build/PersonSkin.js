@@ -1,17 +1,20 @@
 import web_components_Component from "./web/components/Component.js";
+import web_ui_TransitionGroup from "./web/ui/TransitionGroup.js";
+import web_ui_TransitionEvent from "./web/ui/TransitionEvent.js";
 import Reflect from "./core/Reflect.js";
 import Class from "./core/Class.js";
 var members = {};
 members.render={m:3,d:3,value:function render(){
+	var _c;
 	var createElement = this.createElement.bind(this);
 	return createElement('div', {
 		"scopedSlots":{
-		"foot":(this.slot('foot',true,true,{props:this.list}) || [
+			"foot":(this.slot('foot',true,true,{props:this.list}) || [
 			createElement('div',{
 				"slot":'foot'
 				}, ['===============the is foot slot =============='])
 		])
-		}
+			}
 		}, [
 		this.name ? createElement('div',{
 			"class":'bg'
@@ -38,30 +41,50 @@ members.render={m:3,d:3,value:function render(){
 			])
 		]),
 		createElement('input',{
-			"attrs":{
-			"value":this.value
-			},
 			"on":{
-			"input":(function(event){this.value=event && event.target && event.target.nodeType===1 ? event.target.value : event;}).bind(this),
-			"change":this.onChange.bind(this)
-			},
-			"domProps":{
-			"value":this.value
-			}
+				"input":(function(event){this.value=event && event.target && event.target.nodeType===1 ? event.target.value : event;}).bind(this),
+				"change":this.onChange.bind(this)
+				}
 			}),
 		createElement('input',{
 			"attrs":{
-			"value":this.value
-			},
-			"domProps":{
-			"value":this.value
-			}
+				"value":this.value
+				}
 			}),
-		createElement('div',null, ['the is property',this.address
+		createElement('div',{
+			"directives":[
+				{
+				"name":'show',
+				"value":this.isShow
+				}
+				]
+			}, ['the is property',this.address
+		]),
+		createElement('button',{
+			"on":{
+				"click":(function(){this.isShow=!this.isShow}).bind(this)
+				}
+			}, ['Toggle']),
+		createElement(web_ui_TransitionGroup,{
+			"props":{
+				"name":"fade",
+				"duration":{"enter":5000,"leave":5000}
+				},
+			"on":(_c={},_c[web_ui_TransitionEvent.BEFORE_ENTER]=this.beforeEnter.bind(this),_c)
+			}, [
+			this.isShow ? createElement('p',{
+				"key":"1"
+				}, ['hello']) : null,
+			this.isShow ? createElement('p',{
+				"key":"2"
+				}, ['hello']) : null,
+			this.isShow ? createElement('p',{
+				"key":"3"
+				}, ['hello']) : null
 		])
 	]);
 }};
-members.address={m:3,d:1,writable:true,enumerable:true,value:'address'};
+members.address={m:3,d:4,enumerable:true,get:function address(){var res=this.data('address');return res === void 0 ? 'address' : res;},set:function address(value){this.data('address',value)}};
 members.name={m:3,d:4,enumerable:true,get:function name(){
 	return this.data('name');
 },set:function name(value){
@@ -78,16 +101,14 @@ members.value={m:3,d:4,enumerable:true,get:function value(){
 },set:function value(val){
 	this.data('value',val);
 }};
+members.beforeEnter={m:3,d:3,value:function beforeEnter(){
+	console.log('=========PersonSkin=====enter');
+}};
+members.isShow={m:3,d:4,enumerable:true,get:function isShow(){var res=this.data('isShow');return res === void 0 ? true : res;},set:function isShow(value){this.data('isShow',value)}};
 var PersonSkin = web_components_Component.createComponent({
-	name:'PersonSkin',
-	extends:web_components_Component,
-	props:{
-		address:{type:String,default:'address'},
-		name:{type:String},
-		value:{type:String}
-	}
+	name:'es-PersonSkin'
 });
-Class.creator(16,PersonSkin,{
+Class.creator(17,PersonSkin,{
 	'id':1,
 	'ns':'',
 	'name':'PersonSkin',

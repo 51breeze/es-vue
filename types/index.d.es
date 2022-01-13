@@ -4,7 +4,99 @@ package web.ui{
         name:string;
     }
 
-    declare class KeepAlive extends web.components.Component{}
+    /**
+    * <transition> 元素作为单个元素/组件的过渡效果。<transition> 只会把过渡效果应用到其包裹的内容上，而不会额外渲染 DOM 元素，也不会出现在可被检查的组件层级中。
+    */
+    @define(slot,'default')
+    declare class Transition extends web.components.Component{
+        /**
+        * 用于自动生成 CSS 过渡类名。例如：name: 'fade' 将自动拓展为 .fade-enter，.fade-enter-active 等。默认类名为 "v"
+        */
+        name:string
+        /**
+        * 是否在初始渲染时使用过渡。默认为 false
+        */
+        appear:boolean = false
+        /**
+        * 是否使用 CSS 过渡类。默认为 true。如果设置为 false，将只通过组
+        */
+        css:boolean = true
+        /**
+        * 指定过渡事件类型，侦听过渡何时结束。有效值为 "transition" 和 "animation"。默认将自动检测出持续时间长的为过渡事件类型。
+        */
+        type:"transition" | "animation"
+        /**
+        * 控制离开/进入过渡的时间序列
+        */
+        mode:"out-in" | "in-out"
+        /**
+        * 指定过渡的持续时间。默认情况下会等待过渡所在根元素的第一个 transitionend 或 animationend 事件
+        */
+        duration:number | {enter: number, leave: number}
+
+        enterClass:string
+        leaveClass:string
+        appearClass:string
+        enterToClass:string
+        leaveToClass:string
+        appearToClass:string
+        enterActiveClass:string
+        leaveActiveClass:string
+        appearActiveClass:string
+    }
+
+    /**
+    * <transition-group> 元素作为多个元素/组件的过渡效果。<transition-group> 渲染一个真实的 DOM 元素。默认渲染 <span>，可以通过 tag attribute 配置哪个元素应该被渲染。
+    * 注意，每个 <transition-group> 的子节点必须有独立的 key，动画才能正常工作
+    * <transition-group> 支持通过 CSS transform 过渡移动。当一个子节点被更新，从屏幕上的位置发生变化，它会被应用一个移动中的 CSS 类 (通过 name attribute 或配置 move-class attribute 自动生成)。
+    * 如果 CSS transform property 是“可过渡”property，当应用移动类时，将会使用 FLIP 技术使元素流畅地到达动画终点。
+    */
+    declare class TransitionGroup extends Transition{
+        tag:string= 'span'
+        moveClass:string
+    }
+
+    /**
+    * 过渡事件名集合
+    */
+    class TransitionEvent{
+        static const BEFORE_ENTER= 'before-enter'
+        static const BEFORE_LEAVE= 'before-leave'
+        static const BEFORE_APPEAR='before-appear'
+        static const ENTER='enter'
+        static const LEAVE='leave'
+        static const APPEAR='appear'
+        static const AFTER_ENTER='after-enter'
+        static const AFTER_LEAVE='after-leave'
+        static const AFTER_APPEAR='after-appear'
+        static const ENTER_CANELLED='enter-cancelled'
+        static const LEAVE_CANELLED= 'leave-cancelled'
+        static const APPEAR_CANCELLED='appear-cancelled'
+    }
+
+    /**
+    * <keep-alive> 包裹动态组件时，会缓存不活动的组件实例，而不是销毁它们。
+    * 和 <transition> 相似，<keep-alive> 是一个抽象组件：它自身不会渲染一个 DOM 元素，也不会出现在组件的父组件链中。
+    * 当组件在 <keep-alive> 内被切换，它的 activated 和 deactivated 这两个生命周期钩子函数将会被对应执行。
+    */
+    @define(slot,'default')
+    declare class KeepAlive extends web.components.Component{
+        /**
+        * 只有名称匹配的组件会被缓存
+        */
+        include:string | RegExp
+
+        /**
+        * 任何名称匹配的组件都不会被缓存
+        */
+        exclude:string | RegExp
+
+        /**
+        *最多可以缓存多少组件实例
+        */
+        max:number | string
+    }
+
     
     declare class Link extends web.components.Component{
         exact:boolean;
@@ -17,8 +109,11 @@ package web.ui{
         event:string[];
     }
 
+    @define(slot,'prefix')
+    @define(slot,'default')
     @import(ElSelect = "element-ui/packages/select")
     @Embed('element-ui/lib/theme-chalk/select.css')
+    @Embed('element-ui/lib/theme-chalk/icon.css');
     declare class ElSelect extends web.components.Component{
 
         /**

@@ -1,20 +1,17 @@
-import Vue from "vue";
 import Component from "./web/components/Component.js";
 import Notification from "element-ui/packages/notification";
 import Select from "./web/ui/Select.js";
 import MyOption from "./MyOption.js";
 import Link from "./web/ui/Link.js";
+import KeepAlive from "./web/ui/KeepAlive.js";
 import Viewport from "./web/ui/Viewport.js";
-import ComponentEvent from "./web/components/ComponentEvent.js";
 import Class from "./core/Class.js";
 var members = {};
-members.beforeCreate={m:3,d:3,value:function beforeCreate(){
-	this.addEventListener(ComponentEvent.BEFORE_MOUNT,function(e){
-
-	});
+members.onInitialized={m:3,d:3,value:function onInitialized(){
+	console.log('====onInitialized========');
 }};
-members.address={m:3,d:1,writable:true,enumerable:true,value:null};
-members.beforeMount={m:3,d:3,value:function beforeMount(){
+members.address={m:3,d:4,enumerable:true,get:function address(){var res=this.data('address');return res === void 0 ? null : res;},set:function address(value){this.data('address',value)}};
+members.onBeforeMount={m:3,d:3,value:function onBeforeMount(){
 	console.log('=====beforeMount======');
 }};
 members.name={m:3,d:4,enumerable:true,get:function name(){
@@ -45,33 +42,27 @@ members.render={m:3,d:3,value:function render(){
 			createElement('p',null, [
 				createElement('h5',{
 					"on":{
-					"click":this.tips.bind(this)
-					}
+						"click":this.tips.bind(this)
+						}
 					}, ['点击这里提示',this.name
 				]),
 				createElement(Select,{
 					"props":{
-					"value":this.value
-					},
+						"value":this.value
+						},
 					"on":{
-					"input":(function(event){this.value=event && event.target && event.target.nodeType===1 ? event.target.value : event;}).bind(this)
-					}
+						"input":(function(event){this.value=event && event.target && event.target.nodeType===1 ? event.target.value : event;}).bind(this)
+						}
 					}, [
 					createElement(MyOption,{
 						"attrs":{
-						"value":"深圳"
-						},
-						"domProps":{
-						"value":"深圳"
-						}
+							"value":"深圳"
+							}
 						}),
 					createElement(MyOption,{
 						"attrs":{
-						"value":"长沙"
-						},
-						"domProps":{
-						"value":"长沙"
-						}
+							"value":"长沙"
+							}
 						})
 				].concat(this.slot('prefix') || [
 						createElement('div',{
@@ -81,20 +72,30 @@ members.render={m:3,d:3,value:function render(){
 			]),
 			createElement(Link,{
 				"attrs":{
-				"to":'/test'
-				}
+					"to":'/test'
+					}
 				}, ['测试页面']),
 			createElement('br'),
 			createElement(Link,{
 				"attrs":{
-				"to":'/index'
-				}
+					"to":'/index'
+					}
 				}, ['首页面']),
 			createElement('div',null, [
-				createElement(Viewport)
-			]),
-			createElement('div',null, [this.childElements])
+				createElement(KeepAlive,null, [
+					createElement(Viewport)
+				])
+			])
 		]);
+}};
+members.beforeEnter={m:3,d:3,value:function beforeEnter(){
+	var args = Array.prototype.slice.call(arguments,0);
+	console.log(args);
+}};
+members.isShow={m:3,d:4,enumerable:true,get:function isShow(){var res=this.data('isShow');return res === void 0 ? true : res;},set:function isShow(value){this.data('isShow',value)}};
+members.toggle={m:3,d:3,value:function toggle(){
+	this.isShow=!this.isShow;
+	console.log('--------',this.isShow);
 }};
 members._init={value:function _init(options){
 (function Test(options){
@@ -102,14 +103,7 @@ members._init={value:function _init(options){
 }).call(this,options);
 }}
 var Test = Component.createComponent({
-	name:'Test',
-	extends:Component,
-	props:{
-		address:{type:String,default:null},
-		name:{type:String},
-		value:{type:String},
-		childElements:{type:null}
-	}
+	name:'es-Test'
 });
 Class.creator(7,Test,{
 	'id':1,

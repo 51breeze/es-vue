@@ -85,7 +85,8 @@ function plugin(complier){
         loadStack();
     }
     this.complier = complier;
-    complier.loadTypes([require.resolve('./types/index.d.es')],true, null, true)
+    complier.options.annotations.push('Define');
+    complier.loadTypes([require.resolve('./types/index.d.es')],true, null, true);
 };
 
 for(var name in properties){

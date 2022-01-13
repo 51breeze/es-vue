@@ -8,4 +8,4 @@
 ///<references from='web.components.Vue' />
 ///<references from='Class' />
 ///<namespaces name='web.ui' />
-var KeepAlive = Vue.component('KeepAlive');
+var Transition = Vue.component('Transition');
