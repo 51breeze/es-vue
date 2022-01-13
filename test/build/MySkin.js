@@ -42,10 +42,19 @@ members.render={m:3,d:3,value:function render(){
 			])
 		]),
 		createElement('input',{
+			"attrs":{
+				"value":this.value
+				},
 			"on":{
 				"input":(function(event){this.value=event && event.target && event.target.nodeType===1 ? event.target.value : event;}).bind(this),
 				"change":this.onChange.bind(this)
+				},
+			"directives":[
+				{
+				"name":'model',
+				"value":this.value
 				}
+				]
 			}),
 		createElement('input',{
 			"attrs":{

@@ -41,10 +41,19 @@ members.render={m:3,d:3,value:function render(){
 			])
 		]),
 		createElement('input',{
+			"attrs":{
+				"value":this.value
+				},
 			"on":{
 				"input":(function(event){this.value=event && event.target && event.target.nodeType===1 ? event.target.value : event;}).bind(this),
 				"change":this.onChange.bind(this)
+				},
+			"directives":[
+				{
+				"name":'model',
+				"value":this.value
 				}
+				]
 			}),
 		createElement('input',{
 			"attrs":{
@@ -82,7 +91,16 @@ members.render={m:3,d:3,value:function render(){
 				"key":"3"
 				}, ['hello']) : null
 		])
-	]);
+	].concat(this.isShow ? [
+			createElement('div',null, ['the is a group condition']),
+			createElement('div',null, ['the is a group condition']),
+			createElement('div',null, ['the is a group condition']),
+			createElement('div',null, ['the is a group condition']),
+			createElement('div',null, ['the is a group condition']),
+			createElement('div',null, ['the is a group condition'])
+		]  : [
+			createElement('div',null, ['the is a group elseif'])
+		]));
 }};
 members.address={m:3,d:4,enumerable:true,get:function address(){var res=this.data('address');return res === void 0 ? 'address' : res;},set:function address(value){this.data('address',value)}};
 members.name={m:3,d:4,enumerable:true,get:function name(){

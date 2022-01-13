@@ -87,10 +87,25 @@ xmlns:ui="web.ui"
         Toggle
     </button>
 
-    <ui:TransitionGroup name="fade" duration={{enter: 5000, leave: 5000}} te:BEFORE_ENTER={this.beforeEnter}>
+    <web.ui.TransitionGroup name="fade" te:BEFORE_ENTER={this.beforeEnter}>
         <p d:if="this.isShow" key="1" >hello</p>
         <p d:if="this.isShow" key="2" >hello</p>
         <p d:if="this.isShow" key="3" >hello</p>
-    </ui:TransitionGroup>
+    </web.ui.TransitionGroup>
+
+
+    <d:if condition="this.isShow">
+       <div>the is a group condition</div>
+       <div>the is a group condition</div>
+       <div>the is a group condition</div>
+       <div>the is a group condition</div>
+       <div>the is a group condition</div>
+       <div>the is a group condition</div>
+    </d:if>
+    <d:else>
+        <div>the is a group elseif</div>
+    </d:else>
+
+
 
 </s:Component>

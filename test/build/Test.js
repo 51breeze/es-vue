@@ -52,7 +52,13 @@ members.render={m:3,d:3,value:function render(){
 						},
 					"on":{
 						"input":(function(event){this.value=event && event.target && event.target.nodeType===1 ? event.target.value : event;}).bind(this)
+						},
+					"directives":[
+						{
+						"name":'model',
+						"value":this.value
 						}
+						]
 					}, [
 					createElement(MyOption,{
 						"attrs":{
