@@ -7,32 +7,26 @@ var members = {};
 members.render={m:3,d:3,value:function render(){
 	var _c;
 	var createElement = this.createElement.bind(this);
-	return createElement('div', {
-		"scopedSlots":{
-			"foot":(this.slot('foot',true,true,{props:this.list}) || [
-			createElement('div',{
-				"slot":'foot'
-				}, ['===============the is foot slot =============='])
-		])
-			}
-		}, [
+	return createElement('div', null, [
 		this.name ? createElement('div',{
 			"class":'bg'
 			}, ['1']) : 
 		!(this.name) ? createElement('div',null, ['2']) : 
-		createElement('div',null, ['399999']),
+		createElement('div',null, ['399999'])
+	].concat(
 		['china'].concat(this.list).map((function(item){
 			return createElement('div',null, [
-					createElement('div',null, [item]),
-					createElement('div',{
-						"class":"ssss"
-						}, [
-						createElement('div',null, [
-							createElement('span',null, (this.slot('default') || []))
+						createElement('div',null, [item]),
+						createElement('div',{
+							"class":"ssss"
+							}, [
+							createElement('div',null, [
+								createElement('span',null, (this.slot('default') || []))
+							])
 						])
-					])
-				]);
-		}).bind(this)),
+					]);
+		}).bind(this))).concat(
+		[
 		createElement('div',{
 			"ref":'iss',
 			"class":""
@@ -59,7 +53,14 @@ members.render={m:3,d:3,value:function render(){
 			"attrs":{
 				"value":this.value
 				}
-			}),
+			})
+	]).concat(
+		(this.slot('foot',true,true,{props:this.list}) || [
+			createElement('div',{
+				"slot":'foot'
+				}, ['===============the is foot slot =============='])
+		])).concat(
+		[
 		createElement('div',{
 			"directives":[
 				{
@@ -76,8 +77,7 @@ members.render={m:3,d:3,value:function render(){
 			}, ['Toggle']),
 		createElement(web_ui_TransitionGroup,{
 			"props":{
-				"name":"fade",
-				"duration":{"enter":5000,"leave":5000}
+				"name":"fade"
 				},
 			"on":(_c={},_c[web_ui_TransitionEvent.BEFORE_ENTER]=this.beforeEnter.bind(this),_c)
 			}, [
@@ -91,7 +91,8 @@ members.render={m:3,d:3,value:function render(){
 				"key":"3"
 				}, ['hello']) : null
 		])
-	].concat(this.isShow ? [
+	]).concat(
+		this.isShow ? [
 			createElement('div',null, ['the is a group condition']),
 			createElement('div',null, ['the is a group condition']),
 			createElement('div',null, ['the is a group condition']),
@@ -100,6 +101,48 @@ members.render={m:3,d:3,value:function render(){
 			createElement('div',null, ['the is a group condition'])
 		]  : [
 			createElement('div',null, ['the is a group elseif'])
+		],
+		this.list.map((function(item,key){
+				return [
+					createElement('div',null, ['====each==',item,'=',key
+					]),
+					createElement('div',null, ['===22=each==',item,'=',key
+					])
+				];
+			}).bind(this)).reduce(function(acc, val){return acc.concat(val)}, []),
+		(function(_refs2){
+				var __refs2 = [];
+				if( typeof _refs2 ==='number' ){
+					_refs2 = Array.from({length:_refs2}, function(v,i){return i;});
+				}
+				for(var keyName in _refs2){
+					var item = _refs2[keyName];
+					__refs2.push([
+					createElement('div',null, ['====for===',item,',',keyName
+					]),
+					createElement('div',null, ['===222=for===',item,',',keyName
+					])
+				]);
+				}
+				return __refs2;
+			}).call(this,this.list).reduce(function(acc, val){return acc.concat(val)}, []),
+		[
+			createElement('div',{
+				"directives":[
+					{
+					"name":'show',
+					"value":this.isShow
+					}
+					]
+				}, ['====show==']),
+			createElement('div',{
+				"directives":[
+					{
+					"name":'show',
+					"value":this.isShow
+					}
+					]
+				}, ['===222=show==='])
 		]));
 }};
 members.address={m:3,d:4,enumerable:true,get:function address(){var res=this.data('address');return res === void 0 ? 'address' : res;},set:function address(value){this.data('address',value)}};
@@ -126,7 +169,7 @@ members.isShow={m:3,d:4,enumerable:true,get:function isShow(){var res=this.data(
 var PersonSkin = web_components_Component.createComponent({
 	name:'es-PersonSkin'
 });
-Class.creator(17,PersonSkin,{
+Class.creator(16,PersonSkin,{
 	'id':1,
 	'ns':'',
 	'name':'PersonSkin',

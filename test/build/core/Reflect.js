@@ -8,10 +8,6 @@ import System from "./System.js";
  * @author Jun Ye <664371281@qq.com>
  */
 
-
-
-
-
 var _Reflect = (function(_Reflect){
     var _construct = _Reflect ? _Reflect.construct : function construct(theClass,args){
         if( !System.isFunction( theClass ) ){
@@ -233,7 +229,7 @@ var _Reflect = (function(_Reflect){
     return Reflect;
 
 }(Reflect));
-Class.creator(21,_Reflect,{
+Class.creator(20,_Reflect,{
 	'id':1,
 	'global':true,
 	'dynamic':false,

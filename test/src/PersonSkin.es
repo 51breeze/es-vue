@@ -106,6 +106,21 @@ xmlns:ui="web.ui"
         <div>the is a group elseif</div>
     </d:else>
 
+    <d:each name={this.list} item='item'>
+      <div>====each=={item}={key}</div>
+      <div>===22=each=={item}={key}</div>
+    </d:each>
+
+    <d:for name={this.list} item='item' key='keyName' >
+      <div>====for==={item},{keyName}</div>
+      <div>===222=for==={item},{keyName}</div>
+    </d:for>
+
+    <d:show condition="this.isShow" >
+      <div>====show==</div>
+      <div>===222=show===</div>
+    </d:show>
+
 
 
 </s:Component>

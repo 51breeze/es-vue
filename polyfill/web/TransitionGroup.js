@@ -4,8 +4,8 @@
  * https://github.com/51breeze/EaseScript
  * @author Jun Ye <664371281@qq.com>
  */
-
-///<references from='web.components.Vue' />
+///<import from='vue' name='Vue' />
 ///<references from='Class' />
 ///<namespaces name='web.ui' />
+///__REFS__
 var TransitionGroup = Vue.component('TransitionGroup');

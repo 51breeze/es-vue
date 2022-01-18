@@ -28,14 +28,24 @@ package{
         render(){
 
             return <div xmlns:slot="@slots">
+                        
                         <PersonSkin name={this.name} >
                             <slot:foot scope="props">
                                 <div>====the is PersonSkin child====</div>
                                 <div>the scope value:{props.props}</div>
                             </slot:foot>
+                            <slot:default>
+                               ==================
+                            </slot:default>
                         </PersonSkin>
                         <div id="person-root-child">Person page</div>
-                        <slot:default />
+
+
+                        <web.ui.Button> button </web.ui.Button>
+                        <web.ui.TextLink type='primary'> text link </web.ui.TextLink>
+                     
+                       
+                       
                     </div>
         }
 

@@ -15,7 +15,7 @@ methods.AFTER_APPEAR={m:3,d:2,enumerable:true,value:'after-appear'};
 methods.ENTER_CANELLED={m:3,d:2,enumerable:true,value:'enter-cancelled'};
 methods.LEAVE_CANELLED={m:3,d:2,enumerable:true,value:'leave-cancelled'};
 methods.APPEAR_CANCELLED={m:3,d:2,enumerable:true,value:'appear-cancelled'};
-Class.creator(20,TransitionEvent,{
+Class.creator(19,TransitionEvent,{
 	'id':1,
 	'ns':'web.ui',
 	'name':'TransitionEvent',

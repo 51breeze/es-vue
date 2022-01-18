@@ -8,9 +8,6 @@ import EventDispatcher from "./EventDispatcher.js";
  * @author Jun Ye <664371281@qq.com>
  */
 
-
-
-
 function System(){
     throw new SyntaxError('System is not constructor.');
 };
@@ -207,7 +204,7 @@ System.getEventDispatcher=function getEventDispatcher(){
      }
      return null;
  };
-Class.creator(22,System,{
+Class.creator(21,System,{
 	'id':1,
 	'global':true,
 	'dynamic':false,

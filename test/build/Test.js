@@ -61,12 +61,12 @@ members.render={m:3,d:3,value:function render(){
 						]
 					}, [
 					createElement(MyOption,{
-						"attrs":{
+						"props":{
 							"value":"深圳"
 							}
 						}),
 					createElement(MyOption,{
-						"attrs":{
+						"props":{
 							"value":"长沙"
 							}
 						})

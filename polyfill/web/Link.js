@@ -4,10 +4,10 @@
  * https://github.com/51breeze/EaseScript
  * @author Jun Ye <664371281@qq.com>
  */
-
-///<references from='web.components.Vue' />
+///<import from='vue' name='Vue' />
 ///<references from='Class' />
 ///<references from='web.components.Router' />
 ///<namespaces name='web.ui' />
+///__REFS__
 Vue.use( Router );
 var Link = Vue.component('RouterLink');

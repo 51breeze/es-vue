@@ -1,16 +1,15 @@
-
 /*
  * Copyright © 2017 EaseScript All rights reserved.
  * Released under the MIT license
  * https://github.com/51breeze/EaseScript
  * @author Jun Ye <664371281@qq.com>
  */
-
-///<references from='web.components.Vue'/>
+///<import from='vue' name='Vue' />
 ///<references from='Class' />
 ///<references from='EventDispatcher' />
 ///<references from='web.components.ComponentEvent' />
 ///<namespaces name='web.components' />
+///__REFS__
 var classKey = Class.key;
 var key = Symbol('private');
 var baseOptions = {};
@@ -110,10 +109,12 @@ function createProperties( classConstructor , superClass ){
         var opts = classModule && classModule.options;
         if( opts && opts.methods ){
             var description = classModule[classKey];
-            var members = description.members || {};
-            for(var name in opts.methods ){
-                if(Object.hasOwnProperty.call(members, name)){
-                    delete opts.methods[name];
+            if( description ){
+                var members = description.members || {};
+                for(var name in opts.methods ){
+                    if(Object.hasOwnProperty.call(members, name)){
+                        delete opts.methods[name];
+                    }
                 }
             }
         }

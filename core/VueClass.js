@@ -231,8 +231,7 @@ class VueClass extends Syntax{
         this.createModuleAssets( module, refs );
         this.createModuleRequires( module, refs );
         this.getDependencies(module).forEach( depModule=>{
-            const declareComponent = depModule.isDeclaratorModule && depModule.requires.has( depModule.id ) && this.isInheritWebComponent(depModule);
-            if( declareComponent || this.isDependModule(depModule) ){
+            if( this.isDependModule(depModule) ){
                 const name = this.getModuleReferenceName(depModule, module);
                 if( config.pack ){
                     push( this.emitPackImportClass(depModule, name) );
@@ -258,12 +257,11 @@ class VueClass extends Syntax{
             return result;
         }
         const isUsed = this.isUsed(depModule);
-        const isRequire = !depModule.isDeclaratorModule && 
-                            isUsed &&
-                            this.compiler.callUtils("isLocalModule", depModule) && 
-                            !this.compiler.callUtils("checkDepend",this.module, depModule);         
-        const isPolyfill = depModule.isDeclaratorModule && Polyfill.modules.has( depModule.getName() );
-        return isRequire || isPolyfill;
+        if( !isUsed || !depModule.isDeclaratorModule )return false;
+        if( Polyfill.modules.has( depModule.getName() ) ){
+            return true;
+        }
+        return depModule.requires && depModule.requires.has( depModule.id ) && this.isInheritWebComponent(depModule)
     }
 
     createClassDescription(module, inherit, imps, methods, members, _private){

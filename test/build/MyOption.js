@@ -9,7 +9,7 @@ var MyOption = Component.createComponent({
 	name:'es-MyOption',
 	extends:Option
 });
-Class.creator(9,MyOption,{
+Class.creator(8,MyOption,{
 	'id':1,
 	'ns':'',
 	'name':'MyOption',

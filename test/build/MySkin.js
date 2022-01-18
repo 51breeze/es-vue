@@ -8,32 +8,26 @@ web_Skin.call(this, context);
 var members = {};
 members.render={m:3,d:3,value:function render(){
 	var createElement = this.createElement.bind(this);
-	return createElement('div', {
-		"scopedSlots":{
-			"foot":(this.slot('foot',true,true,{props:this.list}) || [
-			createElement('div',{
-				"slot":'foot'
-				}, ['===============the is foot slot =============='])
-		])
-			}
-		}, [
+	return createElement('div', null, [
 		this.name ? createElement('div',{
 			"class":'bg'
 			}, ['1']) : 
 		!(this.name) ? createElement('div',null, ['2']) : 
-		createElement('div',null, ['399999']),
+		createElement('div',null, ['399999'])
+	].concat(
 		['china'].concat(this.list).map((function(item){
 			return createElement('div',null, [
-					createElement('div',null, [item]),
-					createElement('div',{
-						"class":"ssss"
-						}, [
-						createElement('div',null, [
-							createElement('span',null, (this.slot('default') || []))
+						createElement('div',null, [item]),
+						createElement('div',{
+							"class":"ssss"
+							}, [
+							createElement('div',null, [
+								createElement('span',null, (this.slot('default') || []))
+							])
 						])
-					])
-				]);
-		}).bind(this)),
+					]);
+		}).bind(this))).concat(
+		[
 		createElement('div',{
 			"ref":'iss',
 			"class":""
@@ -61,7 +55,12 @@ members.render={m:3,d:3,value:function render(){
 				"value":this.value
 				}
 			})
-	]);
+	]).concat(
+		(this.slot('foot',true,true,{props:this.list}) || [
+			createElement('div',{
+				"slot":'foot'
+				}, ['===============the is foot slot =============='])
+		])));
 }};
 members.name={m:3,d:4,enumerable:true,get:function name(){
 	return this.hostComponent.name;
@@ -79,7 +78,7 @@ members.value={m:3,d:4,enumerable:true,get:function value(){
 },set:function value(val){
 	this.data('value',val);
 }};
-Class.creator(14,MySkin,{
+Class.creator(13,MySkin,{
 	'id':1,
 	'ns':'',
 	'name':'MySkin',
