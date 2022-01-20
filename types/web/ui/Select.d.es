@@ -1,15 +1,17 @@
 package web.ui;
 
-@define(slot,'prefix')
-@define(slot,'default')
-@define(slot,'empty')
+import web.components.Component
 
-@import(Select = "element-ui/packages/select")
+@Define(slot,'prefix')
+@Define(slot,'default')
+@Define(slot,'empty')
 
+@Import(Select = "element-ui/packages/select")
 @Embed('element-ui/lib/theme-chalk/select.css')
 @Embed('element-ui/lib/theme-chalk/icon.css');
 
-declare class Select extends web.components.Component{
+@Final
+declare class Select extends Component{
 
     /**
     * 绑定值

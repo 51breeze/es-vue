@@ -2,9 +2,9 @@ package web.ui
 
 import web.components.Component
 
-@import(DatePicker = "element-ui/packages/date-picker")
-
+@Import(DatePicker = "element-ui/packages/date-picker")
 @Embed('element-ui/lib/theme-chalk/date-picker.css')
+@Final
 declare class DatePicker extends Component{
     //尺寸 
     size:'medium' | 'small' | 'mini'

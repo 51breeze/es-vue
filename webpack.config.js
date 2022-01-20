@@ -45,7 +45,7 @@ const config = {
     path:path.resolve( build ),
     filename:`[name].js`,
     //chunkFilename:`./[name].js`,
-    publicPath:"",
+    publicPath:"/",
   },
   resolve:{
     extensions:[".js",'.es','.vue', ".json",".css",".less"],
@@ -105,18 +105,27 @@ const config = {
       {
         test: /\.css$/,
         use: [
-            ExtractTextPlugin.loader,
+            {
+              loader: ExtractTextPlugin.loader,
+              options: {
+                // 这里可以指定一个 publicPath
+                // 默认使用 webpackOptions.output中的publicPath
+                publicPath: '/'
+              },
+            },
+
             'css-loader'
           ]
       },
       {
         test: /\.(png|jpg|jpeg|gif|eot|ttf|woff|woff2|svg|svgz)(\?.+)?$/,
-        use: [{
-          loader: 'url-loader',
-          options: {
-            limit: 10000
-          }
-        }]
+        type:'asset'
+        // use: [{
+        //   loader: 'url-loader',
+        //   options: {
+        //     limit: 10000
+        //   }
+        // }]
       }
     ]
   },
@@ -126,7 +135,9 @@ const config = {
       }),
       //new webpackbar(),
       new VueLoaderPlugin(),
-      new ExtractTextPlugin({filename:'[name].min.css'})
+      new ExtractTextPlugin({
+        filename:'[name].min.css',
+      })
   ],
   // optimization:{
   //   removeEmptyChunks:true,

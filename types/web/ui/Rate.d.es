@@ -1,74 +1,70 @@
-package web.ui
+package web.ui{
 
-import web.components.Component
+  import web.components.Component
 
-@import(Rate = "element-ui/packages/rate")
-@Embed('element-ui/lib/theme-chalk/rate.css')
+  @Import(Rate = "element-ui/packages/rate")
+  @Embed('element-ui/lib/theme-chalk/rate.css')
 
-/** Rate Component */
-declare class Rate extends Component {
-  /** Max rating score */
-  max: number
+  /** Rate Component */
+  @Final
+  declare class Rate extends Component{
+    
+    /** Max rating score */
+    max: number
 
-  /** Whether Rate is read-only */
-  disabled: boolean
+    /** Whether Rate is read-only */
+    disabled: boolean
 
-  /** Whether picking half start is allowed */
-  allowHalf: boolean
+    /** Whether picking half start is allowed */
+    allowHalf: boolean
 
-  /** Threshold value between low and medium level. The value itself will be included in low level */
-  lowThreshold: number
+    /** Threshold value between low and medium level. The value itself will be included in low level */
+    lowThreshold: number
 
-  /** Threshold value between medium and high level. The value itself will be included in high level */
-  highThreshold: number
+    /** Threshold value between medium and high level. The value itself will be included in high level */
+    highThreshold: number
 
-  /** Colors for icons. If array, it should have 3 elements, each of which corresponds with a score level, else if object, the key should be threshold value between two levels, and the value should be corresponding color */
-  colors: string[] | RateColors
+    /** Colors for icons. If array, it should have 3 elements, each of which corresponds with a score level, else if object, the key should be threshold value between two levels, and the value should be corresponding color */
+    colors: string[] | Option
 
-  /** Color of unselected icons */
-  voidColor: string
+    /** Color of unselected icons */
+    voidColor: string
 
-  /** Color of unselected read-only icons */
-  disabledVoidColor: string
+    /** Color of unselected read-only icons */
+    disabledVoidColor: string
 
-  /** Class names of icons. If array, it should have 3 elements, each of which corresponds with a score level, else if object, the key should be threshold value between two levels, and the value should be corresponding class name */
-  iconClasses: string[] | RateIconClasses
+    /** Class names of icons. If array, it should have 3 elements, each of which corresponds with a score level, else if object, the key should be threshold value between two levels, and the value should be corresponding class name */
+    iconClasses: string[] | Options
 
-  /** Class name of unselected icons */
-  voidIconClass: string
+    /** Class name of unselected icons */
+    voidIconClass: string
 
-  /** Class name of unselected read-only icons */
-  disabledVoidIconClass: string
+    /** Class name of unselected read-only icons */
+    disabledVoidIconClass: string
 
-  /** Whether to display texts */
-  showText: boolean
+    /** Whether to display texts */
+    showText: boolean
 
-  /** Whether to display current score. show-score and show-text cannot be true at the same time */
-  showScore: boolean
+    /** Whether to display current score. show-score and show-text cannot be true at the same time */
+    showScore: boolean
 
-  /** Color of texts */
-  textColor: string
+    /** Color of texts */
+    textColor: string
 
-  /** Text array */
-  texts: string[]
+    /** Text array */
+    texts: string[]
 
-  /** Text template when the component is read-only */
-  scoreTemplate: string
+    /** Text template when the component is read-only */
+    scoreTemplate: string
+  }
+
 }
 
-@internal
-declare interface Option {
-  value: string,
-  excluded?: boolean
+declare internal interface Option{
+    value: string,
+    excluded?: boolean
 }
 
-@internal
-declare interface Options {
-  [threshold: number]: string | Option
+declare internal interface Options{
+    [threshold: number]: string | Option
 }
-
-@internal
-declare type RateColors = Options
-
-@internal
-declare type RateIconClasses = Options

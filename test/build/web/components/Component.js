@@ -7,11 +7,10 @@
 import Event from "./../../core/Event.js";
 import Class from "./../../core/Class.js";
 import EventDispatcher from "./../../core/EventDispatcher.js";
-import ComponentEvent from "./ComponentEvent.js";
+import ComponentEvent from "./../events/ComponentEvent.js";
 import Vue from "vue";
 var classKey = Class.key;
 var key = Symbol('private');
-var baseOptions = {};
 var mixins = [{
     render(){
         return this.render.apply(this, Array.prototype.slice.call(arguments));
@@ -99,34 +98,60 @@ function createProperties( classConstructor , superClass ){
         }
         return null;
     }
+
     Object.defineProperty( proto, '_init', {value:function _init(options){
+        var context = options && options._parentVnode && options._parentVnode.componentOptions && options._parentVnode || {};
+        var componentOptions = context.componentOptions || {};
         this[key] = Object.create(null);
         this[key].event=new EventDispatcher();
         this[key].initialized=false;
-        this[key].options = options && options._parentVnode && options._parentVnode.componentOptions && options._parentVnode.componentOptions || {};
+        this[key].options = componentOptions;
+        this[key].config = context.data || {};
         var classModule = this.constructor;
-        var opts = classModule && classModule.options;
-        if( opts && opts.methods ){
-            var description = classModule[classKey];
-            if( description ){
-                var members = description.members || {};
+        var opts = classModule.options;
+        var description = classModule[classKey];
+        var props = {};
+        if( description ){
+            var members = description.members || {};
+            if( opts && opts.methods ){
                 for(var name in opts.methods ){
                     if(Object.hasOwnProperty.call(members, name)){
                         delete opts.methods[name];
                     }
                 }
             }
-        }
-        var propsData = this.onReceiveProps( this[key].options.propsData );
-        if( propsData ){
-            for(var name in propsData ){
-                if( this.hasOwnProperty( name ) ){
-                    this[name] = propsData[name];
+            var data = context.data || {};
+            for(var name in members ){
+                var member = members[name];
+                if( Class.CONSTANT.PROPERTY_VAR === member.d || Class.CONSTANT.PROPERTY_ACCESSOR === member.d ){
+                    if( data.props && Object.hasOwnProperty.call(data.props,name) ){
+                        props[ name ] = data.props[ name ]
+                    }else if( data.attrs && Object.hasOwnProperty.call(data.attrs,name) ){
+                        props[ name ] = data.attrs[ name ]
+                    }
+                }
+            }
+
+            var propsData = this.onReceiveProps( props );
+            if( propsData ){
+                for(var name in propsData ){
+                    if( this.hasOwnProperty( name ) ){
+                        this[name] = propsData[name];
+                    }
                 }
             }
         }
+        
         Vue.prototype._init.call(this,options);
         this[key].initialized=true;
+    }});
+
+    Object.defineProperty( proto, 'render', {value: function render(){
+        return invoke(this,'render', Array.prototype.slice.call(arguments) );
+    }});
+
+    Object.defineProperty( proto, 'getConfig', {value:function getConfig(){
+        return this[key].config;
     }});
 
     Object.defineProperty( proto, 'isWebComponent', {value:true});
@@ -177,10 +202,6 @@ function createProperties( classConstructor , superClass ){
 
     Object.defineProperty( proto, 'onDeactivated', {value:function onDeactivated(){
         return invoke(this,'deactivated');
-    }});
-
-    Object.defineProperty( proto, 'render', {value: function render(){
-        return invoke(this,'render', Array.prototype.slice.call(arguments) );
     }});
 
     Object.defineProperty( proto, 'data', {value:function data(name, value){

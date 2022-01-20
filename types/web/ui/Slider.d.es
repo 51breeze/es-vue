@@ -2,9 +2,10 @@ package web.ui
 
 import web.components.Component
 
-@import(Slider = "element-ui/packages/slider")
-
+@Import(Slider = "element-ui/packages/slider")
 @Embed('element-ui/lib/theme-chalk/slider.css')
+
+@Final
 declare class Slider extends Component{
     //绑定值
     value:number=0

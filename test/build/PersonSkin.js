@@ -1,6 +1,7 @@
+import "./assets/index.css";
 import web_components_Component from "./web/components/Component.js";
-import web_ui_TransitionGroup from "./web/ui/TransitionGroup.js";
-import web_ui_TransitionEvent from "./web/ui/TransitionEvent.js";
+import web_animation_TransitionGroup from "./web/animation/TransitionGroup.js";
+import web_events_TransitionEvent from "./web/events/TransitionEvent.js";
 import Reflect from "./core/Reflect.js";
 import Class from "./core/Class.js";
 var members = {};
@@ -11,10 +12,10 @@ members.render={m:3,d:3,value:function render(){
 		this.name ? createElement('div',{
 			"class":'bg'
 			}, ['1']) : 
-		!(this.name) ? createElement('div',null, ['2']) : 
+		! (this.name) ? createElement('div',null, ['2']) : 
 		createElement('div',null, ['399999'])
 	].concat(
-		['china'].concat(this.list).map((function(item){
+		Reflect.call(PersonSkin,['china'],"concat",[this.list]).map((function(item){
 			return createElement('div',null, [
 						createElement('div',null, [item]),
 						createElement('div',{
@@ -72,14 +73,14 @@ members.render={m:3,d:3,value:function render(){
 		]),
 		createElement('button',{
 			"on":{
-				"click":(function(){this.isShow=!this.isShow}).bind(this)
+				"click":(function(){this.isShow=! this.isShow}).bind(this)
 				}
 			}, ['Toggle']),
-		createElement(web_ui_TransitionGroup,{
+		createElement(web_animation_TransitionGroup,{
 			"props":{
 				"name":"fade"
 				},
-			"on":(_c={},_c[web_ui_TransitionEvent.BEFORE_ENTER]=this.beforeEnter.bind(this),_c)
+			"on":(_c={},_c[web_events_TransitionEvent.BEFORE_ENTER]=this.beforeEnter.bind(this),_c)
 			}, [
 			this.isShow ? createElement('p',{
 				"key":"1"
@@ -155,7 +156,7 @@ members.list={m:3,d:4,enumerable:true,get:function list(){
 	return ['one','two','three','four','five'];
 }};
 members.onChange={m:3,d:3,value:function onChange(e){
-	this.address=Reflect.get(PersonSkin,Reflect.get(PersonSkin,e,"target"),"value") + '---';
+	this.address=Reflect.get(PersonSkin,Reflect.get(PersonSkin,e,'target'),'value') + '---';
 }};
 members.value={m:3,d:4,enumerable:true,get:function value(){
 	return this.data('value') || '9999';
@@ -169,7 +170,7 @@ members.isShow={m:3,d:4,enumerable:true,get:function isShow(){var res=this.data(
 var PersonSkin = web_components_Component.createComponent({
 	name:'es-PersonSkin'
 });
-Class.creator(16,PersonSkin,{
+Class.creator(14,PersonSkin,{
 	'id':1,
 	'ns':'',
 	'name':'PersonSkin',

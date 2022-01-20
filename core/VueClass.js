@@ -1,7 +1,7 @@
 const Syntax = require("./Syntax");
 const Core = require("./Core.js");
 const Constant = Core.constant;
-const Polyfill = require("../core/Polyfill");
+const Polyfill = require("./Polyfill");
 class VueClass extends Syntax{
     getReserved(){
         return this._reserved || (this._reserved = this.getConfig('reserved') || []);
@@ -55,19 +55,19 @@ class VueClass extends Syntax{
         const imps    = this.getImps(module);
         const inherit = this.getInherit(module);
         const refs = [];
-        const isWeb = this.isInheritWebComponent( module );
-        const reserved = isWeb ? this.getConfig('reserved.vue') : [];
+        const reserved = this.getConfig('reserved.vue') || [];
         const classScope = this.stack.scope.getScopeByType("class");
         const topRefs = new Map();
         const methodContent = [];
         const memberContent = [];
-        const mainEnterMethods=[];
+        const mainEnterMethods = [];
         const Component = this.getGlobalModuleById('web.components.Component');
         const emitter=(target,proto,content,isStatic,descriptive)=>{
             for( var name in target ){
                 const item = target[ name ];
                 const modifier = item.modifier ? item.modifier.value() : 'public';
-                if( isWeb && Array.isArray(reserved) && reserved.includes(name) ){
+                const required = item.annotations && item.annotations.find( annotation=>annotation.name.toLowerCase() ==='required' );
+                if( Array.isArray(reserved) && reserved.includes(name) ){
                     item.error(1124,name);
                 }
                 if( item.isPropertyDefinition ){
@@ -93,7 +93,10 @@ class VueClass extends Syntax{
                         isAccessor,
                         modifier,
                         kind,
-                        descriptive
+                        descriptive,
+                        false,
+                        false,
+                        required
                     ));
                     
                 }else if( item.isAccessor ){
@@ -107,7 +110,10 @@ class VueClass extends Syntax{
                         true,
                         modifier,
                         Constant.DECLARE_PROPERTY_ACCESSOR,
-                        descriptive
+                        descriptive,
+                        false,
+                        false,
+                        required
                     ));
                 }else{
                     if(isStatic && modifier ==="public" && item.isEnterMethod && !mainEnterMethods.length ){

@@ -2,6 +2,7 @@ package{
 
     import web.components.Component;
     import PersonSkin;
+    import web.ui.Button;
 
     class Person extends Component{
 
@@ -41,8 +42,14 @@ package{
                         <div id="person-root-child">Person page</div>
 
 
-                        <web.ui.Button> button </web.ui.Button>
+                        <Button> button </Button>
                         <web.ui.TextLink type='primary'> text link </web.ui.TextLink>
+                        <web.ui.Upload action='http://sss.com/upload' dataset={{name:'yejun'}} drag={true} > 
+                            <slot:trigger>
+                               <div>===========</div>
+                            </slot:trigger>
+                            Upload
+                         </web.ui.Upload>
                      
                        
                        

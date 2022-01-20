@@ -204,7 +204,7 @@ System.getEventDispatcher=function getEventDispatcher(){
      }
      return null;
  };
-Class.creator(21,System,{
+Class.creator(12,System,{
 	'id':1,
 	'global':true,
 	'dynamic':false,

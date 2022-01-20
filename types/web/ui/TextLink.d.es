@@ -2,9 +2,10 @@ package web.ui
 
 import web.components.Component
 
-@import({TextLink = Link} = "element-ui/packages/link")
+@Import({TextLink = Link} = "element-ui/packages/link")
 @Embed('element-ui/lib/theme-chalk/link.css')
 
+@Final
 declare class TextLink extends Component{
 
     //类型

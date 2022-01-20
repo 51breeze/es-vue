@@ -2,25 +2,25 @@ package web.ui
 
 import web.components.Component
 
-@import(Autocomplete = "element-ui/packages/autocomplete")
-
+@Import(Autocomplete = "element-ui/packages/autocomplete")
 @Embed('element-ui/lib/theme-chalk/autocomplete.css')
 
 //自定义输入建议，参数为 { item }
-@define(slot, 'default', scope = 'item' )
+@Define(slot, 'default', scope = 'item' )
 
 //输入框尾部内容
-@define(slot, 'suffix')
+@Define(slot, 'suffix')
 
 //输入框头部内容
-@define(slot, 'prefix')
+@Define(slot, 'prefix')
 
 //输入框前置内容
-@define(slot, 'prepend')
+@Define(slot, 'prepend')
 
 //输入框后置内容
-@define(slot, 'append')
+@Define(slot, 'append')
 
+@Final
 declare class Autocomplete extends Component{
     //输入框占位文本
     placeholder:string

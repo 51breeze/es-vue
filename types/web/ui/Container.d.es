@@ -2,9 +2,10 @@ package web.ui
 
 import web.components.Component
 
-@import(Container = "element-ui/packages/container")
-
+@Import(Container = "element-ui/packages/container")
 @Embed('element-ui/lib/theme-chalk/container.css')
+
+@Final
 declare class Container extends Component{
     /**
     * 子元素的排列方向

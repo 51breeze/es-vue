@@ -2,10 +2,10 @@ package web.ui
 
 import web.components.Component
 
-@import(Row = "element-ui/packages/row")
-
-
+@Import(Row = "element-ui/packages/row")
 @Embed('element-ui/lib/theme-chalk/row.css')
+
+@Final
 declare class Row extends Component{
 
     //栅格间隔

@@ -1,7 +1,11 @@
 package web.ui;
 
-@import(OptionGroup = "element-ui/packages/option-group")
-declare class OptionGroup extends web.components.Component{
+import web.components.Component
+
+@Import(OptionGroup = "element-ui/packages/option-group")
+
+@Final
+declare class OptionGroup extends Component{
 
     /**
     * 分组的组名

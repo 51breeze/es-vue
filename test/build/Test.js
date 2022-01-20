@@ -1,16 +1,19 @@
+import "./assets/test.css";
 import Component from "./web/components/Component.js";
+import "element-ui/lib/theme-chalk/notification.css";
+import "element-ui/lib/theme-chalk/icon.css";
 import Notification from "element-ui/packages/notification";
 import Select from "./web/ui/Select.js";
 import MyOption from "./MyOption.js";
-import Link from "./web/ui/Link.js";
-import KeepAlive from "./web/ui/KeepAlive.js";
-import Viewport from "./web/ui/Viewport.js";
+import Link from "./web/components/Link.js";
+import KeepAlive from "./web/components/KeepAlive.js";
+import Viewport from "./web/components/Viewport.js";
 import Class from "./core/Class.js";
 var members = {};
 members.onInitialized={m:3,d:3,value:function onInitialized(){
 	console.log('====onInitialized========');
 }};
-members.address={m:3,d:4,enumerable:true,get:function address(){var res=this.data('address');return res === void 0 ? null : res;},set:function address(value){this.data('address',value)}};
+members.address={m:3,d:4,enumerable:true,required:true,get:function address(){var res=this.data('address');return res === void 0 ? null : res;},set:function address(value){this.data('address',value)}};
 members.onBeforeMount={m:3,d:3,value:function onBeforeMount(){
 	console.log('=====beforeMount======');
 }};
@@ -61,20 +64,20 @@ members.render={m:3,d:3,value:function render(){
 						]
 					}, [
 					createElement(MyOption,{
-						"props":{
+						"attrs":{
 							"value":"深圳"
 							}
 						}),
 					createElement(MyOption,{
-						"props":{
+						"attrs":{
 							"value":"长沙"
 							}
 						})
-				].concat(this.slot('prefix') || [
+				].concat((this.slot('prefix') || [
 						createElement('div',{
 							"slot":'prefix'
 							}, ['6666'])
-					]))
+					])))
 			]),
 			createElement(Link,{
 				"attrs":{
@@ -100,7 +103,7 @@ members.beforeEnter={m:3,d:3,value:function beforeEnter(){
 }};
 members.isShow={m:3,d:4,enumerable:true,get:function isShow(){var res=this.data('isShow');return res === void 0 ? true : res;},set:function isShow(value){this.data('isShow',value)}};
 members.toggle={m:3,d:3,value:function toggle(){
-	this.isShow=!this.isShow;
+	this.isShow=! this.isShow;
 	console.log('--------',this.isShow);
 }};
 members._init={value:function _init(options){

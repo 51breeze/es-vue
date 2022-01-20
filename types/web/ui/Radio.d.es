@@ -2,9 +2,10 @@ package web.ui
 
 import web.components.Component
 
-@import(Radio = "element-ui/packages/radio")
-
+@Import(Radio = "element-ui/packages/radio")
 @Embed('element-ui/lib/theme-chalk/radio.css')
+
+@Final
 declare class Radio extends Component{
     //绑定值
     value:string | number | boolean

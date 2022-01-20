@@ -2,9 +2,10 @@ package web.ui
 
 import web.components.Component
 
-@import(RadioButton = "element-ui/packages/radio-button")
-
+@Import(RadioButton = "element-ui/packages/radio-button")
 @Embed('element-ui/lib/theme-chalk/radio-group.css')
+
+@Final
 declare class RadioButton extends Component{
     //Radio 的 value
     label:string | number

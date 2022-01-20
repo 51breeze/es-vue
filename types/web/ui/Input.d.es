@@ -2,8 +2,7 @@ package web.ui
 
 import web.components.Component
 
-@import(Input = "element-ui/packages/input")
-
+@Import(Input = "element-ui/packages/input")
 @Embed('element-ui/lib/theme-chalk/input.css')
 
 //输入框头部内容，只对 type="text" 有效
@@ -18,6 +17,7 @@ import web.components.Component
 //append	输入框后置内容，只对 type="text" 有效
 @define(slot, 'append')
 
+@Final
 declare class Input extends Component{
     //类型
     type:'text'|'textarea'|'submit'|'checkbox'|'file'|'hidden'|'image'|'radio'|'reset' = 'text'

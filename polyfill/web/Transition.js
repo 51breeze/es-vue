@@ -5,7 +5,7 @@
  * @author Jun Ye <664371281@qq.com>
  */
 ///<import from='vue' name='Vue' />
-///<references from='Class' />
-///<namespaces name='web.ui' />
+///<namespaces name='web.animation' />
+///<createClass value='false' />
 ///__REFS__
 var Transition = Vue.component('Transition');

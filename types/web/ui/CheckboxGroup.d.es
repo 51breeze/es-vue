@@ -2,9 +2,10 @@ package web.ui
 
 import web.components.Component
 
-@import(CheckboxGroup = "element-ui/packages/checkbox-group")
-
+@Import(CheckboxGroup = "element-ui/packages/checkbox-group")
 @Embed('element-ui/lib/theme-chalk/checkbox-group.css')
+
+@Final
 declare class CheckboxGroup extends Component{
     //绑定值
     value:array

@@ -1,5 +1,7 @@
+import "./assets/index.css";
 import web_Skin from "./web/Skin.js";
 import MyView from "./MyView.js";
+import Reflect from "./core/Reflect.js";
 import Class from "./core/Class.js";
 var _private=Symbol("private");
 function MySkin(context){
@@ -12,10 +14,10 @@ members.render={m:3,d:3,value:function render(){
 		this.name ? createElement('div',{
 			"class":'bg'
 			}, ['1']) : 
-		!(this.name) ? createElement('div',null, ['2']) : 
+		! (this.name) ? createElement('div',null, ['2']) : 
 		createElement('div',null, ['399999'])
 	].concat(
-		['china'].concat(this.list).map((function(item){
+		Reflect.call(MySkin,['china'],"concat",[this.list]).map((function(item){
 			return createElement('div',null, [
 						createElement('div',null, [item]),
 						createElement('div',{
@@ -78,7 +80,7 @@ members.value={m:3,d:4,enumerable:true,get:function value(){
 },set:function value(val){
 	this.data('value',val);
 }};
-Class.creator(13,MySkin,{
+Class.creator(9,MySkin,{
 	'id':1,
 	'ns':'',
 	'name':'MySkin',

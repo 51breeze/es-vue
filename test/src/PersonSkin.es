@@ -3,7 +3,7 @@ xmlns:s="web.components"
 xmlns:cmd="@directives" 
 xmlns:d="@directives" 
 xmlns:slot="@slots" 
-xmlns:te="@events::web.ui.TransitionEvent"
+xmlns:te="@events::web.events.TransitionEvent"
 xmlns:ui="web.ui"
 >
 
@@ -87,11 +87,11 @@ xmlns:ui="web.ui"
         Toggle
     </button>
 
-    <web.ui.TransitionGroup name="fade" te:BEFORE_ENTER={this.beforeEnter}>
+    <web.animation.TransitionGroup name="fade" te:BEFORE_ENTER={this.beforeEnter}>
         <p d:if="this.isShow" key="1" >hello</p>
         <p d:if="this.isShow" key="2" >hello</p>
         <p d:if="this.isShow" key="3" >hello</p>
-    </web.ui.TransitionGroup>
+    </web.animation.TransitionGroup>
 
 
     <d:if condition="this.isShow">

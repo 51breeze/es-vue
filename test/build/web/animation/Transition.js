@@ -4,15 +4,6 @@
  * https://github.com/51breeze/EaseScript
  * @author Jun Ye <664371281@qq.com>
  */
-import Component from "./../components/Component.js";
-import Class from "./../../core/Class.js";
 import Vue from "vue";
 var Transition = Vue.component('Transition');
-Class.creator(18,Transition,{
-	'id':1,
-	'global':true,
-	'dynamic':false,
-	'name':'Transition',
-	'inherit':Component
-}, false);
 export default Transition;

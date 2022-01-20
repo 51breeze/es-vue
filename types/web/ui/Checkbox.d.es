@@ -1,10 +1,10 @@
 package web.ui
 
 import web.components.Component
-
-@import(Checkbox = "element-ui/packages/checkbox")
-
+@Import(Checkbox = "element-ui/packages/checkbox")
 @Embed('element-ui/lib/theme-chalk/checkbox.css')
+
+@Final
 declare class Checkbox extends Component{
     //绑定值
     value:string | number | boolean

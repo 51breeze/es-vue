@@ -19,7 +19,7 @@ class Creator {
         compiler.initialize();
         this._compiler = compiler;
         this.plugin = new plugin(compiler);
-        this.plugin.config({pack:false,emitFile:true,module:'es'});
+        this.plugin.config({pack:false,emitFile:true,module:'es',webpack:true});
         
     }
 

@@ -18,7 +18,7 @@ methods.DEACTIVATED={m:3,d:2,enumerable:true,value:'componentDeactivated'};
 methods.DESTROYED={m:3,d:2,enumerable:true,value:'componentDestroyed'};
 Class.creator(6,ComponentEvent,{
 	'id':1,
-	'ns':'web.components',
+	'ns':'web.events',
 	'name':'ComponentEvent',
 	'private':_private,
 	'inherit':Event,

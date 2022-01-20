@@ -1,18 +1,18 @@
 package{
 
     import web.components.Component;
-    import web.components.ComponentEvent;
+    import web.events.ComponentEvent;
     import Person;
     import web.ui.Select;
     import web.ui.Option;
     import web.ui.Notification;
     import web.Skin;
     import MySkin;
-    import web.ui.Viewport
-    import web.ui.Link;
-    import web.ui.Transition;
-    import web.ui.TransitionGroup;
-    import web.ui.KeepAlive;
+    import web.components.Viewport
+    import web.components.Link;
+    import web.animation.Transition;
+    import web.animation.TransitionGroup;
+    import web.components.KeepAlive;
     import MyOption;
 
     @Embed('./assets/test.css')

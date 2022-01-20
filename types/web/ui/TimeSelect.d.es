@@ -2,9 +2,10 @@ package web.ui
 
 import web.components.Component
 
-@import(TimeSelect = "element-ui/packages/time-select")
-
+@Import(TimeSelect = "element-ui/packages/time-select")
 @Embed('element-ui/lib/theme-chalk/time-select.css')
+
+@Final
 declare class TimeSelect extends Component{
     //尺寸 
     size:'medium' | 'small' | 'mini'

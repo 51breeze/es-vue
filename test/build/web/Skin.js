@@ -31,7 +31,7 @@ members.createElement={m:3,d:3,value:function createElement(name,data,children){
 members.render={m:3,d:3,value:function render(){
 	return this.hostComponent.createElement('div');
 }};
-Class.creator(14,Skin,{
+Class.creator(10,Skin,{
 	'id':1,
 	'ns':'web',
 	'name':'Skin',

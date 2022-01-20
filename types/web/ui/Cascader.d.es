@@ -1,13 +1,13 @@
 package web.ui;
-
+import web.components.Component
 @define(slot,'default')
 @define(slot,'empty')
 
-@import(Cascader = "element-ui/packages/cascader")
-
+@Import(Cascader = "element-ui/packages/cascader")
 @Embed('element-ui/lib/theme-chalk/cascader.css')
 
-declare class Cascader extends web.components.Component{
+@Final
+declare class Cascader extends Component{
     /**
     * 绑定值
     */

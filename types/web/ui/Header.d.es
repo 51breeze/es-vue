@@ -2,9 +2,10 @@ package web.ui
 
 import web.components.Component
 
-@import(Header = "element-ui/packages/header")
-
+@Import(Header = "element-ui/packages/header")
 @Embed('element-ui/lib/theme-chalk/header.css')
+
+@Final
 declare class Header extends Component{
     /**
     * 顶栏高度

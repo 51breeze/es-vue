@@ -2,9 +2,8 @@ package vue;
 
 import PersonSkin;
 import Test;
-import web.components.Vue;
 import web.components.Router;
-import web.ui.Viewport;
+import web.components.Viewport;
 import Person;
 import MyView;
 import MySkin;

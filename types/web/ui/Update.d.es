@@ -2,11 +2,13 @@ package web.ui
 
 import web.components.Component
 
-@import(Upload = "element-ui/packages/upload")
-@define(slot, trigger)
-@define(slot, tip)
+@Import(Upload = "element-ui/packages/upload")
+@Define(slot, trigger)
+@Define(slot, tip)
+@Define(slot, 'default')
 @Embed('element-ui/lib/theme-chalk/upload.css')
 
+@Final
 declare class Upload extends Component{
     //必选参数，上传的地址
     action:string
@@ -15,7 +17,8 @@ declare class Upload extends Component{
     //是否支持多选文件
     multiple:boolean
     //上传时附带的额外参数
-   // data:object
+    @Alias(data)
+    dataset:object
     //上传的文件字段名
     name:string='file'
     //支持发送 cookie 凭证信息
@@ -64,7 +67,6 @@ declare class Upload extends Component{
     submit():void
 }
 
-@internal
 declare interface UploadInternalFileDetail {
   status: FileUploadStatus,
   name: string,
@@ -75,5 +77,4 @@ declare interface UploadInternalFileDetail {
   url?: string
 }
 
-@internal
 declare type FileUploadStatus = 'ready' | 'uploading' | 'success' | 'fail'

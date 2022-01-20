@@ -2,9 +2,10 @@ package web.ui
 
 import web.components.Component
 
-@import(Col = "element-ui/packages/col")
-
+@Import(Col = "element-ui/packages/col")
 @Embed('element-ui/lib/theme-chalk/col.css')
+
+@Final
 declare class Col extends Component{
 
     //栅格占据的列数

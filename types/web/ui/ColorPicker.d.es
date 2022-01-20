@@ -2,11 +2,12 @@ package web.ui
 
 import web.components.Component
 
-@import(ColorPicker = "element-ui/packages/color-picker")
+@Import(ColorPicker = "element-ui/packages/color-picker")
 @Embed('element-ui/lib/theme-chalk/color-picker.css')
 
 /** ColorPicker Component */
-declare class ColorPicker extends Component {
+@Final
+declare class ColorPicker  extends Component{
   /** 绑定值 */
   value:string
   /** Whether to display the alpha slider */

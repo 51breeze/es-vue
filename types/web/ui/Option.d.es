@@ -1,7 +1,11 @@
 package web.ui;
 
-@import(Option = "element-ui/packages/option")
-declare class Option extends web.components.Component{
+import web.components.Component
+
+@Import(Option = "element-ui/packages/option")
+
+@Final
+declare class Option extends Component{
     multiple:boolean = false;
     /**
     * 选项的值

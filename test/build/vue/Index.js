@@ -1,11 +1,11 @@
 import VueRouter from "vue-router";
-import MyView from "./MyView.js";
-import Test from "./Test.js";
-import Router from "./web/components/Router.js";
-import Class from "./core/Class.js";
-import MySkin from "./MySkin.js";
-import Person from "./Person.js";
-import PersonSkin from "./PersonSkin.js";
+import MyView from "./../MyView.js";
+import Test from "./../Test.js";
+import Router from "./../web/components/Router.js";
+import Class from "./../core/Class.js";
+import MySkin from "./../MySkin.js";
+import Person from "./../Person.js";
+import PersonSkin from "./../PersonSkin.js";
 var _private=Symbol("private");
 function Index(){
 	Object.defineProperty(this,_private,{value:{'_instance':null}});
