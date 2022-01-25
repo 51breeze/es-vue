@@ -81,7 +81,7 @@ declare class Select extends Component{
     /**
     * 输入框尺寸
     */
-    size:'large' | 'medium' | 'small' | 'mini';
+    size:'large' | 'medium' | 'small' | 'mini' = 'medium';
     /**
     * 多选时用户最多可以选择的项目数，为 0 则不限制
     */

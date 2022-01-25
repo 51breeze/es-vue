@@ -37,24 +37,24 @@ package{
         }
 
         get name():string{
-            return this.data<string>('name');
+            return this.reactive<string>('name');
         }
 
         set name(value:string){
-            this.data('name', value);
+            this.reactive('name', value);
         }
 
         get value():string{
-            return this.data<string>('value');
+            return this.reactive<string>('value');
         }
 
         set value(val:string){
             console.log('=====ssssssssss======')
-            this.data('value',val);
+            this.reactive('value',val);
         }
 
         tips(){
-
+            
             Notification({
                 title: '提示成功',
                 message: '这是提示文案这是提示文案这是提示文案这是提示文案这是提示文案这是提示文案这是提示文案这是提示文案'
@@ -69,12 +69,12 @@ package{
 
         set childElements(value:Node){
             
-            this.data('children', value)
+            this.reactive('children', value)
 
         }
 
         get childElements():Node{
-            return this.data('children');
+            return this.reactive('children');
         }
 
         @override
@@ -85,9 +85,9 @@ package{
             // s.focus();
 
             return <div xmlns:slot="@slots" >
-                        <p> 
+                        <p > 
                             <h5 on:click={this.tips}>点击这里提示 {this.name}</h5> 
-                            <Select bind:value={this.value}>
+                            <Select bind:value={this.value} name = "name" size = "mini"  >
                                 <MyOption value="深圳" />
                                 <MyOption value="长沙" />
                                 <slot:prefix>
@@ -100,7 +100,7 @@ package{
                         <br />
                         <Link to='/index'>首页面</Link>
                         <div>
-                            <KeepAlive>
+                            <KeepAlive >
                                 <Viewport />
                             </KeepAlive>
                         </div>

@@ -78,9 +78,9 @@ class VueClass extends Syntax{
                     if( !isStatic ){
                         if( modifier ==="public" ){
                             if( value ){
-                                makeValue = {get:`function ${name}(){var res=this.data('${name}');return res === void 0 ? ${value} : res;}`,set:`function ${name}(value){this.data('${name}',value)}`}
+                                makeValue = {get:`function ${name}(){var res=this.reactive('${name}');return res === void 0 ? ${value} : res;}`,set:`function ${name}(value){this.reactive('${name}',value)}`}
                             }else{
-                                makeValue = {get:`function ${name}(){return this.data('${name}')}`,set:`function ${name}(value){this.data('${name}',value)}`}
+                                makeValue = {get:`function ${name}(){return this.reactive('${name}')}`,set:`function ${name}(value){this.reactive('${name}',value)}`}
                             }
                             isAccessor = true;
                             kind = Constant.DECLARE_PROPERTY_ACCESSOR;

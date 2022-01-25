@@ -15,7 +15,7 @@ members.render={m:3,d:3,value:function render(){
 		! (this.name) ? createElement('div',null, ['2']) : 
 		createElement('div',null, ['399999'])
 	].concat(
-		Reflect.call(PersonSkin,['china'],"concat",[this.list]).map((function(item){
+		['china'].concat(this.list).map((function(item){
 			return createElement('div',null, [
 						createElement('div',null, [item]),
 						createElement('div',{
@@ -32,7 +32,7 @@ members.render={m:3,d:3,value:function render(){
 			"ref":'iss',
 			"class":""
 			}, [
-			createElement('div',null, ['item =====PersonSkin====',this.name,'====='
+			createElement('div',null, ['item =====PersonSkin====  ',this.name,'====='
 			])
 		]),
 		createElement('input',{
@@ -69,13 +69,13 @@ members.render={m:3,d:3,value:function render(){
 				"value":this.isShow
 				}
 				]
-			}, ['the is property',this.address
+			}, ['the is property   ',this.address
 		]),
 		createElement('button',{
 			"on":{
 				"click":(function(){this.isShow=! this.isShow}).bind(this)
 				}
-			}, ['Toggle']),
+			}, ['Toggle    ']),
 		createElement(web_animation_TransitionGroup,{
 			"props":{
 				"name":"fade"
@@ -146,11 +146,11 @@ members.render={m:3,d:3,value:function render(){
 				}, ['===222=show==='])
 		]));
 }};
-members.address={m:3,d:4,enumerable:true,get:function address(){var res=this.data('address');return res === void 0 ? 'address' : res;},set:function address(value){this.data('address',value)}};
+members.address={m:3,d:4,enumerable:true,get:function address(){var res=this.reactive('address');return res === void 0 ? 'address' : res;},set:function address(value){this.reactive('address',value)}};
 members.name={m:3,d:4,enumerable:true,get:function name(){
-	return this.data('name');
+	return this.reactive('name');
 },set:function name(value){
-	this.data('name',value);
+	this.reactive('name',value);
 }};
 members.list={m:3,d:4,enumerable:true,get:function list(){
 	return ['one','two','three','four','five'];
@@ -159,18 +159,18 @@ members.onChange={m:3,d:3,value:function onChange(e){
 	this.address=Reflect.get(PersonSkin,Reflect.get(PersonSkin,e,'target'),'value') + '---';
 }};
 members.value={m:3,d:4,enumerable:true,get:function value(){
-	return this.data('value') || '9999';
+	return this.reactive('value') || '9999';
 },set:function value(val){
-	this.data('value',val);
+	this.reactive('value',val);
 }};
 members.beforeEnter={m:3,d:3,value:function beforeEnter(){
 	console.log('=========PersonSkin=====enter');
 }};
-members.isShow={m:3,d:4,enumerable:true,get:function isShow(){var res=this.data('isShow');return res === void 0 ? true : res;},set:function isShow(value){this.data('isShow',value)}};
+members.isShow={m:3,d:4,enumerable:true,get:function isShow(){var res=this.reactive('isShow');return res === void 0 ? true : res;},set:function isShow(value){this.reactive('isShow',value)}};
 var PersonSkin = web_components_Component.createComponent({
 	name:'es-PersonSkin'
 });
-Class.creator(14,PersonSkin,{
+Class.creator(12,PersonSkin,{
 	'id':1,
 	'ns':'',
 	'name':'PersonSkin',

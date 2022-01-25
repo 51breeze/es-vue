@@ -11,12 +11,12 @@ class Skin<T extends Component > extends EventDispatcher{
         this._hostComponent = hostComponent;
     }
 
-    get hostComponent(){
+    get hostComponent():T{
         return this._hostComponent;
     }
 
-    data<T>(name?:string, value?:any):T{
-        return this.hostComponent.data<T>(name,value);
+    reactive<T>(name:string, value?:any):T{
+        return this.hostComponent.reactive<T>(name,value);
     }
 
     forceUpdate(){

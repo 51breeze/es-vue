@@ -13,7 +13,7 @@
     }
 
     set name(value:string){
-        this.data('name',value);
+        this.reactive('name',value);
     }
 
     get list():string[]{
@@ -26,11 +26,11 @@
 
     set value(val:string){
       
-        this.data('value', val)
+        this.reactive('value', val)
     }
 
     get value():string{
-        return this.data<string>('value') || '9999';
+        return this.reactive<string>('value') || '9999';
     }
 
    </script>

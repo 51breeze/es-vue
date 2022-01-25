@@ -8,6 +8,7 @@ package web.components{
         append:boolean;
         replace:boolean;
         tag:string;
+        to:string;
         event:string[];
     }
 }

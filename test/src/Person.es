@@ -11,17 +11,17 @@ package{
         }
 
         get name():string{
-            return this.data<string>('name');
+            return this.reactive<string>('name');
         }
 
         set name(value:string){
-            this.data('name', value);
+            this.reactive('name', value);
         }
 
         @override
         onMounted(){
              setTimeout( ()=>{
-                 this.data('name', '=====手动设置不再接收上级的值 66666=====')
+                 this.reactive('name', '=====手动设置不再接收上级的值 66666=====')
              }, 1000);
         }
 

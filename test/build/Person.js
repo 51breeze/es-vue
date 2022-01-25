@@ -6,14 +6,14 @@ import web_ui_Upload from "./web/ui/Upload.js";
 import Class from "./core/Class.js";
 var members = {};
 members.name={m:3,d:4,enumerable:true,get:function name(){
-	return this.data('name');
+	return this.reactive('name');
 },set:function name(value){
-	this.data('name',value);
+	this.reactive('name',value);
 }};
 members.onMounted={m:3,d:3,value:function onMounted(){
 	var _this = this;
 	setTimeout(function(){
-		_this.data('name','=====手动设置不再接收上级的值 66666=====');
+		_this.reactive('name','=====手动设置不再接收上级的值 66666=====');
 	},1000);
 }};
 members.render={m:3,d:3,value:function render(){
@@ -34,18 +34,18 @@ members.render={m:3,d:3,value:function render(){
 					])
 				]}).bind(this))
 					}
-				}, (this.slot('default') || ['=================='])),
+				}, (this.slot('default') || ['==================                            '])),
 			createElement('div',{
 				"attrs":{
 					"id":"person-root-child"
 					}
 				}, ['Person page']),
-			createElement(Button,null, ['button']),
+			createElement(Button,null, ['button ']),
 			createElement(web_ui_TextLink,{
 				"props":{
 					"type":'primary'
 					}
-				}, ['text link']),
+				}, ['text link ']),
 			createElement(web_ui_Upload,{
 				"props":{
 					"action":'http://sss.com/upload',
@@ -56,7 +56,7 @@ members.render={m:3,d:3,value:function render(){
 					createElement('div',{
 						"slot":'trigger'
 						}, ['==========='])
-				]).concat(['Upload'
+				]).concat(['Upload                         '
 			]))
 		]);
 }};
@@ -68,7 +68,7 @@ members._init={value:function _init(options){
 var Person = Component.createComponent({
 	name:'es-Person'
 });
-Class.creator(13,Person,{
+Class.creator(11,Person,{
 	'id':1,
 	'ns':'',
 	'name':'Person',

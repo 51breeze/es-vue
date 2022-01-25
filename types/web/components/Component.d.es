@@ -27,7 +27,7 @@ package web.components{
         public watch(name: string, callback:(uewVlaue?,oldValue?)=>void):void;
         public get parent():Component;
         public get children():Component[];
-        public data<T=any>(name?:string, value?:any):T;
+        public reactive<T>(name:string, value?:T):T;
         public mount( element?:string|Node ):this;
         public nextTick(callback:()=>void):void;
         public destroy():void;

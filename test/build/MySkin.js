@@ -1,7 +1,5 @@
 import "./assets/index.css";
 import web_Skin from "./web/Skin.js";
-import MyView from "./MyView.js";
-import Reflect from "./core/Reflect.js";
 import Class from "./core/Class.js";
 var _private=Symbol("private");
 function MySkin(context){
@@ -17,7 +15,7 @@ members.render={m:3,d:3,value:function render(){
 		! (this.name) ? createElement('div',null, ['2']) : 
 		createElement('div',null, ['399999'])
 	].concat(
-		Reflect.call(MySkin,['china'],"concat",[this.list]).map((function(item){
+		['china'].concat(this.list).map((function(item){
 			return createElement('div',null, [
 						createElement('div',null, [item]),
 						createElement('div',{
@@ -34,7 +32,7 @@ members.render={m:3,d:3,value:function render(){
 			"ref":'iss',
 			"class":""
 			}, [
-			createElement('div',null, ['item =====MySkin====',this.name,'====='
+			createElement('div',null, ['item =====MySkin====  ',this.name,'====='
 			])
 		]),
 		createElement('input',{
@@ -67,7 +65,7 @@ members.render={m:3,d:3,value:function render(){
 members.name={m:3,d:4,enumerable:true,get:function name(){
 	return this.hostComponent.name;
 },set:function name(value){
-	this.data('name',value);
+	this.reactive('name',value);
 }};
 members.list={m:3,d:4,enumerable:true,get:function list(){
 	return ['one','two','three','four','five'];
@@ -76,9 +74,9 @@ members.onChange={m:3,d:3,value:function onChange(){
 
 }};
 members.value={m:3,d:4,enumerable:true,get:function value(){
-	return this.data('value') || '9999';
+	return this.reactive('value') || '9999';
 },set:function value(val){
-	this.data('value',val);
+	this.reactive('value',val);
 }};
 Class.creator(9,MySkin,{
 	'id':1,

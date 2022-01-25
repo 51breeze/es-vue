@@ -12,11 +12,11 @@ xmlns:ui="web.ui"
        address:string='address';
 
       get name():string{
-        return this.data<string>('name');
+        return this.reactive<string>('name');
       }
 
       set name(value:string){
-         this.data('name',value);
+         this.reactive('name',value);
       }
 
       get list():string[]{
@@ -31,11 +31,11 @@ xmlns:ui="web.ui"
 
        set value(val:string){
           
-            this.data('value', val)
+            this.reactive('value', val)
         }
 
         get value():string{
-            return this.data<string>('value') || '9999';
+            return this.reactive<string>('value') || '9999';
         }
 
         beforeEnter(){
@@ -81,7 +81,7 @@ xmlns:ui="web.ui"
         <div>===============the is foot slot ==============</div>
     </slot:foot>
 
-    <div d:show="this.isShow">the is property {this.address}</div>
+    <div d:show="this.isShow">the is property   {this.address}</div>
 
      <button on:click={this.isShow = !this.isShow}>
         Toggle
@@ -106,9 +106,9 @@ xmlns:ui="web.ui"
         <div>the is a group elseif</div>
     </d:else>
 
-    <d:each name={this.list} item='item'>
-      <div>====each=={item}={key}</div>
-      <div>===22=each=={item}={key}</div>
+    <d:each name={this.list} item='item' index='index'>
+      <div>====each=={item}={index}</div>
+      <div>===22=each=={item}=</div>
     </d:each>
 
     <d:for name={this.list} item='item' key='keyName' >

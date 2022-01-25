@@ -13,8 +13,8 @@ members._event={m:1,d:1,writable:true,value:null};
 members.hostComponent={m:3,d:4,enumerable:true,get:function hostComponent(){
 	return this[_private]._hostComponent;
 }};
-members.data={m:3,d:3,value:function data(name,value){
-	return this.hostComponent.data(name,value);
+members.reactive={m:3,d:3,value:function reactive(name,value){
+	return this.hostComponent.reactive(name,value);
 }};
 members.forceUpdate={m:3,d:3,value:function forceUpdate(){
 	return this.hostComponent.forceUpdate();
