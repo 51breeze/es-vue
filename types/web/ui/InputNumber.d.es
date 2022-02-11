@@ -1,4 +1,4 @@
-package web.ui
+package web.ui;
 
 import web.components.Component
 
@@ -17,8 +17,7 @@ import web.components.Component
 //append	输入框后置内容，只对 type="text" 有效
 @define(slot, 'append')
 
-@Final
-declare class InputNumber extends Component{
+declare final class InputNumber extends Component{
     //绑定值
     value:number=0
     //设置计数器允许的最小值

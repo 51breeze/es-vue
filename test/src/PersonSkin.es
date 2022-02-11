@@ -24,7 +24,6 @@ xmlns:ui="web.ui"
       }
 
       onChange(e){
-
           this.address = e.target.value +'---';
          
       }
@@ -106,7 +105,7 @@ xmlns:ui="web.ui"
         <div>the is a group elseif</div>
     </d:else>
 
-    <d:each name={this.list} item='item' index='index'>
+    <d:each name={this.list} item='item' key='index'>
       <div>====each=={item}={index}</div>
       <div>===22=each=={item}=</div>
     </d:each>

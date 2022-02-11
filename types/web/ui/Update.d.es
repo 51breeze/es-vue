@@ -1,4 +1,4 @@
-package web.ui
+package web.ui;
 
 import web.components.Component
 
@@ -8,8 +8,7 @@ import web.components.Component
 @Define(slot, 'default')
 @Embed('element-ui/lib/theme-chalk/upload.css')
 
-@Final
-declare class Upload extends Component{
+declare final class Upload extends Component{
     //必选参数，上传的地址
     action:string
     //设置上传的请求头部

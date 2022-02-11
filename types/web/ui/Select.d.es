@@ -1,4 +1,4 @@
-package web.ui;
+package web.ui
 
 import web.components.Component
 
@@ -10,8 +10,7 @@ import web.components.Component
 @Embed('element-ui/lib/theme-chalk/select.css')
 @Embed('element-ui/lib/theme-chalk/icon.css');
 
-@Final
-declare class Select extends Component{
+declare final class Select extends Component{
 
     /**
     * 绑定值

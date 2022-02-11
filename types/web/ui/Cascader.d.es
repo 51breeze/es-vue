@@ -6,8 +6,7 @@ import web.components.Component
 @Import(Cascader = "element-ui/packages/cascader")
 @Embed('element-ui/lib/theme-chalk/cascader.css')
 
-@Final
-declare class Cascader extends Component{
+declare final class Cascader extends Component{
     /**
     * 绑定值
     */

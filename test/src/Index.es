@@ -26,6 +26,8 @@ class Index{
 
         var v = new MyView();
         v.skinClass = MySkin;
+
+        new web.components.Router()
        
 
 
@@ -80,6 +82,10 @@ class Index{
         it("should VueRouter eq Router ",()=>{
             expect( VueRouter ).toBe( Router );
         })
+    }
+    
+    test8(...args:number[]){
+
     }
 
     testRouterView(){

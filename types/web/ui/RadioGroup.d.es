@@ -1,12 +1,11 @@
-package web.ui
+package web.ui;
 
 import web.components.Component
 
 @Import(RadioGroup = "element-ui/packages/radio-group")
 @Embed('element-ui/lib/theme-chalk/radio-group.css')
 
-@Final
-declare class RadioGroup extends Component{
+declare final class RadioGroup extends Component{
     //绑定值
     value:string | number | boolean
     //是否禁用

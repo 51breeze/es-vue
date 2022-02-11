@@ -4,8 +4,7 @@ import web.components.Component
 
 @Import(Option = "element-ui/packages/option")
 
-@Final
-declare class Option extends Component{
+declare final class Option extends Component{
     multiple:boolean = false;
     /**
     * 选项的值

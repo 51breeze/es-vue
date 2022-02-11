@@ -1,61 +1,59 @@
-package web.ui{
+package web.ui;
 
-  import web.components.Component
+import web.components.Component
 
-  @Import(Transfer = "element-ui/packages/transfer")
-  @Embed('element-ui/lib/theme-chalk/transfer.css')
+@Import(Transfer = "element-ui/packages/transfer")
+@Embed('element-ui/lib/theme-chalk/transfer.css')
 
-  @Final
-  /** Transfer Component */
-  declare class Transfer extends Component{
-    /** Data source */
-    @Alias(data)
-    dataset: TransferData[]
-    /** Whether Transfer is filterable */
-    filterable: boolean
+/** Transfer Component */
+declare final class Transfer extends Component{
+  /** Data source */
+  @Alias(data)
+  dataset: TransferData[]
+  /** Whether Transfer is filterable */
+  filterable: boolean
 
-    /** Placeholder for the filter input */
-    filterPlaceholder: string
+  /** Placeholder for the filter input */
+  filterPlaceholder: string
 
-    /** Custom filter method */
-    filterMethod: (query: string, item: TransferData) => boolean
+  /** Custom filter method */
+  filterMethod: (query: string, item: TransferData) => boolean
 
-    /** Order strategy for elements in the target list */
-    targetOrder: string
+  /** Order strategy for elements in the target list */
+  targetOrder: string
 
-    /** Custom list titles */
-    titles: string[]
+  /** Custom list titles */
+  titles: string[]
 
-    /** Custom button texts */
-    buttonTexts: string[]
+  /** Custom button texts */
+  buttonTexts: string[]
 
-    /** Custom render function for data items */
-    renderContent: (h:Function, option: TransferData)=>this
+  /** Custom render function for data items */
+  renderContent: (h:Function, option: TransferData)=>this
 
-    /** Texts for checking status in list header */
-    format: { 
-      noChecked: string,
-      hasChecked: string,
-    }
-
-    /** Prop aliases for data source */
-    props: {
-      key: string,
-      label: string,
-      disabled: string
-    }
-
-    /** Key array of initially checked data items of the left list */
-    leftDefaultChecked: any[]
-
-    /** Key array of initially checked data items of the right list */
-    rightDefaultChecked: any[]
-
-    /** Clear the query text in specified panel */
-    clearQuery (which: 'left' | 'right' ): void
+  /** Texts for checking status in list header */
+  format: { 
+    noChecked: string,
+    hasChecked: string,
   }
 
+  /** Prop aliases for data source */
+  props: {
+    key: string,
+    label: string,
+    disabled: string
+  }
+
+  /** Key array of initially checked data items of the left list */
+  leftDefaultChecked: any[]
+
+  /** Key array of initially checked data items of the right list */
+  rightDefaultChecked: any[]
+
+  /** Clear the query text in specified panel */
+  clearQuery (which: 'left' | 'right' ): void
 }
+
 
 declare internal interface TransferData {
   key: any

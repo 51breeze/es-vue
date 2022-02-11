@@ -1,9 +1,9 @@
-package web.ui
+package web.ui;
 import web.components.Component
 @Import(Button = "element-ui/packages/button")
 @Embed('element-ui/lib/theme-chalk/button.css')
-@Final
-declare class Button extends Component{
+
+declare final class Button extends Component{
 
     //尺寸 
     size:'medium' | 'small' | 'mini'

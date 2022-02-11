@@ -1,12 +1,11 @@
-package web.ui
+package web.ui;
 
 import web.components.Component
 
 @Import(Col = "element-ui/packages/col")
 @Embed('element-ui/lib/theme-chalk/col.css')
 
-@Final
-declare class Col extends Component{
+declare final class Col extends Component{
 
     //栅格占据的列数
     span:number=24

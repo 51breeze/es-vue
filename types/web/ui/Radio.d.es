@@ -1,12 +1,11 @@
-package web.ui
+package web.ui;
 
 import web.components.Component
 
 @Import(Radio = "element-ui/packages/radio")
 @Embed('element-ui/lib/theme-chalk/radio.css')
 
-@Final
-declare class Radio extends Component{
+declare final class Radio extends Component{
     //绑定值
     value:string | number | boolean
     //Radio 的 value

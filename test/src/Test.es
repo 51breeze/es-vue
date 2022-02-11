@@ -14,12 +14,17 @@ package{
     import web.animation.TransitionGroup;
     import web.components.KeepAlive;
     import MyOption;
+    import web.ui.Dialog;
+    
 
     @Embed('./assets/test.css')
     class Test extends Component{
 
         constructor( options ){
             super(options);
+            
+        
+
         }
 
         @override
@@ -69,7 +74,7 @@ package{
 
         set childElements(value:Node){
             
-            this.reactive('children', value)
+            this.reactive('children', value);
 
         }
 

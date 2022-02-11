@@ -103,11 +103,11 @@ members.render={m:3,d:3,value:function render(){
 		]  : [
 			createElement('div',null, ['the is a group elseif'])
 		],
-		this.list.map((function(item,key){
+		this.list.map((function(item,index){
 				return [
-					createElement('div',null, ['====each==',item,'=',key
+					createElement('div',null, ['====each==',item,'=',index
 					]),
-					createElement('div',null, ['===22=each==',item,'=',key
+					createElement('div',null, ['===22=each==',item,'='
 					])
 				];
 			}).bind(this)).reduce(function(acc, val){return acc.concat(val)}, []),

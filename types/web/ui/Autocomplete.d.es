@@ -20,8 +20,7 @@ import web.components.Component
 //输入框后置内容
 @Define(slot, 'append')
 
-@Final
-declare class Autocomplete extends Component{
+declare final class Autocomplete extends Component{
     //输入框占位文本
     placeholder:string
     //禁用

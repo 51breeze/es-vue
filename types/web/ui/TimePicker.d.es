@@ -1,12 +1,11 @@
-package web.ui
+package web.ui;
 
 import web.components.Component
 
 @Import(TimePicker = "element-ui/packages/time-picker")
 @Embed('element-ui/lib/theme-chalk/time-picker.css')
 
-@Final
-declare class TimePicker extends Component{
+declare final class TimePicker extends Component{
     //尺寸 
     size:'medium' | 'small' | 'mini'
     //绑定值

@@ -1,12 +1,11 @@
-package web.ui
+package web.ui;
 
 import web.components.Component
 
 @Import(Switch = "element-ui/packages/switch")
 @Embed('element-ui/lib/theme-chalk/switch.css')
 
-@Final
-declare class Switch extends Component{
+declare final class Switch extends Component{
 
     //绑定值
     value:boolean | string | number

@@ -5,8 +5,7 @@ import web.components.Component
 @Import(CascaderPanel = "element-ui/packages/cascader-panel")
 @Embed('element-ui/lib/theme-chalk/cascader-panel.css')
 
-@Final
-declare class CascaderPanel extends Component{
+declare final class CascaderPanel extends Component{
     
     //选中项绑定值
     value:any

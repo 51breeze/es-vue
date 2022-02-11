@@ -1,7 +1,7 @@
 import VueRouter from "vue-router";
 import MyView from "./../MyView.js";
-import Test from "./../Test.js";
 import Router from "./../web/components/Router.js";
+import Test from "./../Test.js";
 import Class from "./../core/Class.js";
 import MySkin from "./../MySkin.js";
 import Person from "./../Person.js";
@@ -15,6 +15,7 @@ methods.main={m:3,d:3,value:function main(){
 	const index = new Index();
 	var v = new MyView();
 	v.skinClass=MySkin;
+	new Router();
 	index.instance.childElements=v.render();
 	index.display();
 }};
@@ -42,6 +43,10 @@ members.testRouterClass={m:3,d:3,value:function testRouterClass(){
 	it("should VueRouter eq Router ",function(){
 		expect(VueRouter).toBe(Router);
 	});
+}};
+members.test8={m:3,d:3,value:function test8(){
+	var args = Array.prototype.slice.call(arguments,0);
+
 }};
 members.testRouterView={m:3,d:3,value:function testRouterView(){
 	var _this = this;

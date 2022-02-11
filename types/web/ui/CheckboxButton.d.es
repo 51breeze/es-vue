@@ -1,12 +1,11 @@
-package web.ui
+package web.ui;
 
 import web.components.Component
 
 @Import(CheckboxButton = "element-ui/packages/checkbox-button")
 @Embed('element-ui/lib/theme-chalk/checkbox-button.css')
 
-@Final
-declare class CheckboxButton extends Component{
+declare final class CheckboxButton extends Component{
    
     //选中状态的值（只有在checkbox-group或者绑定对象类型为array时有效）
     label:string | number | boolean
