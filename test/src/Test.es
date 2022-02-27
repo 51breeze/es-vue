@@ -22,9 +22,6 @@ package{
 
         constructor( options ){
             super(options);
-            
-        
-
         }
 
         @override
@@ -34,7 +31,7 @@ package{
         }
 
         @Required
-        public var address:string;
+        address:string;
 
         @override
         onBeforeMount(){

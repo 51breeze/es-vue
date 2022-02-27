@@ -1,4 +1,4 @@
-package vue;
+package;
 
 import PersonSkin;
 import Test;
@@ -27,18 +27,19 @@ class Index{
         var v = new MyView();
         v.skinClass = MySkin;
 
-        new web.components.Router()
+      //  new web.components.Router()
        
 
 
-        index.instance.childElements = v.render() as Node;
+         index.instance.childElements = v.render() as Node;
 
 
 
-        index.display();
+         index.display();
 
       
     }
+
 
     display(){
         this.instance.value = "深圳"
@@ -122,5 +123,6 @@ class Index{
         })
 
     }
+    
 
 }

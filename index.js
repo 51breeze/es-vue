@@ -47,10 +47,11 @@ const defaultConfig = merge({},Core.plugin.defaultConfig,{
 });
 
 const configData = Object.assign({}, defaultConfig);
+const package = require("./package.json");
 const properties ={
-    name:'vue-js',
+    name:package.name,
     platform:'client',
-    version:require("./package.json").version,
+    version:package.version,
     config(options){
         if(options){
             merge(configData, options);
@@ -80,11 +81,18 @@ const properties ={
 }
 
 function plugin(complier){
+    const defaultOptions = {};
     if( modules.size === 0 ){
-        new Core.plugin(complier);
+        const parent = new Core.plugin(complier);
+        merge(defaultOptions, parent.config());
         loadStack();
     }
     this.complier = complier;
+    const config = complier.options[this.name] || {};
+    if( complier.options.commandLineEntrance ){
+        defaultOptions.emitFile = true;
+    }
+    this.config( merge(defaultOptions,config) );
     complier.options.annotations.push('Define');
     complier.loadTypes([require.resolve('./types/index.d.es')],true, null, true);
 };
@@ -110,7 +118,5 @@ Object.defineProperty(plugin,'modules',{
     enumerable:true,
     configurable:false
 });
-
-Core.plugin.extend(properties);
 
 module.exports = plugin;
