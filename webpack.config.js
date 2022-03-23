@@ -70,19 +70,34 @@ const config = {
       }
     },
   },
-  watch:true,
+  //watch:true,
   watchOptions:{
       ignored: /node_modules/
   },
   module: {
     rules: [
       {
-        test: /(\.es)$/,
+        test: /\.es$/,
         use: [
           {
             loader:loader,
             options:{
                 mode:"development",
+                // babel:{
+                //   // targets:{
+                //   //   "edge": "17",
+                //   //   "firefox": "60",
+                //   //   "chrome": "67",
+                //   //   "ie": "8",
+                //   //   "safari": "11.1"
+                //   // },
+                 
+                //   presets:[
+                //     ['env',{
+                //       "useBuiltIns": "usage",
+                //     }]
+                //   ]
+                // },
                 hot:true,
                 client:plugins[1],
                 //server:plugins[0],
@@ -92,7 +107,10 @@ const config = {
       },
       {
         test: /\.vue$/,
-        loader: 'vue-loader'
+        loader: 'vue-loader',
+        options: {
+          presets: ['@vue/babel-preset-jsx']
+        },
       },
       {
         test: /\.js$/,

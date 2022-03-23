@@ -30,6 +30,8 @@ class Index{
       //  new web.components.Router()
        
 
+        var map = new Map();
+
 
          index.instance.childElements = v.render() as Node;
 

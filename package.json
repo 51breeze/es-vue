@@ -8,6 +8,7 @@
     "dev-test": "jasmine ./test/index.js",
     "dev-run": "jasmine babel-node ./test/build/Index.js",
     "webpack": "webpack-dev-server --hot",
+    "build": "webpack --mode development",
     "dev-test-run": "npm run dev-test & npm run dev-run"
   },
   "repository": {
