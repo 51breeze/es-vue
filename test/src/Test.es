@@ -15,7 +15,6 @@ package{
     import web.components.KeepAlive;
     import MyOption;
     import web.ui.Dialog;
-    
 
     @Embed('./assets/test.css')
     class Test extends Component{
@@ -28,6 +27,7 @@ package{
         onInitialized(){
 
             console.log('====onInitialized========')
+            super.onInitialized()
         }
 
         @Required
