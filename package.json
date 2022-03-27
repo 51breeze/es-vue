@@ -3,6 +3,7 @@
   "version": "0.0.16",
   "description": "test",
   "main": "index.js",
+  "typings": "./types",
   "scripts": {
     "es": "es -V",
     "dev-test": "jasmine ./test/index.js",
