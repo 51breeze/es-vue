@@ -5,6 +5,8 @@ import web.ui.Popover as PopoverPlacement;
 
 @Import(TableColumn = "element-ui/packages/table-column")
 @Embed('element-ui/lib/theme-chalk/table-column.css')
+@Define(slot, header);
+@Define(slot, 'default');
 
 /** TableColumn Component */
 declare final class TableColumn extends Component {

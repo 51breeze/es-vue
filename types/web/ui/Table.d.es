@@ -4,6 +4,7 @@ import web.components.Component;
 
 @Import(Table = "element-ui/packages/table")
 @Embed('element-ui/lib/theme-chalk/table.css')
+@Define(slot, append);
 
 /** Table Component */
 declare final class Table extends Component {

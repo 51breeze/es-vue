@@ -187,6 +187,10 @@ Object.defineProperty( proto, 'mount', {value:function mount(element){
     return this.$mount( element );
 }});
 
+Object.defineProperty( proto, 'observable', {value:function observable(object){
+    return Vue.observable( object );
+}});
+
 Object.defineProperty( proto, 'slot', {value:function slot(name,scoped,called,args){
     name = name || 'default';
     if( scoped ){
