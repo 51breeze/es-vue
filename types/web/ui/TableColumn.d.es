@@ -46,8 +46,8 @@ declare final class TableColumn extends Component {
   /** Whether column width can be resized. Works when border of `el-table` is `true` */
   resizable: boolean
 
-  /** Function that formats content */
-  formatter: (row: object, column: {
+    /** Function that formats content */
+  formatter: (row: object, column?: {
     /** Label of the column */
     label: string,
   
@@ -59,7 +59,7 @@ declare final class TableColumn extends Component {
   
     /** Whether column is fixed at left/right */
     fixed: boolean | string
-  }) => any
+  },cellValue:any,index?:number) => any
 
   /** Whether to hide extra content and show them in a tooltip when hovering on the cell */
   showOverflowTooltip: boolean
