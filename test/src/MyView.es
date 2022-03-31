@@ -9,7 +9,7 @@ class MyView extends View<MyView>{
     
     test(){
 
-       var b:MyView = this.skin.hostComponent;
+       //var b:MyView = this.skin.hostComponent;
 
     }
 

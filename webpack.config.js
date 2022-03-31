@@ -7,7 +7,8 @@ const htmlWebpackPlugin = require('html-webpack-plugin');
 const workspace = path.resolve( "./test/src" )
 
 const build = path.resolve( "./test/build" )
-const loader = require.resolve("es-loader")
+//const loader = require.resolve("es-loader")
+const loader = require.resolve("../es-loader")
 
 const host = "localhost";
 const port = 8085;

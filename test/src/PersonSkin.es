@@ -11,6 +11,8 @@ xmlns:ui="web.ui"
 
        address:string='address';
 
+       import web.ui.Tag;
+
       get name():string{
         return this.reactive<string>('name');
       }
@@ -43,6 +45,10 @@ xmlns:ui="web.ui"
 
         isShow = true;
 
+        getTag(){
+            return <Tag >ssssssss</Tag>
+        }
+
    </script>
 
    <style>
@@ -71,6 +77,14 @@ xmlns:ui="web.ui"
     <div class="" ref='iss'>
        <div>item =====PersonSkin====  {name} =====</div>
     </div>
+
+    <div cmd:for="(item,index) in list" >{item}----for---{index}</div>
+
+    {
+        list.map( item=>{
+            return <div>--------{item}--internal----</div>
+        })
+    }
 
     <input bind:value={value} on:change={onChange} />
 
@@ -118,7 +132,10 @@ xmlns:ui="web.ui"
     <d:show condition="this.isShow" >
       <div>====show==</div>
       <div>===222=show===</div>
+      
     </d:show>
+
+    {this.getTag()}
 
 
 
