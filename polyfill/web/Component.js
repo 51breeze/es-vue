@@ -207,7 +207,7 @@ Object.defineProperty( proto, 'parent', {get:function parent(){
     return this.$parent;
 }});
 
-Object.defineProperty( proto, 'children', {get:function parent(){
+Object.defineProperty( proto, 'children', {get:function children(){
     return this.$children;
 }});
 
@@ -215,7 +215,7 @@ Object.defineProperty( proto, 'createElement', {value:function createElement(nam
     return this.$createElement(name, config, children);
 }});
 
-Object.defineProperty( proto, 'getElementByRefName', {value:function getElementByRefName(name){
+Object.defineProperty( proto, 'getElementByName', {value:function getElementByName(name){
     return this.$refs[name];
 }});
 
