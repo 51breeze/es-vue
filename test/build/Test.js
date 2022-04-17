@@ -14,7 +14,7 @@ members.onInitialized={m:3,d:3,value:function onInitialized(){
 	console.log('====onInitialized========');
 	Component.prototype.onInitialized.call(this);
 }};
-members.address={m:3,d:4,enumerable:true,required:true,get:function address(){var res=this.reactive('address');return res === void 0 ? null : res;},set:function address(value){this.reactive('address',value)}};
+members.address={m:3,d:4,enumerable:true,required:true,get:function address(){return this.reactive('address', void 0, function(){return null})},set:function address(value){this.reactive('address',value)}};
 members.onBeforeMount={m:3,d:3,value:function onBeforeMount(){
 	console.log('=====beforeMount======');
 }};
@@ -103,7 +103,7 @@ members.beforeEnter={m:3,d:3,value:function beforeEnter(){
 	var args = Array.prototype.slice.call(arguments,0);
 	console.log(args);
 }};
-members.isShow={m:3,d:4,enumerable:true,get:function isShow(){var res=this.reactive('isShow');return res === void 0 ? true : res;},set:function isShow(value){this.reactive('isShow',value)}};
+members.isShow={m:3,d:4,enumerable:true,get:function isShow(){return this.reactive('isShow', void 0, function(){return true})},set:function isShow(value){this.reactive('isShow',value)}};
 members.toggle={m:3,d:3,value:function toggle(){
 	this.isShow=! this.isShow;
 	console.log('--------',this.isShow);
@@ -114,7 +114,7 @@ members._init={value:function _init(options){
 }).call(this,options);
 }}
 var Test = Component.createComponent({
-	name:'es-Test'
+	name:'Test'
 });
 Class.creator(7,Test,{
 	'id':1,

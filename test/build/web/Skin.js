@@ -19,8 +19,8 @@ members.reactive={m:3,d:3,value:function reactive(name,value){
 members.forceUpdate={m:3,d:3,value:function forceUpdate(){
 	return this.hostComponent.forceUpdate();
 }};
-members.getElementByRefName={m:3,d:3,value:function getElementByRefName(name){
-	return this.hostComponent.getElementByRefName(name);
+members.getElementByName={m:3,d:3,value:function getElementByName(name){
+	return this.hostComponent.getElementByName(name);
 }};
 members.slot={m:3,d:3,value:function slot(name,scope,called,params){
 	return this.hostComponent.slot(name,scope,called,params);

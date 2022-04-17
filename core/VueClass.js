@@ -62,11 +62,36 @@ class VueClass extends Syntax{
         const memberContent = [];
         const mainEnterMethods = [];
         const Component = this.getGlobalModuleById('web.components.Component');
+        const injectProperties = [];
+        let providerMethod = [];
+        const injectorPush=(injector, name, value)=>{
+            if( injector ){
+                const injectorArgs = injector.getArguments();
+                var from = name;
+                if( injectorArgs.length > 0 ){
+                    from = injectorArgs[0].value || from;
+                }
+                if( value ){
+                    injectProperties.push( this.semicolon(`this.injectProperty("${name}", "${from}", ${value})`) );
+                }else{
+                    injectProperties.push(  this.semicolon(`this.injectProperty("${name}", "${from}")`) );
+                }
+            }
+        }
+
+        const providerPush=(provider, name)=>{
+            if( provider ){
+                providerMethod.push( this.semicolon(`this.addProvider( this.${name}.bind(this) )`) );
+            }
+        }
+
         const emitter=(target,proto,content,isStatic,descriptive)=>{
             for( var name in target ){
                 const item = target[ name ];
                 const modifier = item.modifier ? item.modifier.value() : 'public';
                 const required = item.annotations && item.annotations.find( annotation=>annotation.name.toLowerCase() ==='required' );
+                const provider = item.annotations && item.annotations.find( annotation=>annotation.name.toLowerCase() ==='provider' );
+                const injector = item.annotations && item.annotations.find( annotation=>annotation.name.toLowerCase() ==='injector' );
                 if( Array.isArray(reserved) && reserved.includes(name) ){
                     item.error(1124,name);
                 }
@@ -76,9 +101,11 @@ class VueClass extends Syntax{
                     let makeValue = value;
                     let isAccessor = false;
                     if( !isStatic ){
-                        if( modifier ==="public" ){
+
+                        if( modifier ==="public" && kind === Constant.DECLARE_PROPERTY_VAR ){
+                            injectorPush( injector, name, value );
                             if( value ){
-                                makeValue = {get:`function ${name}(){var res=this.reactive('${name}');return res === void 0 ? ${value} : res;}`,set:`function ${name}(value){this.reactive('${name}',value)}`}
+                                makeValue = {get:`function ${name}(){return this.reactive('${name}', void 0, function(){return ${value}})}`,set:`function ${name}(value){this.reactive('${name}',value)}`}
                             }else{
                                 makeValue = {get:`function ${name}(){return this.reactive('${name}')}`,set:`function ${name}(value){this.reactive('${name}',value)}`}
                             }
@@ -100,6 +127,8 @@ class VueClass extends Syntax{
                     ));
                     
                 }else if( item.isAccessor ){
+
+                    if( item.set )injectorPush( injector, name );
                     content.push(this.definePropertyDescription(
                         proto,
                         name,
@@ -115,10 +144,12 @@ class VueClass extends Syntax{
                         false,
                         required
                     ));
+
                 }else{
                     if(isStatic && modifier ==="public" && item.isEnterMethod && !mainEnterMethods.length ){
                         mainEnterMethods.push( this.semicolon(`${module.id}.${name}()`) )
                     }
+                    providerPush( provider, name);
                     let kind = Constant.DECLARE_PROPERTY_FUN;
                     content.push(this.definePropertyDescription(
                         proto,
@@ -173,13 +204,18 @@ class VueClass extends Syntax{
         }
 
         let construct = module.methodConstructor ? this.make(module.methodConstructor) : null;
-        if( !construct && (properties.length > 0 || initialProps.length > 0) ){
+        if( !construct && (properties.length > 0 || initialProps.length > 0 ) ){
             construct =  this.createDefaultConstructor(module, inherit, properties, initialProps);
         }
 
+        if( injectProperties.length > 0 || providerMethod.length > 0  ){
+            memberContent.push(`members.__$injectAndProvideProperties={value:function(){${[].concat(injectProperties, providerMethod).join('\r\n')}}}`)
+        }
+
         if( construct ){
+            const callParams = ['this', 'options'];
             const callConstructor = [
-                this.semicolon(`(${construct}).call(this,options)`),
+                this.semicolon(`(${construct}).call(${callParams.join(',')})`),
             ]
             memberContent.push(`members._init={value:function _init(options){\r\n${callConstructor.join('\r\n')}\r\n}}`)
         }

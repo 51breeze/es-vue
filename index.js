@@ -94,6 +94,7 @@ function plugin(complier){
     }
     this.config( merge(defaultOptions,config) );
     complier.options.annotations.push('Define');
+    complier.options.annotations.push('Injector');
     complier.loadTypes([require.resolve('./types/index.d.es')],true, null, true);
 };
 

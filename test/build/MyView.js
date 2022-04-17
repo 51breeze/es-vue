@@ -12,7 +12,7 @@ members.nameMyView={m:3,d:4,enumerable:true,get:function nameMyView(){
 	return 'name';
 }};
 var MyView = Component.createComponent({
-	name:'es-MyView',
+	name:'MyView',
 	extends:View
 });
 Class.creator(1,MyView,{

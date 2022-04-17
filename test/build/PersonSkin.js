@@ -4,6 +4,8 @@ import web_components_Component from "./web/components/Component.js";
 import Tag from "./web/ui/Tag.js";
 import web_animation_TransitionGroup from "./web/animation/TransitionGroup.js";
 import web_events_TransitionEvent from "./web/events/TransitionEvent.js";
+import web_ui_CheckboxGroup from "./web/ui/CheckboxGroup.js";
+import web_ui_Checkbox from "./web/ui/Checkbox.js";
 import Reflect from "./core/Reflect.js";
 import Class from "./core/Class.js";
 var members = {};
@@ -58,22 +60,22 @@ members.render={m:3,d:3,value:function render(){
 		[
 		createElement('input',{
 			"attrs":{
-				"value":this.value
+				"value":this.formValue.name
 				},
 			"on":{
-				"input":(function(event){this.value=event && event.target && event.target.nodeType===1 ? event.target.value : event;}).bind(this),
+				"input":(function(event){this.formValue.name=event && event.target && event.target.nodeType===1 ? event.target.value : event;}).bind(this),
 				"change":this.onChange.bind(this)
 				},
 			"directives":[
 				{
 				"name":'model',
-				"value":this.value
+				"value":this.formValue.name
 				}
 				]
 			}),
 		createElement('input',{
 			"attrs":{
-				"value":this.value
+				"value":this.formValue.name
 				}
 			})
 	]).concat(
@@ -165,9 +167,41 @@ members.render={m:3,d:3,value:function render(){
 					]
 				}, ['===222=show==='])
 		]).concat(
+		[
+		createElement(web_ui_CheckboxGroup,{
+			"props":{
+				"value":this.formValue.ids
+				},
+			"on":{
+				"input":(function(event){this.formValue.ids=event && event.target && event.target.nodeType===1 ? event.target.value : event;}).bind(this)
+				},
+			"directives":[
+				{
+				"name":'model',
+				"value":this.formValue.ids
+				}
+				]
+			}, [
+			createElement(web_ui_Checkbox,{
+				"props":{
+					"label":1
+					}
+				}, ['A        ']),
+			createElement(web_ui_Checkbox,{
+				"props":{
+					"label":2
+					}
+				}, ['B        '])
+		])
+	]).concat(
 		this.getTag()));
 }};
-members.address={m:3,d:4,enumerable:true,get:function address(){var res=this.reactive('address');return res === void 0 ? 'address' : res;},set:function address(value){this.reactive('address',value)}};
+members.address={m:3,d:4,enumerable:true,get:function address(){return this.reactive('address', void 0, function(){return 'address'})},set:function address(value){this.reactive('address',value)}};
+members.provide={m:3,d:3,value:function provide(){
+	return {"foot":this.address};
+}};
+members.injectValue={m:3,d:4,enumerable:true,get:function injectValue(){return this.reactive('injectValue', void 0, function(){return [1,2,3]})},set:function injectValue(value){this.reactive('injectValue',value)}};
+members.formValue={m:3,d:4,enumerable:true,get:function formValue(){return this.reactive('formValue', void 0, function(){return {"name":'99999',"ids":[]}})},set:function formValue(value){this.reactive('formValue',value)}};
 members.name={m:3,d:4,enumerable:true,get:function name(){
 	return this.reactive('name');
 },set:function name(value){
@@ -178,6 +212,7 @@ members.list={m:3,d:4,enumerable:true,get:function list(){
 }};
 members.onChange={m:3,d:3,value:function onChange(e){
 	this.address=Reflect.get(PersonSkin,Reflect.get(PersonSkin,e,'target'),'value') + '---';
+	console.log(this.formValue);
 }};
 members.value={m:3,d:4,enumerable:true,get:function value(){
 	return this.reactive('value') || '9999';
@@ -187,13 +222,22 @@ members.value={m:3,d:4,enumerable:true,get:function value(){
 members.beforeEnter={m:3,d:3,value:function beforeEnter(){
 	console.log('=========PersonSkin=====enter');
 }};
-members.isShow={m:3,d:4,enumerable:true,get:function isShow(){var res=this.reactive('isShow');return res === void 0 ? true : res;},set:function isShow(value){this.reactive('isShow',value)}};
+members.isShow={m:3,d:4,enumerable:true,get:function isShow(){return this.reactive('isShow', void 0, function(){return true})},set:function isShow(value){this.reactive('isShow',value)}};
 members.getTag={m:3,d:3,value:function getTag(){
 		var createElement1 = this.createElement.bind(this);
 	return createElement1(Tag,null, ['ssssssss']);
 }};
+members._init={value:function _init(options){
+this.addEventListener('onBeforeCreate',function(e){
+                   this.injectProperty("injectValue", "value", [1,2,3]);
+this.addProvider( this.provide.bind(this) );
+                });
+(function (options){
+web_components_Component.prototype._init.call(this,options);
+}).call(this,options);
+}}
 var PersonSkin = web_components_Component.createComponent({
-	name:'es-PersonSkin'
+	name:'PersonSkin'
 });
 Class.creator(12,PersonSkin,{
 	'id':1,

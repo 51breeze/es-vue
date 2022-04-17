@@ -15,7 +15,22 @@ var mixins = [{
     render(){
         return this.render.apply(this, Array.prototype.slice.call(arguments));
     },
+    beforeCreate(){
+        if( this.hasEventListener('onBeforeCreate') ){
+            this.dispatchEvent( new ComponentEvent('onBeforeCreate') );
+        }
+        var props = this[key].config.props;
+        var propsData = this.onReceiveProps( props );
+        if( propsData ){
+            for(var name in propsData ){
+                if( Object.hasOwnProperty.call(this, name) ){
+                    this[name] = propsData[name];
+                }
+            }
+        }
+    },
     created(){
+        this[key].initialized=true;
         this.onInitialized();
     },
     beforeMount(){
@@ -85,43 +100,17 @@ Component.options = Vue.options;
 var proto = Component.prototype;
 
 Object.defineProperty( proto, '_init', {value:function _init(options){
-    var context = options && options._parentVnode && options._parentVnode.componentOptions && options._parentVnode || {};
+    var context = options && options._parentVnode || {};
     var componentOptions = context.componentOptions || {};
     this[key] = Object.create(null);
     this[key].event=new EventDispatcher();
     this[key].initialized=false;
+    this[key].context = context;
+    this[key].provideQueues = [];
     this[key].options = componentOptions;
     this[key].config = context.data || {};
-    this[key].states = {};
-    var classModule = this.constructor;
-    var description = classModule[classKey];
-    var props = {};
-    if( description ){
-        var members = description.members || {};
-        var data = context.data || {};
-        for(var name in members ){
-            var member = members[name];
-            if( Class.CONSTANT.PROPERTY_ACCESSOR === member.d ){
-                if( data.props && Object.hasOwnProperty.call(data.props,name) ){
-                    props[ name ] = data.props[ name ]
-                }else if( data.attrs && Object.hasOwnProperty.call(data.attrs,name) ){
-                    props[ name ] = data.attrs[ name ]
-                }
-            }
-        }
-    }
-
-    var propsData = this.onReceiveProps( props );
-    if( propsData ){
-        for(var name in propsData ){
-            if( Object.hasOwnProperty.call(this, name) ){
-                this[name] = propsData[name];
-            }
-        }
-    }
-    
+    this[key].states = Object.create(null);
     Vue.prototype._init.call(this,options);
-    this[key].initialized=true;
 }});
 
 Object.defineProperty( proto, 'render', {value: function render(){return null}});
@@ -142,10 +131,6 @@ Object.defineProperty( proto, 'onBeforeMount', {value:function onBeforeMount(){}
 
 Object.defineProperty( proto, 'onMounted', {value:function onMounted(){}});
 
-Object.defineProperty( proto, 'onShouldUpdate', {value: function onShouldUpdate(newValue,oldValue){
-    return newValue !== oldValue;
-}});
-
 Object.defineProperty( proto, 'onBeforeUpdate', {value:function onBeforeUpdate(){}});
 
 Object.defineProperty( proto, 'onUpdated', {value:function onUpdated(){}});
@@ -160,18 +145,66 @@ Object.defineProperty( proto, 'onActivated', {value:function onActivated(){}});
 
 Object.defineProperty( proto, 'onDeactivated', {value:function onDeactivated(){}});
 
-Object.defineProperty( proto, 'reactive', {value:function reactive(name, value){
-    var states = this[key].states;
-    if( value === void 0 ){
-        return Object.hasOwnProperty.call(states, name) ? states[name] : void 0;
-    }else {
-        var old = states[name];
-        if( this[key].initialized ){
-            if( this.onShouldUpdate(old,value) ){
-                states[name] = value;
-                this.$forceUpdate();
+Object.defineProperty( proto, 'addProvider', {value:function addProvider( provider ){
+    var type = typeof provider;
+    if( type === "function"){
+        this[key].provideQueues.push( (function(context){ 
+            if( context.called ){
+                return context.result;
             }
+            context.called = true;
+            context.result = provider.call(this);
+            if( typeof context.result !== 'object' ){
+                throw new Error('Provider must return be an object');
+            }
+            return context.result;
+        }).bind(this,{}) );
+    }else if( type ==='object' ){
+        this[key].provideQueues.push( (function(context){ 
+           return provider;
+        }).bind(this,{}) );
+    }else{
+        throw new Error('Provider must is function or object');
+    }
+}});
+
+Object.defineProperty( proto, 'injectProperty', {value:function injectProperty(name, from, defaultValue){
+    var source = this;
+    while (source) {
+        var provideQueues = source[key].provideQueues;
+        var len = provideQueues.length;
+        if( provideQueues && len > 0 ) {
+            for(var i = 0; i<len; i++){
+                var provide = provideQueues[ i ];
+                var result = provide();
+                if( Object.hasOwnProperty.call(result, from) ){
+                    var value = result[ from ];
+                    this.reactive(name, value === void 0 ? defaultValue : value);
+                    break;
+                }
+            }  
+            break;
+        }
+        source = source.parent;
+    }
+}});
+
+Object.defineProperty( proto, 'reactive', {value:function reactive(name, value, initValue){
+    var states = this[key].states;
+    var init = false;
+    if( !Object.hasOwnProperty.call(states, name) ){
+        init = true;
+        if( value === void 0 && initValue ){
+            initValue = typeof initValue === "function" ? initValue() : initValue;
+            Vue.util.defineReactive(states, name, initValue );
         }else{
+            Vue.util.defineReactive(states, name, value );
+        }
+    }
+    if( value === void 0 ){
+        return states[name];
+    }else {
+        if( !init ){
             states[name] = value;
         }
         return value;
@@ -206,7 +239,7 @@ Object.defineProperty( proto, 'parent', {get:function parent(){
     return this.$parent;
 }});
 
-Object.defineProperty( proto, 'children', {get:function parent(){
+Object.defineProperty( proto, 'children', {get:function children(){
     return this.$children;
 }});
 

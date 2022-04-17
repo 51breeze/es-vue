@@ -7,7 +7,6 @@ package web.components{
         protected onInitialized():void;
         protected onBeforeMount():void;
         protected onMounted():void;
-        protected onShouldUpdate(newVlaue:any,oldValue:any):boolean;
         protected onBeforeUpdate():void;
         protected onUpdated():void;
         protected onBeforeUnmount():void;
@@ -19,7 +18,7 @@ package web.components{
         public getConfig():object;
         public slot( name:string , scope?:boolean, called?:boolean, params?:object ):NodeElementResult[];
         public createElement(name:string|Component,data?:NodeDataConfig,children?:NodeElementResult[]):NodeElementResult;
-        public getElementByRefName(name:string):NodeElementResult | NodeElementResult[];
+        public getElementByName(name:string):NodeElementResult | NodeElementResult[];
         public forceUpdate();
         public on(type: string, listener:(...args)=>void):void;
         public off(type: string, listener?:(...args)=>void):void;

@@ -23,8 +23,8 @@ class Skin<T extends Component > extends EventDispatcher{
         return this.hostComponent.forceUpdate();
     }
 
-    getElementByRefName(name){
-        return this.hostComponent.getElementByRefName(name);
+    getElementByName(name){
+        return this.hostComponent.getElementByName(name);
     }
     
     slot( name:string , scope?:boolean, called?:boolean, params?:object ){

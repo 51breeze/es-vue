@@ -9,9 +9,20 @@ xmlns:ui="web.ui"
 
    <script>
 
-       address:string='address';
+       address:string='addresssss--------999';
 
        import web.ui.Tag;
+       import PersonChildSkin;
+
+       @Provider
+       provide(){
+           return {
+               foot:this.formValue
+           }
+       };
+
+
+       formValue = {name:'99999', ids:[]};
 
       get name():string{
         return this.reactive<string>('name');
@@ -27,6 +38,8 @@ xmlns:ui="web.ui"
 
       onChange(e){
           this.address = e.target.value +'---';
+
+          console.log( this.formValue );
          
       }
 
@@ -86,9 +99,9 @@ xmlns:ui="web.ui"
         })
     }
 
-    <input bind:value={value} on:change={onChange} />
+    <input bind:value={this.formValue.name} on:change={onChange} />
 
-    <input value={this.value} />
+    <input value={this.formValue.name} />
 
     <slot:foot props={this.list}>
         <div>===============the is foot slot ==============</div>
@@ -135,7 +148,22 @@ xmlns:ui="web.ui"
       
     </d:show>
 
+    <ui:CheckboxGroup bind:value={this.formValue.ids}>
+
+        <ui:Checkbox  label={1} >
+            A
+        </ui:Checkbox>
+
+        <ui:Checkbox  label={2}>
+            B
+        </ui:Checkbox>
+
+    </ui:CheckboxGroup>
+
+
     {this.getTag()}
+
+    <PersonChildSkin />
 
 
 

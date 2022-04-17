@@ -6,7 +6,7 @@ members.render={m:3,d:3,value:function render(){
 	return this.createElement(Option,this.getConfig(),this.slot('default'));
 }};
 var MyOption = Component.createComponent({
-	name:'es-MyOption'
+	name:'MyOption'
 });
 Class.creator(8,MyOption,{
 	'id':1,

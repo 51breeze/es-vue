@@ -27,7 +27,7 @@ Component.prototype._init.call(this,options);
 }).call(this,options);
 }}
 var View = Component.createComponent({
-	name:'es-View'
+	name:'View'
 });
 Class.creator(2,View,{
 	'id':1,
