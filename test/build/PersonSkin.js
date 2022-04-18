@@ -6,10 +6,12 @@ import web_animation_TransitionGroup from "./web/animation/TransitionGroup.js";
 import web_events_TransitionEvent from "./web/events/TransitionEvent.js";
 import web_ui_CheckboxGroup from "./web/ui/CheckboxGroup.js";
 import web_ui_Checkbox from "./web/ui/Checkbox.js";
+import PersonChildSkin from "./PersonChildSkin.js";
 import Reflect from "./core/Reflect.js";
 import Class from "./core/Class.js";
 var members = {};
 members.render={m:3,d:3,value:function render(){
+		var _this = this;
 	var _c;
 	var createElement = this.createElement.bind(this);
 	return createElement('div', null, [
@@ -64,7 +66,9 @@ members.render={m:3,d:3,value:function render(){
 				},
 			"on":{
 				"input":(function(event){this.formValue.name=event && event.target && event.target.nodeType===1 ? event.target.value : event;}).bind(this),
-				"change":this.onChange.bind(this)
+				"change":function(e){
+return _this.onChange(e);
+}
 				},
 			"directives":[
 				{
@@ -194,13 +198,15 @@ members.render={m:3,d:3,value:function render(){
 				}, ['B        '])
 		])
 	]).concat(
-		this.getTag()));
+		this.getTag()).concat(
+		[
+		createElement(PersonChildSkin)
+	]));
 }};
-members.address={m:3,d:4,enumerable:true,get:function address(){return this.reactive('address', void 0, function(){return 'address'})},set:function address(value){this.reactive('address',value)}};
+members.address={m:3,d:4,enumerable:true,get:function address(){return this.reactive('address', void 0, function(){return 'addresssss--------999'})},set:function address(value){this.reactive('address',value)}};
 members.provide={m:3,d:3,value:function provide(){
-	return {"foot":this.address};
+	return {"foot":this.formValue};
 }};
-members.injectValue={m:3,d:4,enumerable:true,get:function injectValue(){return this.reactive('injectValue', void 0, function(){return [1,2,3]})},set:function injectValue(value){this.reactive('injectValue',value)}};
 members.formValue={m:3,d:4,enumerable:true,get:function formValue(){return this.reactive('formValue', void 0, function(){return {"name":'99999',"ids":[]}})},set:function formValue(value){this.reactive('formValue',value)}};
 members.name={m:3,d:4,enumerable:true,get:function name(){
 	return this.reactive('name');
@@ -212,7 +218,6 @@ members.list={m:3,d:4,enumerable:true,get:function list(){
 }};
 members.onChange={m:3,d:3,value:function onChange(e){
 	this.address=Reflect.get(PersonSkin,Reflect.get(PersonSkin,e,'target'),'value') + '---';
-	console.log(this.formValue);
 }};
 members.value={m:3,d:4,enumerable:true,get:function value(){
 	return this.reactive('value') || '9999';
@@ -228,16 +233,13 @@ members.getTag={m:3,d:3,value:function getTag(){
 	return createElement1(Tag,null, ['ssssssss']);
 }};
 members._init={value:function _init(options){
-this.addEventListener('onBeforeCreate',function(e){
-                   this.injectProperty("injectValue", "value", [1,2,3]);
-this.addProvider( this.provide.bind(this) );
-                });
+this.addEventListener('onBeforeCreate',(function(e){this.addProvider( this.provide.bind(this) );}).bind(this));
 (function (options){
 web_components_Component.prototype._init.call(this,options);
 }).call(this,options);
 }}
 var PersonSkin = web_components_Component.createComponent({
-	name:'PersonSkin'
+	name:'es-PersonSkin'
 });
 Class.creator(12,PersonSkin,{
 	'id':1,

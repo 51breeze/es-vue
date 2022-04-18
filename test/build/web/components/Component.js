@@ -9,6 +9,27 @@ import Class from "./../../core/Class.js";
 import EventDispatcher from "./../../core/EventDispatcher.js";
 import ComponentEvent from "./../events/ComponentEvent.js";
 import Vue from "vue";
+
+function copyObject(target){
+    if( target && typeof target ==='object' && target.__ob__ ){
+        if( Object.prototype.toString.call(target) === '[object Object]' ){
+            var keys = Object.keys( target );
+            var obj = {};
+            for(var i=0;i<keys.length;i++){
+                obj[ keys[i] ] = copyObject( target[ keys[i] ] );
+            }
+            return obj;
+        }else if( target instanceof Array ){
+            var items = [];
+            for(var i; i<target.length;i++){
+                items.push( copyObject(target[i]) )
+            }
+            return items;
+        }
+    }
+    return target;
+}
+
 var classKey = Class.key;
 var key = Symbol('private');
 var mixins = [{
@@ -17,14 +38,14 @@ var mixins = [{
     },
     beforeCreate(){
         if( this.hasEventListener('onBeforeCreate') ){
-            this.dispatchEvent( new ComponentEvent('onBeforeCreate') );
+            this.dispatchEvent( new ComponentEvent( 'onBeforeCreate' ) );
         }
         var props = this[key].config.props;
         var propsData = this.onReceiveProps( props );
         if( propsData ){
             for(var name in propsData ){
                 if( Object.hasOwnProperty.call(this, name) ){
-                    this[name] = propsData[name];
+                    this[name] = copyObject( propsData[name] );
                 }
             }
         }
@@ -89,9 +110,7 @@ var mixins = [{
     }
 }];
 
-function Component(options){
-    Component.options = Vue.options;
-    Vue.call(this,options);
+function Component(){
 }
 
 Component.prototype = Object.create(Vue.prototype);
@@ -99,17 +118,24 @@ Component.prototype.constructor = Component;
 Component.options = Vue.options;
 var proto = Component.prototype;
 
+function initPrivate(target){
+    if( !Object.prototype.hasOwnProperty.call(target,key) ){
+        target[key] = Object.create(null);
+        target[key].event=new EventDispatcher();
+        target[key].initialized=false;
+        target[key].states = Object.create(null);
+    }
+    return target[key];
+}
+
 Object.defineProperty( proto, '_init', {value:function _init(options){
     var context = options && options._parentVnode || {};
     var componentOptions = context.componentOptions || {};
-    this[key] = Object.create(null);
-    this[key].event=new EventDispatcher();
-    this[key].initialized=false;
+    initPrivate(this);
     this[key].context = context;
     this[key].provideQueues = [];
     this[key].options = componentOptions;
     this[key].config = context.data || {};
-    this[key].states = Object.create(null);
     Vue.prototype._init.call(this,options);
 }});
 
@@ -146,6 +172,7 @@ Object.defineProperty( proto, 'onActivated', {value:function onActivated(){}});
 Object.defineProperty( proto, 'onDeactivated', {value:function onDeactivated(){}});
 
 Object.defineProperty( proto, 'addProvider', {value:function addProvider( provider ){
+    initPrivate(this);
     var type = typeof provider;
     if( type === "function"){
         this[key].provideQueues.push( (function(context){ 
@@ -169,6 +196,7 @@ Object.defineProperty( proto, 'addProvider', {value:function addProvider( provid
 }});
 
 Object.defineProperty( proto, 'injectProperty', {value:function injectProperty(name, from, defaultValue){
+    initPrivate(this);
     var source = this;
     while (source) {
         var provideQueues = source[key].provideQueues;
@@ -179,10 +207,13 @@ Object.defineProperty( proto, 'injectProperty', {value:function injectProperty(n
                 var result = provide();
                 if( Object.hasOwnProperty.call(result, from) ){
                     var value = result[ from ];
+                    if( value ){
+                        value = copyObject( value );
+                    }
                     this.reactive(name, value === void 0 ? defaultValue : value);
                     break;
                 }
-            }  
+            }
             break;
         }
         source = source.parent;
@@ -247,23 +278,27 @@ Object.defineProperty( proto, 'createElement', {value:function createElement(nam
     return this.$createElement(name, config, children);
 }});
 
-Object.defineProperty( proto, 'getElementByRefName', {value:function getElementByRefName(name){
+Object.defineProperty( proto, 'getElementByName', {value:function getElementByName(name){
     return this.$refs[name];
 }});
 
 Object.defineProperty( proto, 'addEventListener', {value:function addEventListener(type, listener,useCapture,priority,reference){
+    initPrivate(this);
     return this[key].event.addEventListener(type,listener,useCapture,priority,reference);
 }});
 
 Object.defineProperty( proto, 'dispatchEvent', {value:function dispatchEvent(event){
+    initPrivate(this);
     return this[key].event.dispatchEvent(event);
 }});
 
 Object.defineProperty( proto, 'removeEventListener', {value:function removeEventListener(type, listener){
+    initPrivate(this);
     return this[key].event.removeEventListener(type, listener);
 }});
 
 Object.defineProperty( proto, 'hasEventListener', {value:function hasEventListener(type, listener){
+    initPrivate(this);
     return this[key].event.hasEventListener(type, listener);
 }});
 

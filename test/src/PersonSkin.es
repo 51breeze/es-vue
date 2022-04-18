@@ -38,9 +38,6 @@ xmlns:ui="web.ui"
 
       onChange(e){
           this.address = e.target.value +'---';
-
-          console.log( this.formValue );
-         
       }
 
        set value(val:string){
@@ -99,7 +96,7 @@ xmlns:ui="web.ui"
         })
     }
 
-    <input bind:value={this.formValue.name} on:change={onChange} />
+    <input bind:value={this.formValue.name} on:change={e=>this.onChange(e)} />
 
     <input value={this.formValue.name} />
 

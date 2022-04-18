@@ -204,19 +204,18 @@ class VueClass extends Syntax{
         }
 
         let construct = module.methodConstructor ? this.make(module.methodConstructor) : null;
-        if( !construct && (properties.length > 0 || initialProps.length > 0 ) ){
+        if( !construct && (properties.length > 0 || initialProps.length > 0 || injectProperties.length > 0 || providerMethod.length > 0 ) ){
             construct =  this.createDefaultConstructor(module, inherit, properties, initialProps);
-        }
-
-        if( injectProperties.length > 0 || providerMethod.length > 0  ){
-            memberContent.push(`members.__$injectAndProvideProperties={value:function(){${[].concat(injectProperties, providerMethod).join('\r\n')}}}`)
         }
 
         if( construct ){
             const callParams = ['this', 'options'];
-            const callConstructor = [
-                this.semicolon(`(${construct}).call(${callParams.join(',')})`),
-            ]
+            const callConstructor = [];
+            const injectAndProvide = injectProperties.concat( providerMethod );
+            if( injectAndProvide.length > 0 ){
+                callConstructor.push(this.semicolon(`this.addEventListener('onBeforeCreate',(function(e){${injectProperties.concat( providerMethod ).join('\r\n')}}).bind(this))`));
+            }
+            callConstructor.push( this.semicolon(`(${construct}).call(${callParams.join(',')})`) );
             memberContent.push(`members._init={value:function _init(options){\r\n${callConstructor.join('\r\n')}\r\n}}`)
         }
 

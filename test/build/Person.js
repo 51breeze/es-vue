@@ -60,12 +60,13 @@ members.render={m:3,d:3,value:function render(){
 		]);
 }};
 members._init={value:function _init(options){
+this.addEventListener('onBeforeCreate',(function(e){}).bind(this));
 (function Person(options){
 	Component.prototype._init.call(this,options);
 }).call(this,options);
 }}
 var Person = Component.createComponent({
-	name:'Person'
+	name:'es-Person'
 });
 Class.creator(11,Person,{
 	'id':1,
