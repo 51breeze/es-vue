@@ -33,5 +33,6 @@ declare final class Button extends Component{
     autofocus:boolean=false
 
     //原生 type 属性
+    @DOMAttribute
     nativeType:'button' | 'submit' | 'reset' = 'button'
 }

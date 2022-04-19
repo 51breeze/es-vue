@@ -21,7 +21,6 @@ members.render={m:3,d:3,value:function render(){
 	return this.skin.render();
 }};
 members._init={value:function _init(options){
-this.addEventListener('onBeforeCreate',(function(e){}).bind(this));
 (function (options){
 	Object.defineProperty(this,_private,{value:{'_skinClass':null}});
 Component.prototype._init.call(this,options);

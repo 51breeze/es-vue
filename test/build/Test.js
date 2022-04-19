@@ -109,7 +109,6 @@ members.toggle={m:3,d:3,value:function toggle(){
 	console.log('--------',this.isShow);
 }};
 members._init={value:function _init(options){
-this.addEventListener('onBeforeCreate',(function(e){}).bind(this));
 (function Test(options){
 	Component.prototype._init.call(this,options);
 }).call(this,options);

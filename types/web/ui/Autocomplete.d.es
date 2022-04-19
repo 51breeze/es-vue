@@ -22,6 +22,7 @@ import web.components.Component
 
 declare final class Autocomplete extends Component{
     //输入框占位文本
+    @DOMAttribute
     placeholder:string
     //禁用
     disabled:boolean=false
@@ -40,6 +41,7 @@ declare final class Autocomplete extends Component{
     //是否在输入框 focus 时显示建议列表
     triggerOnFocus:boolean=true
     //原生属性
+    @DOMAttribute
     name:string
     //在输入没有任何匹配建议的情况下，按下回车是否触发 select 事件
     selectWhenUnmatched:boolean=false

@@ -93,8 +93,9 @@ function plugin(complier){
         defaultOptions.emitFile = true;
     }
     this.config( merge(defaultOptions,config) );
-    complier.options.annotations.push('Define');
-    complier.options.annotations.push('Injector');
+    //complier.options.annotations.push('Define');
+    //complier.options.annotations.push('Injector');
+    //complier.options.annotations.push('DOMAttribute');
     complier.loadTypes([require.resolve('./types/index.d.es')],true, null, true);
 };
 

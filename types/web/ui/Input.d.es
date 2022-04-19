@@ -19,16 +19,19 @@ import web.components.Component
 
 declare final class Input extends Component{
     //类型
-    type:'text'|'textarea'|'submit'|'checkbox'|'file'|'hidden'|'image'|'radio'|'reset' = 'text'
+    type:'text'|'textarea'|'submit'|'checkbox'|'file'|'password'|'hidden'|'image'|'radio'|'reset'|'color'|'date'|'datetime'|'datetime-local'|'month'|'week'|'time'|'email'|'number'|'range'|'search'|'tel'|'url' = 'text'
     //绑定值
     value:string | number
     //原生属性，最大输入长度
-    maxlength:number
+    @DOMAttribute
+    maxLength:number
     //原生属性，最小输入长度
-    minlength:number
+    @DOMAttribute
+    minLength:number
     //是否显示输入字数统计，只在 type = "text" 或 type = "textarea" 时有效
     showWordLimit:boolean= false
     //输入框占位文本
+    @DOMAttribute
     placeholder:string
     //是否可清空
     clearable:boolean=false
@@ -47,22 +50,30 @@ declare final class Input extends Component{
     //自适应内容高度，只对 type="textarea" 有效，可传入对象，如，{ minRows: 2, maxRows: 6 }
     autosize:boolean | { minRows: 2, maxRows: 6 } =	false
     //原生属性，自动补全
+     @DOMAttribute
     autocomplete:'on'|'off' = 'off'
     //原生属性
+     @DOMAttribute
     name:string
     //原生属性，是否只读
+     @DOMAttribute
     readonly:boolean=false
     //原生属性，设置最大值
+     @DOMAttribute
     max:number
     //原生属性，设置最小值
+     @DOMAttribute
     min:number
     //原生属性，设置输入字段的合法数字间隔
+     @DOMAttribute
     step:number
     //控制是否能被用户缩放
     resize:'none' | 'both' | 'horizontal' | 'vertical' = 'none'
     //原生属性，自动获取焦点
+     @DOMAttribute
     autofocus:boolean = false
     //原生属性
+     @DOMAttribute
     form:string
     //输入框关联的label文字
     label:string

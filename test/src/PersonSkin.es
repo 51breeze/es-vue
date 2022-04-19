@@ -22,7 +22,7 @@ xmlns:ui="web.ui"
        };
 
 
-       formValue = {name:'99999', ids:[]};
+       formValue = {name:'99999', ids:[],hhh:'',select:''};
 
       get name():string{
         return this.reactive<string>('name');
@@ -100,6 +100,8 @@ xmlns:ui="web.ui"
 
     <input value={this.formValue.name} />
 
+    <ui:Input placeholder="请输入内容" disabled type="text" bind:value={this.formValue.hhh} maxLength={20} readonly={false} />
+
     <slot:foot props={this.list}>
         <div>===============the is foot slot ==============</div>
     </slot:foot>
@@ -157,10 +159,17 @@ xmlns:ui="web.ui"
 
     </ui:CheckboxGroup>
 
+    <ui:Select placeholder="请选择" bind:value={this.formValue.select} disabled>
+       <ui:Option value="1" >1</ui:Option>
+       <ui:Option value="2"  >2</ui:Option>
+    </ui:Select>
+
 
     {this.getTag()}
 
     <PersonChildSkin />
+
+
 
 
 

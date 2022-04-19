@@ -2,6 +2,7 @@ import "./assets/index.css";
 import "D:/workspace/es-vue/test/src/PersonSkin.es?id=PersonSkin&type=style&file=611.css";
 import web_components_Component from "./web/components/Component.js";
 import Tag from "./web/ui/Tag.js";
+import web_ui_Input from "./web/ui/Input.js";
 import web_animation_TransitionGroup from "./web/animation/TransitionGroup.js";
 import web_events_TransitionEvent from "./web/events/TransitionEvent.js";
 import web_ui_CheckboxGroup from "./web/ui/CheckboxGroup.js";
@@ -81,6 +82,27 @@ return _this.onChange(e);
 			"attrs":{
 				"value":this.formValue.name
 				}
+			}),
+		createElement(web_ui_Input,{
+			"props":{
+				"disabled":true,
+				"type":"text",
+				"value":this.formValue.hhh
+				},
+			"attrs":{
+				"placeholder":"请输入内容",
+				"maxLength":20,
+				"readonly":false
+				},
+			"on":{
+				"input":(function(event){this.formValue.hhh=event && event.target && event.target.nodeType===1 ? event.target.value : event;}).bind(this)
+				},
+			"directives":[
+				{
+				"name":'model',
+				"value":this.formValue.hhh
+				}
+				]
 			})
 	]).concat(
 		(this.slot('foot',true,true,{props:this.list}) || [
@@ -207,7 +229,7 @@ members.address={m:3,d:4,enumerable:true,get:function address(){return this.reac
 members.provide={m:3,d:3,value:function provide(){
 	return {"foot":this.formValue};
 }};
-members.formValue={m:3,d:4,enumerable:true,get:function formValue(){return this.reactive('formValue', void 0, function(){return {"name":'99999',"ids":[]}})},set:function formValue(value){this.reactive('formValue',value)}};
+members.formValue={m:3,d:4,enumerable:true,get:function formValue(){return this.reactive('formValue', void 0, function(){return {"name":'99999',"ids":[],"hhh":''}})},set:function formValue(value){this.reactive('formValue',value)}};
 members.name={m:3,d:4,enumerable:true,get:function name(){
 	return this.reactive('name');
 },set:function name(value){
