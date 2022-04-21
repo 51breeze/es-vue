@@ -28,7 +28,7 @@ package web.components{
         public get children():Component[];
         public reactive<T>(name:string, value?:T):T;
         public mount( element?:string|Node ):this;
-        public observable(target:object):object;
+        public observable<T extends object>(target:T):T;
         public nextTick(callback:()=>void):void;
         public destroy():void;
         public addEventListener(type: string, listener: (event?:Event)=>void):this;
