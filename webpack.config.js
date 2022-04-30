@@ -117,7 +117,10 @@ const config = {
         test: /\.js$/,
         loader: 'babel-loader',
         options: {
-            presets: ['@vue/babel-preset-jsx']
+            presets: [
+              '@babel/preset-env',
+              '@vue/babel-preset-jsx'
+            ]
         },
         exclude: /(bower_components)/
       },

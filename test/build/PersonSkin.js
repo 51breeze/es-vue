@@ -7,6 +7,8 @@ import web_animation_TransitionGroup from "./web/animation/TransitionGroup.js";
 import web_events_TransitionEvent from "./web/events/TransitionEvent.js";
 import web_ui_CheckboxGroup from "./web/ui/CheckboxGroup.js";
 import web_ui_Checkbox from "./web/ui/Checkbox.js";
+import web_ui_Select from "./web/ui/Select.js";
+import web_ui_Option from "./web/ui/Option.js";
 import PersonChildSkin from "./PersonChildSkin.js";
 import Reflect from "./core/Reflect.js";
 import Class from "./core/Class.js";
@@ -218,6 +220,33 @@ return _this.onChange(e);
 					"label":2
 					}
 				}, ['B        '])
+		]),
+		createElement(web_ui_Select,{
+			"props":{
+				"placeholder":"请选择",
+				"value":this.formValue.select,
+				"disabled":true
+				},
+			"on":{
+				"input":(function(event){this.formValue.select=event && event.target && event.target.nodeType===1 ? event.target.value : event;}).bind(this)
+				},
+			"directives":[
+				{
+				"name":'model',
+				"value":this.formValue.select
+				}
+				]
+			}, [
+			createElement(web_ui_Option,{
+				"props":{
+					"value":"1"
+					}
+				}, ['1']),
+			createElement(web_ui_Option,{
+				"props":{
+					"value":"2"
+					}
+				}, ['2'])
 		])
 	]).concat(
 		this.getTag()).concat(
@@ -229,7 +258,7 @@ members.address={m:3,d:4,enumerable:true,get:function address(){return this.reac
 members.provide={m:3,d:3,value:function provide(){
 	return {"foot":this.formValue};
 }};
-members.formValue={m:3,d:4,enumerable:true,get:function formValue(){return this.reactive('formValue', void 0, function(){return {"name":'99999',"ids":[],"hhh":''}})},set:function formValue(value){this.reactive('formValue',value)}};
+members.formValue={m:3,d:4,enumerable:true,get:function formValue(){return this.reactive('formValue', void 0, function(){return {"name":'99999',"ids":[],"hhh":'',"select":''}})},set:function formValue(value){this.reactive('formValue',value)}};
 members.name={m:3,d:4,enumerable:true,get:function name(){
 	return this.reactive('name');
 },set:function name(value){
