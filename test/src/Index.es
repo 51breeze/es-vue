@@ -31,6 +31,14 @@ class Index{
        
 
         var map = new Map();
+        map.set('name', {});
+
+        var set = new Set();
+        set.add( v );
+
+        console.log( map.size, set.size, Array.from( (set as {values:()=>[] }).values() ) )
+
+       // map
 
 
          index.instance.childElements = v.render() as Node;

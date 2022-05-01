@@ -14,7 +14,6 @@ import Reflect from "./core/Reflect.js";
 import Class from "./core/Class.js";
 var members = {};
 members.render={m:3,d:3,value:function render(){
-		var _this = this;
 	var _c;
 	var createElement = this.createElement.bind(this);
 	return createElement('div', null, [

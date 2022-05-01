@@ -16,6 +16,7 @@ methods.main={m:3,d:3,value:function main(){
 	var v = new MyView();
 	v.skinClass=MySkin;
 	var map = new Map();
+	map.set('name',{});
 	index.instance.childElements=v.render();
 	index.display();
 }};

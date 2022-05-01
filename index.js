@@ -4,17 +4,16 @@ const Builder = require("./core/Builder");
 const Core = require("./core/Core");
 const Polyfill = require("./core/Polyfill");
 const {merge} = require("lodash");
-const modules = new Map();
-const loadStack=()=>{
-    const dirname = path.join(__dirname,"stack");
-    fs.readdirSync( dirname ).forEach( (filename)=>{
-        const info = path.parse( filename );
-        modules.set(info.name, require( path.join(dirname,filename) ) );
-    });
-}
+const modules = Core.plugin.modules;
+const dirname = path.join(__dirname,"stack");
+fs.readdirSync( dirname ).forEach( (filename)=>{
+    const info = path.parse( filename );
+    modules.set(info.name, require( path.join(dirname,filename) ) );
+});
 
-const defaultConfig = merge({},Core.plugin.defaultConfig,{
+const defaultConfig ={
     "styleLoader":null,
+    "webComponent":"vue",
     "reserved":[
         '_data',
         '_props',
@@ -44,25 +43,26 @@ const defaultConfig = merge({},Core.plugin.defaultConfig,{
         '$nextTick',
         '$destroy',
     ],
-});
+};
 
-const configData = Object.assign({}, defaultConfig);
 const package = require("./package.json");
+const key = Symbol('configKey');
 const properties ={
     name:package.name,
     platform:'client',
     version:package.version,
     config(options){
+        const data = this[key] || (this[key] = Object.create(defaultConfig));
         if(options){
-            merge(configData, options);
+            merge(data, options);
         }
-        return configData;
+        return data;
     },
     getPolyfill(name){
-        return Polyfill.modules.get(name);
+        return Polyfill.modules.get(name) || this.parent.getPolyfill(name);
     },
     getStack(name){
-        return modules.get(name) || Core.plugin.modules.get(name)
+        return modules.get(name);
     },
     start(compilation, done, options){
         if(options)this.config(options);
@@ -81,21 +81,13 @@ const properties ={
 }
 
 function plugin(complier){
-    const defaultOptions = {};
-    if( modules.size === 0 ){
-        const parent = new Core.plugin(complier);
-        merge(defaultOptions, parent.config());
-        loadStack();
-    }
+    this.parent = new Core.plugin(complier);
     this.complier = complier;
     const config = complier.options[this.name] || {};
     if( complier.options.commandLineEntrance ){
-        defaultOptions.emitFile = true;
+        config.emitFile = true;
     }
-    this.config( merge(defaultOptions,config) );
-    //complier.options.annotations.push('Define');
-    //complier.options.annotations.push('Injector');
-    //complier.options.annotations.push('DOMAttribute');
+    this.config( this.parent.config(config) );
     complier.loadTypes([require.resolve('./types/index.d.es')],true, null, true);
 };
 

@@ -274,9 +274,7 @@ class VueClass extends Syntax{
         this.getDependencies(module).forEach( depModule=>{
             if( this.isDependModule(depModule) ){
                 const name = this.getModuleReferenceName(depModule, module);
-                if( config.pack ){
-                    push( this.emitPackImportClass(depModule, name) );
-                }else if( config.useAbsolutePathImport ){
+                if( config.useAbsolutePathImport ){
                     const file = this.getModuleFile(depModule);
                     push( this.createImport(name, file.replace(/\\/g,'/') ) );
                 }else{

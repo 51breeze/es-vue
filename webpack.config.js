@@ -29,6 +29,33 @@ const plugins=[
       styleLoader:['style-loader','css-loader'],
       useAbsolutePathImport:true,
       output:build,
+      babel:{
+        //babelrc:true
+        presets: [
+          [
+              '@babel/preset-env',
+              {
+                "targets": {
+                    "edge": "11",
+                    "firefox": "60",
+                    "chrome": "67",
+                    "safari": "11.1"
+                },
+                //"useBuiltIns": "usage"
+              }
+          ]
+        ],
+        plugins: [
+          [
+            '@babel/plugin-transform-runtime',{
+              "corejs":{ 
+                version: 3, 
+                proposals: true 
+              }
+            }
+          ]
+        ]
+      },
       workspace
     }
   }
