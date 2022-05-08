@@ -33,7 +33,7 @@ declare final class Upload extends Component{
     //文件列表移除文件时的钩子
     onRemove:(file:UploadInternalFileDetail, fileList:UploadInternalFileDetail[])=>void
     //文件上传成功时的钩子
-    onSuccess:(response, file:UploadInternalFileDetail, fileList:UploadInternalFileDetail[])=>void
+    onSuccess:(response, file?:UploadInternalFileDetail, fileList?:UploadInternalFileDetail[])=>void
     //文件上传失败时的钩子
     onError:(err, file:UploadInternalFileDetail, fileList:UploadInternalFileDetail[])=>void
     //文件上传时的钩子

@@ -30,13 +30,24 @@ class Index{
       //  new web.components.Router()
        
 
-        var map = new Map();
+        var map = new Map<string,object>();
         map.set('name', {});
 
-        var set = new Set();
+        var set = new Set<MyView>();
         set.add( v );
 
-        console.log( map.size, set.size, Array.from( (set as {values:()=>[] }).values() ) )
+
+        var it = Array.from( set.values() )
+
+        var en =  map.entries()
+
+        for(var item of en ){
+            var b = item[0]
+
+        }
+
+
+        console.log( map.size, set.size, Array.from<MyView,MyView>( set.values() ) )
 
        // map
 

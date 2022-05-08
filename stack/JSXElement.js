@@ -115,13 +115,18 @@ class JSXElement extends _JSXElement{
                 case "class" :
                 case "style" :
                 case "key" :
-                case "ref" :
-                case "refInFor" :
                 case "tag" :
                 case "hook" :
                 case "staticStyle" :
                 case "staticClass" :
                     data[propName] = value;
+                    break;
+                case "ref" :
+                    data[propName] = value;
+                    const isForContext = this.stack.scope.isForContext ? true : this.stack.getParentStack( parent=>!!(parent.isJSXElement && parent.scope.isForContext));
+                    if( isForContext ){
+                        data.refInFor = true;
+                    }
                     break;
                 case "innerHTML" :
                     data['domProps'][propName] = value;
