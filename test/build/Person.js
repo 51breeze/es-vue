@@ -67,7 +67,7 @@ members._init={value:function _init(options){
 var Person = Component.createComponent({
 	name:'es-Person'
 });
-Class.creator(11,Person,{
+Class.creator(12,Person,{
 	'id':1,
 	'ns':'',
 	'name':'Person',

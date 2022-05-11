@@ -110,14 +110,12 @@ var mixins = [{
     }
 }];
 
-function Component(){
-}
-
+function Component(){}
 Component.prototype = Object.create(Vue.prototype);
 Component.prototype.constructor = Component;
 Component.options = Vue.options;
-var proto = Component.prototype;
 
+var proto = Component.prototype;
 function initPrivate(target){
     if( !Object.prototype.hasOwnProperty.call(target,key) ){
         target[key] = Object.create(null);
@@ -264,6 +262,10 @@ Object.defineProperty( proto, 'slot', {value:function slot(name,scoped,called,ar
         return value;
     }
     return this.$slots[name];
+}});
+
+Object.defineProperty( proto, 'element', {get:function element(){
+    return this.$el;
 }});
 
 Object.defineProperty( proto, 'parent', {get:function parent(){

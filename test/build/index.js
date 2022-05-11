@@ -4,6 +4,7 @@ import Test from "./Test.js";
 import Router from "./web/components/Router.js";
 import Class from "./core/Class.js";
 import MySkin from "./MySkin.js";
+import System from "./core/System.js";
 import Person from "./Person.js";
 import PersonSkin from "./PersonSkin.js";
 var _private=Symbol("private");
@@ -17,6 +18,15 @@ methods.main={m:3,d:3,value:function main(){
 	v.skinClass=MySkin;
 	var map = new Map();
 	map.set('name',{});
+	var set = new Set();
+	set.add(v);
+	var it = Array.from(set.values());
+	var en = map.entries();
+	for(var item,_v,_i=System.getIterator(en); _i && (_v=_i.next()) && !_v.done;){
+		item=_v.value;
+		var b = item[0];
+	}
+	console.log(map.size,set.size,Array.from(set.values()));
 	index.instance.childElements=v.render();
 	index.display();
 }};

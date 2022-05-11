@@ -1,13 +1,10 @@
 package web;
 import web.components.Component;
-import web.View;
 
 @SkinClass
-class Skin<T extends Component > extends EventDispatcher{
+class Skin<T extends Component > implements IEventDispatcher{
     private var _hostComponent:T=null;
-    private var _event:EventDispatcher  =null;
     public constructor(hostComponent:T){
-        super();
         this._hostComponent = hostComponent;
     }
 
@@ -35,7 +32,56 @@ class Skin<T extends Component > extends EventDispatcher{
         return this.hostComponent.createElement(name,data,children);
     }
 
-    render(){
-        return this.hostComponent.createElement('div');
+    watch(name: string, callback:(uewVlaue?,oldValue?)=>void):void{
+        this.hostComponent.watch(name, callback);
     }
+
+    mount( element?:string|Node ){
+        return this.hostComponent.mount(element);
+    }
+
+    observable<T extends object>(target:T):T{
+        return this.hostComponent.observable<T>(target);
+    }
+
+    nextTick(callback:()=>void):void{
+         this.hostComponent.nextTick(callback);
+    }
+
+    destroy(){
+        throw new Error('Invaild destroy.')
+    }
+
+    on(type: string, listener:(...args)=>void){
+        this.hostComponent.on(type,listener);
+    }
+
+    off(type: string, listener?:(...args)=>void):void{
+        this.hostComponent.off(type, listener);
+    }
+
+    emit(type: string, ...args?:any[]):void{
+        this.hostComponent.emit(type, args);
+    }
+
+    addEventListener(type: string, listener: (event?:Event)=>void){
+        return this.hostComponent.addEventListener(type, listener);
+    }
+
+    dispatchEvent(event: Event):boolean{
+        return this.hostComponent.dispatchEvent(event);
+    }
+
+    removeEventListener(type: string, listener?: (event?:Event)=>void):boolean{
+        return this.hostComponent.removeEventListener(type, listener);
+    }
+
+    hasEventListener(type: string, listener?: (event?:Event)=>void):boolean{
+        return this.hostComponent.removeEventListener(type, listener);
+    }
+
+    render(){
+        return null;
+    }
+
 }

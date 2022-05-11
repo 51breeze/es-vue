@@ -31,6 +31,7 @@ members.render={m:3,d:3,value:function render(){
 		[
 		createElement('div',{
 			"ref":'iss',
+			"refInFor":true,
 			"class":""
 			}, [
 			createElement('div',null, ['item =====MySkin====  ',this.name,'====='
@@ -42,7 +43,7 @@ members.render={m:3,d:3,value:function render(){
 				},
 			"on":{
 				"input":(function(event){this.value=event && event.target && event.target.nodeType===1 ? event.target.value : event;}).bind(this),
-				"change":this.onChange.bind(this)
+				"change":this.onChange
 				},
 			"directives":[
 				{

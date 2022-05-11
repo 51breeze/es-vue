@@ -14,6 +14,7 @@ import Reflect from "./core/Reflect.js";
 import Class from "./core/Class.js";
 var members = {};
 members.render={m:3,d:3,value:function render(){
+		var _this = this;
 	var _c;
 	var createElement = this.createElement.bind(this);
 	return createElement('div', null, [
@@ -38,6 +39,7 @@ members.render={m:3,d:3,value:function render(){
 		[
 		createElement('div',{
 			"ref":'iss',
+			"refInFor":true,
 			"class":""
 			}, [
 			createElement('div',null, ['item =====PersonSkin====  ',this.name,'====='
@@ -275,7 +277,7 @@ members.value={m:3,d:4,enumerable:true,get:function value(){
 	this.reactive('value',val);
 }};
 members.beforeEnter={m:3,d:3,value:function beforeEnter(){
-	console.log('=========PersonSkin=====enter');
+	console.log('=========PersonSkin=====enter',this.name,this.isShow);
 }};
 members.isShow={m:3,d:4,enumerable:true,get:function isShow(){return this.reactive('isShow', void 0, function(){return true})},set:function isShow(value){this.reactive('isShow',value)}};
 members.getTag={m:3,d:3,value:function getTag(){
@@ -291,7 +293,7 @@ web_components_Component.prototype._init.call(this,options);
 var PersonSkin = web_components_Component.createComponent({
 	name:'es-PersonSkin'
 });
-Class.creator(12,PersonSkin,{
+Class.creator(13,PersonSkin,{
 	'id':1,
 	'ns':'',
 	'name':'PersonSkin',

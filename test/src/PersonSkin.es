@@ -8,7 +8,7 @@ xmlns:ui="web.ui"
 >
 
    <script>
-
+   
        address:string='addresssss--------999';
 
        import web.ui.Tag;
@@ -50,12 +50,13 @@ xmlns:ui="web.ui"
         }
 
         beforeEnter(){
-            console.log('=========PersonSkin=====enter')
+            console.log('=========PersonSkin=====enter', name, isShow )
         }
 
         isShow = true;
 
         getTag(){
+
             return <Tag >ssssssss</Tag>
         }
 
@@ -72,7 +73,7 @@ xmlns:ui="web.ui"
     <div cmd:if="name" class='bg'>1</div>
     <div cmd:elseif="!(name)">2</div>
     <div cmd:else>399999</div>
-    
+
     <div cmd:each="item of ['china'].concat(list)">
         <div>{item}</div>
         <div class="ssss">
@@ -96,7 +97,7 @@ xmlns:ui="web.ui"
         })
     }
 
-    <input bind:value={this.formValue.name} on:change={e=>this.onChange(e)} />
+    <input bind:value={this.formValue.name} on:change={e=>onChange(e)} />
 
     <input value={this.formValue.name} />
 
@@ -131,6 +132,7 @@ xmlns:ui="web.ui"
         <div>the is a group elseif</div>
     </d:else>
 
+
     <d:each name={this.list} item='item' key='index'>
       <div>====each=={item}={index}</div>
       <div>===22=each=={item}=</div>
@@ -141,7 +143,7 @@ xmlns:ui="web.ui"
       <div>===222=for==={item},{keyName}</div>
     </d:for>
 
-    <d:show condition="this.isShow" >
+    <d:show condition="isShow" >
       <div>====show==</div>
       <div>===222=show===</div>
       

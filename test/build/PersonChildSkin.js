@@ -33,7 +33,7 @@ web_components_Component.prototype._init.call(this,options);
 var PersonChildSkin = web_components_Component.createComponent({
 	name:'es-PersonChildSkin'
 });
-Class.creator(14,PersonChildSkin,{
+Class.creator(15,PersonChildSkin,{
 	'id':1,
 	'ns':'',
 	'name':'PersonChildSkin',

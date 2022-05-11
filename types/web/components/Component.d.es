@@ -15,6 +15,8 @@ package web.components{
         protected onDeactivated():void;
         protected onErrorCaptured():void;
         protected render():Node|Component;
+        public get parent():Component;
+        public get children():Component[];
         public getConfig():object;
         public slot( name:string , scope?:boolean, called?:boolean, params?:object ):NodeElementResult[];
         public createElement(name:string|Component,data?:NodeDataConfig,children?:NodeElementResult[]):NodeElementResult;
@@ -24,8 +26,6 @@ package web.components{
         public off(type: string, listener?:(...args)=>void):void;
         public emit(type: string, ...args?:any[]):void;
         public watch(name: string, callback:(uewVlaue?,oldValue?)=>void):void;
-        public get parent():Component;
-        public get children():Component[];
         public reactive<T>(name:string, value?:T):T;
         public mount( element?:string|Node ):this;
         public observable<T extends object>(target:T):T;
