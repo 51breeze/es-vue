@@ -28,9 +28,9 @@ package web.components{
         }
 
         get skinClass(){
-            return this._skinClass;
+            return this._skinClass
         }
-
+        
         @override
         render(){
             return this.skin.render();

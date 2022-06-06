@@ -1,4 +1,5 @@
 import Component from "./web/components/Component.js";
+import MyView from "./MyView.js";
 import PersonSkin from "./PersonSkin.js";
 import Button from "./web/ui/Button.js";
 import web_ui_TextLink from "./web/ui/TextLink.js";
@@ -19,6 +20,7 @@ members.onMounted={m:3,d:3,value:function onMounted(){
 members.render={m:3,d:3,value:function render(){
 		var createElement = this.createElement.bind(this);
 	return createElement('div',null, [
+			createElement(MyView),
 			createElement(PersonSkin,{
 				"props":{
 					"name":this.name
@@ -36,7 +38,7 @@ members.render={m:3,d:3,value:function render(){
 				}, (this.slot('default') || ['==================                            '])),
 			createElement('div',{
 				"attrs":{
-					"id":"person-root-child"
+					"id":"@person-root-child"
 					}
 				}, ['Person page']),
 			createElement(Button,null, ['button ']),

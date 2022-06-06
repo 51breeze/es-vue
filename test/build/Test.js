@@ -116,7 +116,7 @@ members._init={value:function _init(options){
 var Test = Component.createComponent({
 	name:'es-Test'
 });
-Class.creator(7,Test,{
+Class.creator(9,Test,{
 	'id':1,
 	'ns':'',
 	'name':'Test',

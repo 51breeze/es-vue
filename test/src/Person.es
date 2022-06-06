@@ -3,6 +3,7 @@ package{
     import web.components.Component;
     import PersonSkin;
     import web.ui.Button;
+    import MyView;
 
     class Person extends Component{
 
@@ -29,6 +30,8 @@ package{
         render(){
 
             return <div xmlns:slot="@slots">
+
+                        <MyView />
                         
                         <PersonSkin name={this.name} >
                             <slot:foot scope="props">
@@ -39,7 +42,7 @@ package{
                                ==================
                             </slot:default>
                         </PersonSkin>
-                        <div id="person-root-child">Person page</div>
+                        <div id="@person-root-child">Person page</div>
 
 
                         <Button> button </Button>

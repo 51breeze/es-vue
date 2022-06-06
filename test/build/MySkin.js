@@ -1,10 +1,10 @@
 import "./assets/index.css";
 import "D:/workspace/es-vue/test/src/MySkin.es?id=MySkin&type=style&file=612.css";
-import web_Skin from "./web/Skin.js";
+import web_components_Skin from "./web/components/Skin.js";
 import Class from "./core/Class.js";
 var _private=Symbol("private");
 function MySkin(context){
-web_Skin.call(this, context);
+web_components_Skin.call(this, context);
 }
 var members = {};
 members.render={m:3,d:3,value:function render(){
@@ -54,7 +54,8 @@ members.render={m:3,d:3,value:function render(){
 			}),
 		createElement('input',{
 			"attrs":{
-				"value":this.value
+				"value":"value",
+				"data":'sssss'
 				}
 			})
 	]).concat(
@@ -62,7 +63,10 @@ members.render={m:3,d:3,value:function render(){
 			createElement('div',{
 				"slot":'foot'
 				}, ['===============the is foot slot =============='])
-		])));
+		])).concat(
+		[
+		createElement('div')
+	]));
 }};
 members.name={m:3,d:4,enumerable:true,get:function name(){
 	return this.hostComponent.name;
@@ -80,12 +84,12 @@ members.value={m:3,d:4,enumerable:true,get:function value(){
 },set:function value(val){
 	this.reactive('value',val);
 }};
-Class.creator(9,MySkin,{
+Class.creator(7,MySkin,{
 	'id':1,
 	'ns':'',
 	'name':'MySkin',
 	'private':_private,
-	'inherit':web_Skin,
+	'inherit':web_components_Skin,
 	'members':members
 }, false);
 export default MySkin;

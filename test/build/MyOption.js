@@ -8,7 +8,7 @@ members.render={m:3,d:3,value:function render(){
 var MyOption = Component.createComponent({
 	name:'es-MyOption'
 });
-Class.creator(8,MyOption,{
+Class.creator(10,MyOption,{
 	'id':1,
 	'ns':'',
 	'name':'MyOption',

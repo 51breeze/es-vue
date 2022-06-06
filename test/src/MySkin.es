@@ -1,12 +1,12 @@
 <s:Skin 
-    xmlns:s="web"
+    xmlns:s="web.components"
     xmlns:cmd="@directives" 
     xmlns:slot="@slots" 
     >
 
    <script>
 
-    @HostComponent(MyView)
+   @HostComponent(MyView)
 
     get name():string{
         return this.hostComponent.name;
@@ -64,10 +64,12 @@
 
     <input bind:value={value} on:change={onChange} />
 
-    <input value={this.value} />
+    <input value="value" data='sssss' />
+
 
     <slot:foot props={this.list}>
         <div>===============the is foot slot ==============</div>
     </slot:foot>
+    <div ></div>
 
 </s:Skin>
