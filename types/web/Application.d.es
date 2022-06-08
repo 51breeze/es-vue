@@ -41,7 +41,7 @@ package web{
             };
         }
 
-        render(createElement?):Node | Component{
+        render():Node | Component{
            throw new Error('application render method must overwrite in subclass');
         }
 
