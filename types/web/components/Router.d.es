@@ -97,7 +97,7 @@ package web.components{
         meta: {[key:string | number]:any}
         beforeEnter?: (
             route: Route,
-            redirect: (location: RawLocation) => void,
+            redirect: (location: RouteLocation) => void,
             next: () => void
         ) => any
         props:boolean | object | Dictionary<string | number | object>
@@ -112,7 +112,7 @@ package web.components{
         meta: any
         beforeEnter?: (
             route: Route,
-            redirect: (location: RawLocation) => void,
+            redirect: (location: RouteLocation) => void,
             next: () => void
         ) => any
         props: boolean | object | Dictionary<string | number | object>
