@@ -329,6 +329,13 @@ Object.defineProperty( proto, 'destroy', {value:function destroy(){
     return this.$destroy();
 }});
 
+Object.defineProperty( proto, 'getAttribute', {value:function getAttribute(name){
+    if( Object.prototype.hasOwnProperty.call(this, '$'+name) ){
+        return this[ '$'+name ];
+    }
+    return Object.prototype.hasOwnProperty.call(this,name) ? this[name] : null;
+}});
+
 Object.defineProperty( Component, 'createComponent', {value:function createComponent(options){
     options = options || {};
     options.mixins = mixins;

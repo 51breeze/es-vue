@@ -31,6 +31,10 @@ package web.components{
         public observable<T extends object>(target:T):T;
         public nextTick(callback:()=>void):void;
         public destroy():void;
+        /**
+        * 获取原始对象中的属性
+        */
+        public getAttribute<T>(name:string):T;
         public addEventListener(type: string, listener: (event?:Event)=>void):this;
         public dispatchEvent(event: Event):boolean;
         public removeEventListener(type: string, listener?: (event?:Event)=>void):boolean;
