@@ -330,10 +330,7 @@ Object.defineProperty( proto, 'destroy', {value:function destroy(){
 }});
 
 Object.defineProperty( proto, 'getAttribute', {value:function getAttribute(name){
-    if( Object.prototype.hasOwnProperty.call(this, '$'+name) ){
-        return this[ '$'+name ];
-    }
-    return Object.prototype.hasOwnProperty.call(this,name) ? this[name] : null;
+    return this['$'+name] || this[name];
 }});
 
 Object.defineProperty( Component, 'createComponent', {value:function createComponent(options){
