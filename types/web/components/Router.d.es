@@ -3,9 +3,10 @@ package web.components{
     @Import(Router = "vue-router")
     declare class Router{
         static const START_LOCATION:RouteConfig;
+        const currentRoute:RouteConfig;
+        const options:RouterOptions;
         mode:'hash' | 'history' | 'abstract';
         base:string;
-        currentRoute:RouteConfig;
         push(location: RouteLocation, onComplete?:()=>void, onAbort?:()=>void):Promise<Route>;
         replace(location: RouteLocation, onComplete?:()=>void, onAbort?:()=>void):Promise<Route>;
         go( value?:number ):void;
@@ -22,9 +23,7 @@ package web.components{
              normalizedTo:RouteLocation,
              resolved:Route
         };
-
         match (raw: RouteLocation, current?: Route, redirectedFrom?: RouteLocation): Route
-
         addRoute(route:RouteConfig,parentPath?:string);
         getRoutes():RouteRecordPublic[];
         onReady( done:()=>void, error?:()=>void ):void;
@@ -118,17 +117,17 @@ package web.components{
         props: boolean | object | Dictionary<string | number | object>
     }
 
-    declare type RouteConfig={
-        path: string,
-        component ?: Component | ()=>Component,
-        name?: string,
-        redirect?: RouteLocation | Function,
-        props?: boolean | {} | (name)=>any,
-        alias?: string | string[],
-        children?: RouteConfig[],
-        beforeEnter?: (to: Route, from: Route, next: ()=>void) => void,
-        meta?: any,
-        caseSensitive?: boolean, 
+    declare interface RouteConfig{
+        path: string
+        component ?: Component | ()=>Component
+        name?: string
+        redirect?: RouteLocation | Function
+        props?: boolean | {} | (name)=>any
+        alias?: string | string[]
+        children?: RouteConfig[]
+        beforeEnter?: (to: Route, from: Route, next: ()=>void) => void
+        meta?: any
+        caseSensitive?: boolean
         pathToRegexpOptions?: object
     }
 
