@@ -5,6 +5,8 @@ import web.components.Component;
 @Import(MenuSubitem = "element-ui/packages/submenu")
 @Embed('element-ui/lib/theme-chalk/submenu.css')
 
+@Define('slot', 'title');
+
 /** Sub Menu Item Component */
 declare final class MenuSubitem extends Component {
   
