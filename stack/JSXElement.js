@@ -69,6 +69,8 @@ class JSXElement extends _JSXElement{
             }else if( item.isJSXSpreadAttribute ){
                 spreadAttributes && spreadAttributes.push( this.make( item ) );
                 return;
+            }else if( item.isAttributeSlot ){
+                return;
             }
             let [name,value,ns] = this.make( item );
             if( !value )return;
