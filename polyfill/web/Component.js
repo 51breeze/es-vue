@@ -33,6 +33,29 @@ function copyObject(target){
 
 var classKey = Class.key;
 var key = Symbol('private');
+var MODIFIER_PUBLIC=3;
+var MODIFIER_PROTECTED=2;
+var MODIFIER_PRIVATE=1;
+
+var DECLARE_PROPERTY_ACCESSOR = 4;
+var DECLARE_PROPERTY_VAR = 1;
+
+function isPropExists(target,name){
+    var objClass = target.constructor;
+    var description = null;
+    while( objClass && (description = objClass[ Class.key ]) ){
+        var dataset = description.members;
+        if( dataset && dataset.hasOwnProperty( name ) ){
+            const desc = dataset[name];
+            if( desc.m & MODIFIER_PUBLIC === MODIFIER_PUBLIC ){
+                return !!(desc.d === DECLARE_PROPERTY_ACCESSOR && desc.set || desc.d === DECLARE_PROPERTY_VAR);
+            }
+        }
+        objClass = description.inherit;
+    }
+    return false;
+};
+
 var mixins = [{
     render(){
         return this.render.apply(this, Array.prototype.slice.call(arguments));
@@ -45,7 +68,7 @@ var mixins = [{
         var propsData = this.onReceiveProps( props );
         if( propsData ){
             for(var name in propsData ){
-                if( Object.hasOwnProperty.call(this, name) ){
+                if( isPropExists(this, name) ){
                     this[name] = copyObject( propsData[name] );
                 }
             }
