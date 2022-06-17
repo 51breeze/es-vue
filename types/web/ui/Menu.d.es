@@ -4,6 +4,7 @@ import web.components.Component
 
 @Import(Menu = "element-ui/packages/menu")
 @Embed('element-ui/lib/theme-chalk/menu.css')
+@Embed('element-ui/lib/theme-chalk/icon.css')
 
 /** Menu that provides navigation for your website */
 declare final class Menu extends Component {
