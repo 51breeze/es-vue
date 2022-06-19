@@ -7,7 +7,7 @@ package web.ui{
 
     declare final class Scrollbar extends Component{
         native: boolean;
-        wrapStyle:string | {[key:string]:string};
+        wrapStyle:string | ({[key:string]:string})[];
         wrapClass:string;
         viewClass:string;
         viewStyle:string | {[key:string]:string};
