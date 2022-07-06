@@ -1,6 +1,8 @@
 const MyView = require("./MyView.js");
 const Test = require("./Test.js");
 const Class = require("./core/Class.js");
+const Person = require("./Person.js");
+const PersonSkin = require("./PersonSkin.js");
 const VueRouter = require("vue-router");
 const _private = Symbol("private");
 function Index(){
