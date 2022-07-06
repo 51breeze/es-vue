@@ -1,4 +1,4 @@
-import Class from "./Class.js";
+const Class = require("./Class.js");
 /*
  * Copyright © 2017 EaseScript All rights reserved.
  * Released under the MIT license
@@ -236,10 +236,9 @@ Event.fix.hooks[ Event.READY ]=function (listener, dispatcher){
     id = window.setInterval(handle,50);
     return true;
 }
-Class.creator(4,Event,{
-	'id':1,
-	'global':true,
-	'dynamic':true,
-	'name':'Event'
-}, false);
-export default Event;
+Class.creator(5,Event,{
+	id:1,
+	name:"Event",
+	dynamic:true
+});
+module.exports=Event;

@@ -1,14 +1,14 @@
+const Class = require("./../../core/Class.js");
+const EventDispatcher = require("./../../core/EventDispatcher.js");
+const web_events_ComponentEvent = require("./../events/ComponentEvent.js");
+const Event = require("./../../core/Event.js");
 /*
  * Copyright © 2017 EaseScript All rights reserved.
  * Released under the MIT license
  * https://github.com/51breeze/EaseScript
  * @author Jun Ye <664371281@qq.com>
  */
-import Event from "./../../core/Event.js";
-import Class from "./../../core/Class.js";
-import EventDispatcher from "./../../core/EventDispatcher.js";
-import ComponentEvent from "./../events/ComponentEvent.js";
-import Vue from "vue";
+///__REFS__
 
 function copyObject(target){
     if( target && typeof target ==='object' && target.__ob__ ){
@@ -32,6 +32,29 @@ function copyObject(target){
 
 var classKey = Class.key;
 var key = Symbol('private');
+var MODIFIER_PUBLIC=3;
+var MODIFIER_PROTECTED=2;
+var MODIFIER_PRIVATE=1;
+
+var DECLARE_PROPERTY_ACCESSOR = 4;
+var DECLARE_PROPERTY_VAR = 1;
+
+function isPropExists(target,name){
+    var objClass = target.constructor;
+    var description = null;
+    while( objClass && (description = objClass[ Class.key ]) ){
+        var dataset = description.members;
+        if( dataset && dataset.hasOwnProperty( name ) ){
+            const desc = dataset[name];
+            if( desc.m & MODIFIER_PUBLIC === MODIFIER_PUBLIC ){
+                return !!(desc.d === DECLARE_PROPERTY_ACCESSOR && desc.set || desc.d === DECLARE_PROPERTY_VAR);
+            }
+        }
+        objClass = description.inherit;
+    }
+    return false;
+};
+
 var mixins = [{
     render(){
         return this.render.apply(this, Array.prototype.slice.call(arguments));
@@ -44,7 +67,7 @@ var mixins = [{
         var propsData = this.onReceiveProps( props );
         if( propsData ){
             for(var name in propsData ){
-                if( Object.hasOwnProperty.call(this, name) ){
+                if( isPropExists(this, name) ){
                     this[name] = copyObject( propsData[name] );
                 }
             }
@@ -328,6 +351,10 @@ Object.defineProperty( proto, 'destroy', {value:function destroy(){
     return this.$destroy();
 }});
 
+Object.defineProperty( proto, 'getAttribute', {value:function getAttribute(name){
+    return this['$'+name] || this[name];
+}});
+
 Object.defineProperty( Component, 'createComponent', {value:function createComponent(options){
     options = options || {};
     options.mixins = mixins;
@@ -335,9 +362,8 @@ Object.defineProperty( Component, 'createComponent', {value:function createCompo
     return subClass;
 }});
 Class.creator(3,Component,{
-	'id':1,
-	'global':true,
-	'dynamic':false,
-	'name':'Component'
-}, false);
-export default Component;
+	id:1,
+	ns:"web.components",
+	name:"Component"
+});
+module.exports=Component;

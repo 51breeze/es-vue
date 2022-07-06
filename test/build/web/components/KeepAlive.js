@@ -4,6 +4,6 @@
  * https://github.com/51breeze/EaseScript
  * @author Jun Ye <664371281@qq.com>
  */
-import Vue from "vue";
+///__REFS__
 var KeepAlive = Vue.component('KeepAlive');
-export default KeepAlive;
+module.exports=KeepAlive;

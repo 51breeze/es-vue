@@ -1,5 +1,5 @@
-import Class from "./Class.js";
-import EventDispatcher from "./EventDispatcher.js";
+const Class = require("./Class.js");
+const EventDispatcher = require("./EventDispatcher.js");
 /*
  * EaseScript
  * Copyright © 2017 EaseScript All rights reserved.
@@ -204,10 +204,8 @@ System.getEventDispatcher=function getEventDispatcher(){
      }
      return null;
  };
-Class.creator(11,System,{
-	'id':1,
-	'global':true,
-	'dynamic':false,
-	'name':'System'
-}, false);
-export default System;
+Class.creator(8,System,{
+	id:1,
+	name:"System"
+});
+module.exports=System;

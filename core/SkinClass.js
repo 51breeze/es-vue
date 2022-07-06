@@ -1,4 +1,4 @@
-const Syntax = require("./Syntax");
+
 const Core = require("./Core.js");
 const Constant = Core.constant;
 class SkinClass extends Syntax{

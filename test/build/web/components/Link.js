@@ -4,8 +4,7 @@
  * https://github.com/51breeze/EaseScript
  * @author Jun Ye <664371281@qq.com>
  */
-import Vue from "vue";
-import Router from "vue-router";
+///__REFS__
 Vue.use( Router );
 var Link = Vue.component('RouterLink');
-export default Link;
+module.exports=Link;
