@@ -3,7 +3,6 @@ const path = require("path");
 const Core = require('./Core');
 const Polyfill = require('./Polyfill');
 class Builder extends Core.builder{
-
     isActiveForModule(depModule,ctxModule){
         if( !depModule )return false;
         ctxModule = ctxModule || this.module;
@@ -14,12 +13,12 @@ class Builder extends Core.builder{
         if( result ){
             return result;
         }
-        const isUsed = this.isUsed(depModule);
+        const isUsed = this.isUsed(depModule, ctxModule);
         if( !isUsed || !depModule.isDeclaratorModule )return false;
         if( Polyfill.modules.has( depModule.getName() ) ){
             return true;
         }
-        return depModule.requires && depModule.requires.has( depModule.id ) && this.stack.isInheritWebComponent(depModule);
+        return depModule.requires && depModule.requires.has( depModule.id ) && this.stack && this.stack.isModuleForWebComponent(depModule);
     }
 }
 module.exports = Builder;
