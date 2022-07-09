@@ -1,5 +1,3 @@
-
-const Core = require("./Core.js");
 const JSXClassBuilder = require("./JSXClassBuilder.js");
 class SkinClass extends JSXClassBuilder{
     isActiveForModule(module, ctxModule){
@@ -8,9 +6,9 @@ class SkinClass extends JSXClassBuilder{
         }
         return super.isActiveForModule(module, ctxModule);
     }
-    adjustConstructor(node, module){
-        if( !node.construct ){
-            node.construct = this.createDefaultConstructMethod(node, module, null, null, [this.createIdentifierNode('context')]);
+    checkConstructMethod(){
+        if( !this.construct ){
+            this.construct = this.createDefaultConstructMethod(this.module.id, null, null, [this.createIdentifierNode('context')]);
         }
     }
 }
