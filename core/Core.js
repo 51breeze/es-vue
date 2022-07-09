@@ -1,5 +1,6 @@
 const plugin = require('../../es-javascript/index');
 const builder = require('../../es-javascript/core/Builder');
+const Token = require('../../es-javascript/core/Token');
 const polyfill = require('../../es-javascript/core/Polyfill');
 const constant = require('../../es-javascript/core/Constant');
 const ClassBuilder = require('../../es-javascript/core/ClassBuilder');
@@ -17,6 +18,7 @@ module.exports={
     builder,
     polyfill,
     constant,
+    Token,
     ClassBuilder,
     JSXClassBuilder,
     JSXTransform

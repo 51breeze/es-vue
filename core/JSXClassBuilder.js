@@ -19,9 +19,10 @@ class JSXClassBuilder extends Core.JSXClassBuilder{
                 modifier:child.modifier,
                 isAccessor:true
             }
+            target.init = child.init;
             target.key = target.get.key;
             target.kind = 'accessor';
-            return target;    
+            return target;
         }
         return child;
     }
@@ -46,7 +47,7 @@ class JSXClassBuilder extends Core.JSXClassBuilder{
                 if( injectorArgs.length > 0 ){
                     from = injectorArgs[0].value || from;
                 }
-                this.injectProperties.push( this.createInjectPropertyNode(name, from, value) ); 
+                this.injectProperties.push( this.createInjectPropertyNode(name, from, node.init || null) ); 
             }
         }
         node.required = annotations.find( annotation=>annotation.name.toLowerCase() ==='required' );
@@ -59,7 +60,7 @@ class JSXClassBuilder extends Core.JSXClassBuilder{
         ];
 
         if( value ){
-            args.push( this.createLiteralNode(value) );
+            args.push( value instanceof Core.Token ? value : this.createLiteralNode(value) );
         }
         return this.createStatementNode(
             this.createCalleeNode(
@@ -146,7 +147,6 @@ class JSXClassBuilder extends Core.JSXClassBuilder{
         node.required = required;
         return node;
     }
-
 
     checkConstructMethod(){
         const injectAndProvide = this.injectProperties.concat( this.provideProperties );
