@@ -23,7 +23,7 @@ const plugins=[
   {
     builder:require('./index'),
     options:{
-      module:'es',
+      //module:'cjs',
       webComponent:'vue',
       webpack:true,
       styleLoader:['style-loader','css-loader'],

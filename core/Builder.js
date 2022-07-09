@@ -20,5 +20,11 @@ class Builder extends Core.builder{
         }
         return depModule.requires && depModule.requires.has( depModule.id ) && this.stack && this.stack.isModuleForWebComponent(depModule);
     }
+
+    getPolyfillModule( id ){
+        const module = Polyfill.modules.get( id );
+        if( module )return module;
+        return super.getPolyfillModule( id );
+    }
 }
 module.exports = Builder;

@@ -12,7 +12,7 @@ package web.events{
         static const DEACTIVATED:string = 'componentDeactivated';
         static const DESTROYED:string = 'componentDestroyed';
         public constructor(type:string, bubbles?:boolean,cancelable?:boolean){
-            super(type);
+            super(type,bubbles,cancelable);
         }
     }
 }

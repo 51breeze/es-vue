@@ -1,6 +1,5 @@
 package web.components{
 
-    @Import(Router = "vue-router")
     declare class Router{
         static const START_LOCATION:RouteConfig;
         const currentRoute:RouteConfig;

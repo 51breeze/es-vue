@@ -4,7 +4,8 @@ const JSXClassBuilder = require('./JSXClassBuilder');
 class JSXTransform extends Core.JSXTransform{
     createClassNode(stack, renderMethod, initProperties){
         if( stack.jsxRootElement.isSkinComponent ){
-            return new SkinClass(stack,this);
+            const obj = new SkinClass(stack,this,'ClassDeclaration');
+            return obj.create();
         }else{
             const obj = new JSXClassBuilder(stack, this, 'ClassDeclaration');
             if(renderMethod){
