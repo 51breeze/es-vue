@@ -13,6 +13,7 @@ fs.readdirSync( dirname ).forEach( (filename)=>{
 
 const defaultConfig ={
     "styleLoader":null,
+    "sourceMaps":false,
     "webComponent":"vue",
     "reserved":[
         '_data',
@@ -67,6 +68,7 @@ const properties ={
     start(compilation, done, options){
         if(options)this.config(options);
         const builder = new Builder( compilation.stack );
+        this.builder = builder;
         builder.name = this.name;
         builder.platform = this.platform;
         builder.plugin = this;
@@ -75,6 +77,7 @@ const properties ={
     build(compilation, done, options){
         if(options)this.config(options);
         const builder = new Builder( compilation.stack );
+        this.builder = builder;
         builder.name = this.name;
         builder.platform = this.platform;
         builder.plugin = this;

@@ -29,6 +29,8 @@ const plugins=[
       styleLoader:['style-loader','css-loader'],
       useAbsolutePathImport:true,
       output:build,
+      sourceMaps:true,
+      babel:true,
       // babel:{
       //   //babelrc:true
       //   presets: [
@@ -64,7 +66,7 @@ const plugins=[
 const config = {
   mode:"development",
  // devtool:"(none)",
-  devtool:false,
+  devtool:"source-map",
   target:"web",
   entry:{
     index: path.join(workspace,"Index.es"),

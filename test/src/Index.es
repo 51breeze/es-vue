@@ -28,6 +28,8 @@ class Index{
         v.skinClass = MySkin;
 
       //  new web.components.Router()
+
+        //throw new Error('ss')
        
 
         var map = new Map<string,object>();
@@ -58,7 +60,29 @@ class Index{
 
          index.display();
 
+
+         index.test().then( (v)=>{
+            console.log( `async result ${v}` );
+            (console as {bsd:()=>void}).bsd(11111)
+         })
+
       
+    }
+
+    async test(){
+        var b = await load();
+        console.log('=====test async==========')
+        return b;
+
+    }
+
+    async load(){
+        return new Promise( (resoval)=>{
+                setTimeout(()=>{
+                    resoval(1000);
+                },5000);
+        })
+        
     }
 
 
