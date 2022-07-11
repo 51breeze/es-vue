@@ -13,54 +13,59 @@ const loader = require.resolve("../es-loader")
 const host = "localhost";
 const port = 8085;
 const plugins=[
-  {
-    builder:require('../es-php'),
-    options:{
-      output:build,
-      workspace
-    }
+
+  function(compiler){
+      const plugin = require('../es-php');
+      return new plugin(compiler, {
+        output:build,
+        workspace
+      })
   },
-  {
-    builder:require('./index'),
-    options:{
-      //module:'cjs',
-      webComponent:'vue',
-      webpack:true,
-      styleLoader:['style-loader','css-loader'],
-      useAbsolutePathImport:true,
-      output:build,
-      sourceMaps:true,
-      babel:true,
-      // babel:{
-      //   //babelrc:true
-      //   presets: [
-      //     [
-      //         '@babel/preset-env',
-      //         {
-      //           "targets": {
-      //               "edge": "11",
-      //               "firefox": "60",
-      //               "chrome": "67",
-      //               "safari": "11.1"
-      //           },
-      //           //"useBuiltIns": "usage"
-      //         }
-      //     ]
-      //   ],
-      //   plugins: [
-      //     [
-      //       '@babel/plugin-transform-runtime',{
-      //         "corejs":{ 
-      //           version: 3, 
-      //           proposals: true 
-      //         }
-      //       }
-      //     ]
-      //   ]
-      // },
-      workspace
-    }
+  
+  function(compiler){
+      const plugin = require('../es-vue');
+      return new plugin(compiler, {
+        //module:'cjs',
+        webpack:true,
+        styleLoader:['style-loader','css-loader'],
+        useAbsolutePathImport:true,
+        output:build,
+        sourceMaps:true,
+        babel:true,
+        // babel:{
+        //   //babelrc:true
+        //   presets: [
+        //     [
+        //         '@babel/preset-env',
+        //         {
+        //           "targets": {
+        //               "edge": "11",
+        //               "firefox": "60",
+        //               "chrome": "67",
+        //               "safari": "11.1"
+        //           },
+        //           //"useBuiltIns": "usage"
+        //         }
+        //     ]
+        //   ],
+        //   plugins: [
+        //     [
+        //       '@babel/plugin-transform-runtime',{
+        //         "corejs":{ 
+        //           version: 3, 
+        //           proposals: true 
+        //         }
+        //       }
+        //     ]
+        //   ]
+        // },
+        workspace
+      })
   }
+
+
+
+
 ];
 
 const config = {

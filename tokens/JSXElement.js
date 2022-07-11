@@ -8,10 +8,7 @@ function getTransform(root, ctx){
     instances.set(root, obj);
     return obj;
 }
-
-function JSXElement(ctx, stack){
+module.exports = function(ctx, stack){
     const obj = getTransform( stack.jsxRootElement, ctx);
     return obj.create( stack );
-}
-
-module.exports = JSXElement;
+};

@@ -1,5 +1,3 @@
-const Core = require("../core/Core");
-const CallExpression = Core.plugin.modules.get('CallExpression');
 module.exports = function(ctx,stack){
     if( stack.callee.isSuperExpression && !(stack.arguments && stack.arguments.length > 0) ){
         const parent = stack.module.inherit;
@@ -20,5 +18,6 @@ module.exports = function(ctx,stack){
             }
         }
     }
+    const CallExpression = ctx.plugin.getTokenNode('CallExpression', true);
     return CallExpression(ctx,stack);
 }

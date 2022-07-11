@@ -7,7 +7,7 @@ class JSXClassBuilder extends Core.JSXClassBuilder{
     }
 
     getReserved(){
-        return this.builder.getConfig('reserved') || [];
+        return this.plugin.options.reserved;
     }
 
     createClassMemeberNode(memeberStack){

@@ -2,19 +2,17 @@ const fs = require("fs");
 const path = require("path");
 const Builder = require("./core/Builder");
 const Core = require("./core/Core");
-const Polyfill = require("./core/Polyfill");
 const {merge} = require("lodash");
-const modules = new Map( Core.plugin.modules );
-const dirname = path.join(__dirname,"stack");
+const modules = new Map();
+const dirname = path.join(__dirname,"tokens");
 fs.readdirSync( dirname ).forEach( (filename)=>{
     const info = path.parse( filename );
     modules.set(info.name, require( path.join(dirname,filename) ) );
 });
 
 const defaultConfig ={
-    "styleLoader":null,
+    "styleLoader":[],
     "sourceMaps":false,
-    "webComponent":"vue",
     "reserved":[
         '_data',
         '_props',
@@ -46,76 +44,32 @@ const defaultConfig ={
     ],
 };
 
-const package = require("./package.json");
-const key = Symbol('configKey');
-const properties ={
-    name:package.name,
-    platform:'client',
-    version:package.version,
-    config(options){
-        const data = this[key] || (this[key] = Object.create(defaultConfig));
-        if(options){
-            merge(data, options);
+const pkg = require("./package.json");
+
+class Plugin extends Core.Plugin{
+
+    constructor(complier,options){
+        super(complier, merge({}, defaultConfig, options || {}));
+        this.name = pkg.name;
+        this.version = pkg.version;
+        this.platform = 'client'; 
+        complier.loadTypes([require.resolve('./types/index.d.es')],true, null, true);
+    }
+
+    getTokenNode(name, flag=false){
+        if( flag ){
+            return super.getTokenNode(name);
         }
-        return data;
-    },
-    getPolyfill(name){
-        return Polyfill.modules.get(name) || this.parent.getPolyfill(name);
-    },
-    getStack(name){
-        return modules.get(name);
-    },
-    start(compilation, done, options){
-        if(options)this.config(options);
+        return modules.get(name) || super.getTokenNode(name);
+    }
+
+    getBuilder( compilation ){
         const builder = new Builder( compilation.stack );
-        this.builder = builder;
         builder.name = this.name;
         builder.platform = this.platform;
         builder.plugin = this;
-        builder.start(done);
-    },
-    build(compilation, done, options){
-        if(options)this.config(options);
-        const builder = new Builder( compilation.stack );
-        this.builder = builder;
-        builder.name = this.name;
-        builder.platform = this.platform;
-        builder.plugin = this;
-        builder.build(done);
+        return builder;
     }
 }
 
-function plugin(complier){
-    this.parent = new Core.plugin(complier);
-    this.complier = complier;
-    const config = complier.options[this.name] || {};
-    if( complier.options.commandLineEntrance ){
-        config.emitFile = true;
-    }
-    this.config( this.parent.config(config) );
-    complier.loadTypes([require.resolve('./types/index.d.es')],true, null, true);
-};
-
-for(var name in properties){
-    Object.defineProperty(plugin.prototype,name,{
-        value:properties[name],
-        enumerable:false,
-        configurable:false
-    });
-
-    if( ['name','platform','version'].includes(name) ){
-        Object.defineProperty(plugin,name,{
-            value:properties[name],
-            enumerable:false,
-            configurable:false
-        });
-    }
-}
-
-Object.defineProperty(plugin,'modules',{
-    value:modules,
-    enumerable:true,
-    configurable:false
-});
-
-module.exports = plugin;
+module.exports = Plugin;
