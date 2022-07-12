@@ -23,7 +23,6 @@ const plugins=[
   {
     builder:require('../es-vue'),
     options:{
-      module:'es',
       webpack:true,
       styleLoader:['style-loader','css-loader'],
       useAbsolutePathImport:true,

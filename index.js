@@ -54,8 +54,6 @@ class Plugin extends Core.Plugin{
         this.version = pkg.version;
         this.platform = 'client'; 
         complier.loadTypes([require.resolve('./types/index.d.es')],true, null, true);
-
-        console.log( this.options )
     }
 
     getTokenNode(name, flag=false){
