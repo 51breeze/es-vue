@@ -11,8 +11,8 @@ package web.components{
         go( value?:number ):void;
         back():void;
         forward():void;
-        beforeEach( callback:(to:Route, from:Route, next:(to:any)=>void) =>any );
-        beforeResolve( callback:(to:Route, from:Route, next:(to:any)=>void) =>any );
+        beforeEach( callback:(to:Route, from:Route, next:(to?:any)=>void) =>any );
+        beforeResolve( callback:(to:Route, from:Route, next:(to?:any)=>void) =>any );
         afterEach( callback:(to:Route, from:Route) =>any );
         getMatchedComponents( location?:RouteLocation ):Component[];
         resolve( location?:RouteLocation, current?:Route, append?:boolean ):{

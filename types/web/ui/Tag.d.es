@@ -8,7 +8,7 @@ import web.components.Component;
 /** Tag Component */
 declare final class Tag extends Component {
   /** Tag type */
-  type: 'primary' | 'gray' | 'success' | 'warning' | 'danger'
+  type: 'primary' | 'gray' | 'success' | 'warning' | 'danger' | 'info'
 
   /** Whether Tab can be removed */
   closable: boolean
