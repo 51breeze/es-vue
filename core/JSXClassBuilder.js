@@ -148,6 +148,55 @@ class JSXClassBuilder extends Core.JSXClassBuilder{
         return node;
     }
 
+    createDefaultConstructMethod(methodName, privateProperties, initProperties, params=[]){
+        const privateName = this.privateName;
+        const inherit = this.inherit;
+
+        var callSuper = null;
+        if( this.stack.isModuleForWebComponent( inherit ) ){
+            callSuper = this.createMemberNode([
+                this.getModuleReferenceName(inherit),
+                this.createIdentifierNode('prototype'),
+                this.createIdentifierNode('_init')
+            ]);
+            params = [  this.createIdentifierNode('options') ];
+        }else{
+            callSuper = this.createNode('SuperExpression');
+            callSuper.value =  this.getModuleReferenceName(inherit);
+        }
+
+        const node = this.createMethodNode( null, (ctx)=>{
+            if( inherit ){
+                ctx.body.push( 
+                    ctx.createStatementNode(
+                        ctx.createCalleeNode( 
+                            ctx.createMemberNode(
+                                [
+                                    callSuper,
+                                    ctx.createIdentifierNode('call')
+                                ]
+                            ),[
+                                ctx.createThisNode()
+                            ].concat(params)
+                        )
+                    )
+                );
+            }
+            if( privateProperties && privateProperties.length && privateName ){
+                ctx.body.push(
+                    this.createConstructInitPrivateObject(privateName, privateProperties)
+                );
+            }
+            if( initProperties && initProperties.length ){
+                initProperties.forEach( item=>{
+                    ctx.body.push( item );
+                });
+            }
+        }, params);
+        node.type ="FunctionExpression";
+        return node;
+    }
+
     checkConstructMethod(){
         const injectAndProvide = this.injectProperties.concat( this.provideProperties );
         const initBody = [];
@@ -182,6 +231,7 @@ class JSXClassBuilder extends Core.JSXClassBuilder{
         }
         
         if( this.construct ){
+            this.construct.type = 'FunctionExpression';
             initBody.push( 
                 this.createStatementNode(
                     this.createCalleeNode(
