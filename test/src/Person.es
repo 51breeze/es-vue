@@ -5,6 +5,8 @@ package{
     import web.ui.Button;
     import MyView;
 
+    import web.ui.InfiniteScroll;
+
     class Person extends Component{
 
         constructor( options ){
@@ -29,11 +31,17 @@ package{
         @override
         render(){
 
-            return <div xmlns:slot="@slots">
+            return <div xmlns:slot="@slots" xmlns:d="@directives" xmlns:dd="@directives"  >
 
-                        <MyView />
-                        
-                        <PersonSkin name={this.name} >
+                       <d:if condition="true" >
+                        <div>====the is if=============</div>
+                       </d:if>     
+
+                        <InfiniteScroll value="sdfd" >
+                            <div>ssssssssssss</div>
+                        </InfiniteScroll>
+
+                        <PersonSkin name={this.name} d:show="false" >
                             <slot:foot scope="props">
                                 <div>====the is PersonSkin child====</div>
                                 <div>the scope value:{props.props}</div>
@@ -42,6 +50,7 @@ package{
                                ==================
                             </slot:default>
                         </PersonSkin>
+
                         <div id="@person-root-child">Person page</div>
 
 

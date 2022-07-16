@@ -148,6 +148,10 @@ class JSXClassBuilder extends Core.JSXClassBuilder{
         return node;
     }
 
+    createSkinDefaultConstructMethod(methodName, privateProperties, initProperties, params=[]){
+        return super.createDefaultConstructMethod(methodName, privateProperties, initProperties, params);
+    }
+
     createDefaultConstructMethod(methodName, privateProperties, initProperties, params=[]){
         const privateName = this.privateName;
         const inherit = this.inherit;

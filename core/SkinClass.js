@@ -8,7 +8,7 @@ class SkinClass extends JSXClassBuilder{
     }
     checkConstructMethod(){
         if( !this.construct ){
-            this.construct = this.createDefaultConstructMethod(this.module.id, null, null, [this.createIdentifierNode('context')]);
+            this.construct = this.createSkinDefaultConstructMethod(this.module.id, null, null, [this.createIdentifierNode('context')]);
         }
     }
 }
