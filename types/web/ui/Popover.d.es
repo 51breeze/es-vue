@@ -31,6 +31,8 @@ declare final class Popover extends Component {
   /** Whether popover is visible */
   value: boolean
 
+  showPopper:boolean
+
   /** Popover offset */
   offset: number
 
