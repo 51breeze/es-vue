@@ -1,6 +1,6 @@
 {
   "name": "es-vue",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "test",
   "main": "index.js",
   "typings": "types/index.d.es",
@@ -29,7 +29,6 @@
   },
   "homepage": "https://github.com/51breeze/es-javascript#readme",
   "dependencies": {
-    "babel-preset-env": "^1.7.0",
     "es-javascript": "latest",
     "lodash": "^4.17.21"
   },
@@ -70,8 +69,10 @@
     "webpack-cli": "^4.9.1",
     "webpack-dev-server": "^4.6.0"
   },
-  "esconfig":{
-    "scope":"es-vue",
-    "inherits":["es-javascript"]
+  "esconfig": {
+    "scope": "es-vue",
+    "inherits": [
+      "es-javascript"
+    ]
   }
 }

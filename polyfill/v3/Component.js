@@ -175,29 +175,6 @@ Object.defineProperty( proto, 'reactive', {value:function reactive(name, value, 
     }
 }});
 
-
-Object.defineProperty( proto, 'reactive', {value:function reactive(name, value, initValue){
-    const isWrite = arguments.length === 2;
-    const states = this[privateKey].states;
-    if( !isWrite && initValue ){
-        if( !hasOwn.call(states, name) ){
-            states[name] = typeof initValue==='function' ? initValue.call(this) : initValue;
-        }
-    }
-    if( !isWrite ){
-        return states[name];
-    }else{
-        if( !this[privateKey].propsUpdating ){
-            const rawProps = this[privateKey].rawProps;
-            if( rawProps && hasOwn.call(rawProps,name) ){
-                this[privateKey].preventedProps[name] = true;
-            }
-        }
-        states[name] = value;
-        return value;
-    }
-}});
-
 Object.defineProperty( proto, 'reference', {value:function reference(value, shallowFlag=true){
     return shallowFlag ? Vue.shallowRef(value) : Vue.ref(value)
 }});

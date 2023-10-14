@@ -1,5 +1,4 @@
 @Reference('es-javascript/types');
-@Reference('./web');
 
 package dev.tools{
     declare class HMR{}
@@ -210,3 +209,5 @@ package vue{
     declare type ErrorCapturedHook<TError = Error> = (err: TError, instance: ComponentPublicInstance | null, info: string) => boolean | void;
     declare function onErrorCaptured<TError = Error>(hook: ErrorCapturedHook<TError>, target?: ComponentInternalInstance | null): void;
 }
+
+@Reference('./web');
