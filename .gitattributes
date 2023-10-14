@@ -1,0 +1,3 @@
+package.json merge=v1
+webpack.config.js merge=v1
+test merge=v1
