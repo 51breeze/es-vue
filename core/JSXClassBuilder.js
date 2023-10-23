@@ -486,7 +486,12 @@ class JSXClassBuilder extends Core.JSXClassBuilder{
             )),
             createApiNode
         ];
-        program.afterBody.push(ifNode);
+        
+        if(program.isProgram && program.afterBody){
+            program.afterBody.push(ifNode);
+        }else{
+            this.afterBody.push(ifNode);
+        }
     }
 
     checkV3ConstructMethod(){

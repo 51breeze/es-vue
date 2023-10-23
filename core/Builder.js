@@ -39,6 +39,15 @@ class Builder extends Core.Builder{
         return result;
     }
 
+    crateAssetFilter(asset, module, context, dataset){
+        if( !asset.file && asset.type ==="style" && module ){
+            if( this.isBuildVueTemplateFormat() ){
+                return false;
+            }
+        }
+        return true;
+    }
+
     getOutputAbsolutePath(module, compilation){
         const value = super.getOutputAbsolutePath(module, compilation);
         if( module && !module.isDeclaratorModule && (this.isBuildVueTemplateFormat() || this.isBuildVueJsxFormat()) ){

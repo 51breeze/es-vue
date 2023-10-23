@@ -10,6 +10,8 @@ const build = path.resolve( "./test/build" )
 //const loader = require.resolve("es-loader")
 const loader = require.resolve("es-loader")
 
+const { getPostCssConfig } = require( '@ckeditor/ckeditor5-dev-utils/lib/styles' );
+
 const host = "localhost";
 const port = 8085;
 const plugins=[
@@ -28,7 +30,7 @@ const plugins=[
         env:process.env
       },
       hot:true,
-      //format:'vue-template', //vue-template
+      format:'vue-template', //vue-template
       babel:false,
       // babel:{
       //   //babelrc:true
@@ -212,7 +214,31 @@ const config = {
         exclude: /(bower_components|node_modules)/
       },
       {
+        test:/ckeditor5-[^/\\]+[/\\]theme[/\\].+\.css$/,
+        use: [
+          {
+            loader: ExtractTextPlugin.loader,
+            options: {
+              // 这里可以指定一个 publicPath
+              // 默认使用 webpackOptions.output中的publicPath
+              publicPath: '/'
+            },
+          },
+
+          'css-loader',
+          {
+            loader: 'postcss-loader',
+            options: {
+              postcssOptions: getPostCssConfig( {
+                themeImporter: { themePath:require.resolve('@ckeditor/ckeditor5-theme-lark') },
+              })
+            }
+          }
+        ],
+      },
+      {
         test: /\.css$/,
+        exclude:/ckeditor5-[^/\\]+[/\\]theme[/\\].+\.css$/,
         use: [
             {
               loader: ExtractTextPlugin.loader,
@@ -223,8 +249,13 @@ const config = {
               },
             },
 
-            'css-loader'
+            'css-loader',
+            
           ]
+      },
+      {
+        test:/ckeditor5-[^/\\]+[/\\]theme[/\\]icons[/\\][^/\\]+\.svg$/,
+        use: ['raw-loader'],
       },
       {
         test: /\.scss$/,
@@ -246,7 +277,8 @@ const config = {
           ]
       },
       {
-        test: /\.(png|jpg|jpeg|gif|eot|ttf|woff|woff2|svg|svgz)(\?.+)?$/,
+        test: /\.(png|jpg|jpeg|gif|eot|ttf|woff|woff2|svgz|svg)(\?.+)?$/,
+        exclude:/ckeditor5-[^/\\]+[/\\]theme[/\\]icons[/\\][^/\\]+\.svg$/,
         type:'asset'
         // use: [{
         //   loader: 'url-loader',

@@ -10,6 +10,7 @@ import web.ui.Tree as TreeCom;
 import web.ui.Loading;
 import karma.components.MyDirective;
 
+
 class List extends Component{
 
       constructor(props){
@@ -170,6 +171,8 @@ class List extends Component{
             this.formData.infiniteCount+=2;
       }
 
+      
+
       @Override
       render(){
 
@@ -199,6 +202,8 @@ class List extends Component{
                         <ui:Option label = "CN" value = "CN"></ui:Option>
                         <ui:Option label = "US" value = "US"></ui:Option>
                   </ui:Select>
+
+                  
 
                   <div>
                        <ui:Checkbox bind:value={this.formData.checkAll} indeterminate={this.formData.isIndeterminate} on:change={handleCheckAllChange.bind(this)} />

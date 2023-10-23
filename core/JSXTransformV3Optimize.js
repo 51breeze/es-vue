@@ -48,12 +48,15 @@ class JSXTransformV3Optimize extends JSXTransformV3{
                         let index = 0;
                         let len = body.length;
                         while( index < len ){
-                            const type = body[index].type;
-                            if( type ==='ClassDeclaration' ){
-                                return body[index];
-                            }else if( type ==='PackageDeclaration' ){
-                                return find( body[index].body );
+                            if(body[index]){
+                                const type = body[index].type;
+                                if( type ==='ClassDeclaration' ){
+                                    return body[index];
+                                }else if( type ==='PackageDeclaration' ){
+                                    return find( body[index].body );
+                                }
                             }
+                            index++;
                         }
                         return null;
                     }

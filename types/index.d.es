@@ -210,4 +210,13 @@ package vue{
     declare function onErrorCaptured<TError = Error>(hook: ErrorCapturedHook<TError>, target?: ComponentInternalInstance | null): void;
 }
 
+declare interface RichTextEventHandleInterface{
+    addEventListener(type: 'ready',listener:(...args)=>void):this
+    addEventListener(type: 'focus',listener:(...args)=>void):this
+    addEventListener(type: 'blur',listener:(...args)=>void):this
+    addEventListener(type: 'input',listener:(...args)=>void):this
+    addEventListener(type: 'destroy',listener:(...args)=>void):this
+}
+
+@Reference('./ckeditor');
 @Reference('./web');

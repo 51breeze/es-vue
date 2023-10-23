@@ -5,6 +5,8 @@ import karma.asserts.HomeAssert;
 
 import VList from '../vue/list.es';
 
+
+
 class Home extends Component{
 
       @Provider
@@ -45,7 +47,7 @@ class Home extends Component{
       @Override
       onMounted(){
             when( Env(testframework, 'karma') ){
-            const assert = new HomeAssert(this);
+                  const assert = new HomeAssert(this);
             }
       }
 
@@ -53,6 +55,17 @@ class Home extends Component{
             console.log( obj, '----------------' )
       }
 
+      @Reactive
+      private text:string = 'Hello,worlds'
+
+       @Reactive
+      private text2:string = 'Hello,worlds 22222'
+
+      @Override
+      protected onInitialized():void{
+           
+            console.log('-------------------')
+      }
 
       @Override
       render(){
@@ -78,7 +91,21 @@ class Home extends Component{
                         
                   </local:Slot>
                   <local:Directive></local:Directive>
+
+                  <div>
+                        <ui:RichText bind:value={text}></ui:RichText>
+                  </div>
+
+                  <div>
+                        <ui:RichTextInline bind:value={text2}></ui:RichTextInline>
+                  </div>
+
+
+
             </div>
       }
 
 }
+
+
+
