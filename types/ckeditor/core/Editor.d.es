@@ -25,7 +25,7 @@ import ckeditor.ui.EditorUI;
  * Read more about initializing the editor from source or as a build in
  * {@link module:editor-classic/classiceditor~ClassicEditor.create `ClassicEditor.create()`}.
  */
-declare class Editor<T=any> implements IEditor{
+declare class Editor<T=Editor> implements IEditor{
 
     /**
      * @inheritDoc

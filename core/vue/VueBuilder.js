@@ -98,7 +98,7 @@ class VueBuilder extends JSXClassBuilder{
             this.makeTemplateNode(),
             ...this.makeStyleNode(),
             this.createScriptNode( body.splice(0, body.length) )
-        ]
+        ];
         return this;
     }
 
@@ -118,9 +118,10 @@ class VueBuilder extends JSXClassBuilder{
 
     checkConstructMethod(){
 
+        const propProperties = this.propProperties;
         const module = this.module;
         const componentsNode = this.createVueUsingDependenceComponentsNode();
-        const propsOptions = this.propProperties.length > 0 ? this.createPropertyNode('props',this.createObjectNode( this.propProperties ) ) : null;
+        const propsOptions = propProperties.length > 0 ? this.createPropertyNode('props',this.createObjectNode( propProperties ) ) : null;
         const instaneName =  this.builder.genMembersName(this.module,'esInstance',this.module);
         const privateName = this.privateName ? this.createPropertyNode('esPrivateKey', this.createLiteralNode(this.privateName) ) : null;
         const directiveComponents = this.createDirectiveComponents();
@@ -440,7 +441,7 @@ class VueBuilder extends JSXClassBuilder{
                 if(this.builder.isUsed(dep,module)){
                     if( dep.isReferenceLocalComponent ){
                         deps.add(dep)
-                    }else if( Component !== dep && this.stack.isModuleForWebComponent(dep) ){
+                    }else if( Component !== dep && this.inherit !== dep && this.stack.isModuleForWebComponent(dep) ){
                         deps.add(dep)
                     }
                 }

@@ -31,6 +31,7 @@ const plugins=[
       },
       hot:true,
       format:'vue-template', //vue-template
+      
       babel:false,
       // babel:{
       //   //babelrc:true
@@ -188,9 +189,9 @@ const config = {
       {
         test: /\.vue$/,
         loader: 'vue-loader',
-        // options: {
-        //   presets: ['@vue/babel-preset-jsx']
-        // },
+        options: {
+ 
+        },
       },
       {
         test: /\.js$/,

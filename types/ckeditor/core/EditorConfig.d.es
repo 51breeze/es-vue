@@ -512,6 +512,8 @@ declare interface EditorConfig {
      * [order a trial](https://orders.ckeditor.com/trial/premium-features).
      */
     licenseKey?: string;
+
+    [key:string]:any
 }
 /**
  * The `config.initialData` option cannot be used together with the initial data passed as the first parameter of

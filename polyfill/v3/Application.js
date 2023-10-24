@@ -149,6 +149,8 @@ Object.defineProperty(Application.prototype,'mount',{value:function mount(elemen
         System.registerProvide(name, provides[name], 'global:vue:application')
         app.provide(name, provides[name]);
     }
+
+    System.invokeHook('application:created', this);
     app.mount( element );
 
 }});

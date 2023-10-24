@@ -587,6 +587,27 @@ Object.defineProperty( Component, 'createComponent', {value:function createCompo
     const ssrCtx = options.__ssrContext;
     const vccFlag = options.__vccOpts;
     const asyncSetup = options.__asyncSetup;
+    const classDescriptor = Class.getDescriptor(constructor);
+    options.props = options.props || {};
+    if(classDescriptor){
+        let inheritClass = classDescriptor;
+        while(inheritClass && (inheritClass = inheritClass.inherit) && inheritClass !== Component ){
+            if('__vccOpts' in inheritClass){
+                const vccOpts = inheritClass.__vccOpts;
+                if( vccOpts.props ){
+                    Object.keys(vccOpts.props).forEach( key=>{
+                        if(!hasOwn.call(options.props, key)){
+                            options.props[key] = vccOpts.props[key];
+                        }
+                    })
+                }
+                inheritClass = Class.getDescriptor(inheritClass);
+            }else{
+                break;
+            }
+        }
+    }
+
     let exposes = null;
     if(hasTemplate){
         exposes = Object.create(null);

@@ -70,7 +70,7 @@ class Home extends Component{
       @Override
       render(){
 
-            console.log('------Home page render-----------', this.title, this.list, this.fromData )
+            console.log('------Home page render-----------', this.title, this.list, this.fromData , this.text)
 
             var VListCom = VList as web.components.Component;
 
@@ -94,10 +94,6 @@ class Home extends Component{
 
                   <div>
                         <ui:RichText bind:value={text}></ui:RichText>
-                  </div>
-
-                  <div>
-                        <ui:RichTextInline bind:value={text2}></ui:RichTextInline>
                   </div>
 
 

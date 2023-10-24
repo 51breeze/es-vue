@@ -1,6 +1,7 @@
 package web.ui{
 
     import web.components.Component;
+    import web.components.Ckeitor;
 
     import ckeditor.editor.Classic;
     import ckeditor.plugins.Paragraph
@@ -38,12 +39,17 @@ package web.ui{
 
     import CkeditorVue from '@ckeditor/ckeditor5-vue';
     
-    class RichText extends Component implements RichTextEventHandleInterface{
-        tagName:string='div'
-        value:string;
-        config:ckeditor.core.EditorConfig
-        readonly:boolean
-        disableTwoWayDataBinding:boolean
+    class RichText extends Ckeitor{
+        // tagName:string='div'
+        // value:string;
+        // config:ckeditor.core.EditorConfig
+        // readonly:boolean
+        // disableTwoWayDataBinding:boolean
+
+        @Override
+        protected get editor(){
+            return Classic;
+        }
 
         @Main
         static main(){
@@ -109,56 +115,48 @@ package web.ui{
                 },
                 language: 'zh'
             };
-
-            console.log( '--------main rich text------------')
         }
 
-        @Override
-        protected onInitialized():void{
-            
-             console.log( Classic.builtinPlugins )
-        }
+        // private onChange(newValue){
+        //     if(!this.disableTwoWayDataBinding){
+        //         this.emit('update:modelValue', newValue);
+        //         this.emit('input', newValue);
+        //     }
+        // }
 
-        private onChange(newValue){
-            if(!this.disableTwoWayDataBinding){
-                this.emit('update:modelValue', newValue);
-                this.emit('input', newValue);
-            }
-        }
+        // getInstance(){
+        //     return this.getRefs('editor');
+        // }
 
-        getInstance(){
-            return this.getRefs('editor');
-        }
+        // getEditor(){
+        //     return this.editorInstance;
+        // }
 
-        getEditor(){
-            return this.editorInstance;
-        }
+        // private editorInstance:Classic = null;
 
-        private editorInstance:Classic = null;
+        // private makeEventHandle(type, ...args){
+        //     if( type==='ready'){
+        //         this.editorInstance = args[0];
+        //     }
+        //     this.emit(type, ...args);
+        // }
 
-        private makeEventHandle(type, ...args){
-            if( type==='ready'){
-                this.editorInstance = args[0];
-            }
-            this.emit(type, ...args);
-        }
-
-        @Override
-        protected render(){
-            return this.createVNode(CkeditorVue.component, {
-                tagName:this.tagName,
-                editor:Classic,
-                config:this.config,
-                disabled:this.readonly,
-                disableTwoWayDataBinding:this.disableTwoWayDataBinding,
-                modelValue:this.value,
-                onReady:this.makeEventHandle.bind(this, 'ready'),
-                onDestroy:this.makeEventHandle.bind(this, 'destroy'),
-                onBlur:this.makeEventHandle.bind(this, 'blur'),
-                onFocus:this.makeEventHandle.bind(this, 'focus'),
-                "onUpdate:modelValue":this.onChange.bind(this),
-                ref:'editor'
-            })
-        }
+        // @Override
+        // protected render(){
+        //     return this.createVNode(CkeditorVue.component, {
+        //         tagName:this.tagName,
+        //         editor:Classic,
+        //         config:this.config,
+        //         disabled:this.readonly,
+        //         disableTwoWayDataBinding:this.disableTwoWayDataBinding,
+        //         modelValue:this.value,
+        //         onReady:this.makeEventHandle.bind(this, 'ready'),
+        //         onDestroy:this.makeEventHandle.bind(this, 'destroy'),
+        //         onBlur:this.makeEventHandle.bind(this, 'blur'),
+        //         onFocus:this.makeEventHandle.bind(this, 'focus'),
+        //         "onUpdate:modelValue":this.onChange.bind(this),
+        //         ref:'editor'
+        //     })
+        // }
     }
 }

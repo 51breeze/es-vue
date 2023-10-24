@@ -271,7 +271,7 @@ class VueTemplate extends JSXTransform{
         return null;
     }
 
-    makeAttribute(ctx, stack, defaultValue=null, isExpressionFlag=false){
+    makeAttribute(ctx, stack, defaultValue=null, isExpressionFlag=false, appendObject={}){
         
         if( stack.isAttributeXmlns)return null;
         if(stack.isJSXSpreadAttribute){
@@ -450,6 +450,12 @@ class VueTemplate extends JSXTransform{
             }
         }
 
+        if(appendObject && prefix==='v-model' && stack.name.value().toLowerCase()==='value'){
+            appendObject.attributes = [
+                this.createAttrNode(ctx, ctx.createIdentifierNode('v-bind:value'), node.value)
+            ];
+        }
+
         return node;
     }
 
@@ -472,7 +478,11 @@ class VueTemplate extends JSXTransform{
 
     makeOpeningElement(ctx, stack){
         const node = ctx.createNode(stack);
-        node.attributes = stack.attributes.map( attr=>this.makeAttribute(node, attr ) );
+        const dataset = {};
+        node.attributes = stack.attributes.map( attr=>this.makeAttribute(node, attr , null, false, dataset) );
+        if( dataset.attributes ){
+            node.attributes.push( ...dataset.attributes )
+        }
         node.selfClosing = !!stack.selfClosing;
         node.name = this.makeName(node, stack.name);
         this.injectAttributeKey(node, stack);

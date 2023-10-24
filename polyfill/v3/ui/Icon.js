@@ -2,9 +2,17 @@
 ///<import from='element-plus/theme-chalk/el-icon.css' />
 ///<import from='vue' name='Vue' namespaced />
 ///<import from='@element-plus/icons-vue' name='ElementPlusIconsVue' namespaced />
+///<references from='System' />
 ///<namespaces name='web.ui' />
 ///<createClass value='false' />
 ///<referenceAssets value='false' />
+
+System.registerHook('application:created', (app)=>{
+    Object.keys(ElementPlusIconsVue).forEach( key=>{
+        const com = ElementPlusIconsVue[key];
+        app.app.component(com.name||key, com);
+    });
+});
 
 const hasOwn = Object.prototype.hasOwnProperty;
 function resolveComponent(name){

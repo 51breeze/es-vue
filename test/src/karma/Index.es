@@ -14,19 +14,11 @@ import karma.ui.Layout;
 
 import "../theme.scss";
 
-
-//import ckeditor.editor.ClassicEditor
-
-//import {FontColor, FontFamily, FontSize, FontBackgroundColor, Font} from '@ckeditor/ckeditor5-font'
-
-
 class Index extends Application{
 
    // @main
     static main(){
 
-        //  console.log( FontColor ,'-------builtinPlugins------------')
-        
         const obj = new Index();
         const app = document.createElement('div')
         document.body.append( app );
