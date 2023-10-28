@@ -438,7 +438,7 @@ class VueBuilder extends JSXClassBuilder{
             const deps = this.dependenciesComponents;
             const Component = this.builder.getGlobalModuleById('web.components.Component');
             dependencies.forEach( dep=>{
-                if(this.builder.isUsed(dep,module)){
+                if(this.builder.isUsed(dep,module) && this.builder.checkRuntimeModule(dep) ){
                     if( dep.isReferenceLocalComponent ){
                         deps.add(dep)
                     }else if( Component !== dep && this.inherit !== dep && this.stack.isModuleForWebComponent(dep) ){

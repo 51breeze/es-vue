@@ -27,7 +27,8 @@ const plugins=[
       srcCSS:false,
       optimize:true,
       metadata:{
-        env:process.env
+        env:process.env,
+        //platform:'server'
       },
       hot:true,
       format:'vue-template', //vue-template

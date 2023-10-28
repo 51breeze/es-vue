@@ -5,6 +5,7 @@ import ckeditor.core.Editor;
 import {debounce} from 'lodash-es';
 import {h, markRaw} from 'vue';
 
+@Runtime(client)
 class Ckeitor extends Component{
 
     static SAMPLE_READ_ONLY_LOCK_ID = 'Integration Sample';

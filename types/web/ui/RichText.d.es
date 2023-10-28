@@ -40,12 +40,7 @@ package web.ui{
     import CkeditorVue from '@ckeditor/ckeditor5-vue';
     
     class RichText extends Ckeitor{
-        // tagName:string='div'
-        // value:string;
-        // config:ckeditor.core.EditorConfig
-        // readonly:boolean
-        // disableTwoWayDataBinding:boolean
-
+        
         @Override
         protected get editor(){
             return Classic;

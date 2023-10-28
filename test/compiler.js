@@ -1,6 +1,6 @@
-const Compiler = require("../../easescript2/lib/core/Compiler");
-const Diagnostic = require("../../easescript2/lib/core/Diagnostic");
-const Compilation = require("../../easescript2/lib/core/Compilation");
+const Compiler = require("easescript/lib/core/Compiler");
+const Diagnostic = require("easescript/lib/core/Diagnostic");
+const Compilation = require("easescript/lib/core/Compilation");
 const path =require("path");
 const plugin = require("../index");
 
@@ -27,11 +27,15 @@ class Creator {
                 webpack:false,
                 babel:false,
                 version:3,
-                format:'vue-template',//vue-jsx vue-template
+               // format:'vue-template',//vue-jsx vue-template
                 srcCSS:false,
                 optimize:true,
                 sourceMaps:true,
-                useAbsolutePathImport:true
+                useAbsolutePathImport:true,
+                metadata:{
+                    env:process.env,
+                    platform:'server'
+                },
             }
         });
     }
