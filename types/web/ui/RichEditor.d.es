@@ -1,4 +1,4 @@
-package web.components;
+package web.ui;
 
 import web.components.Component;
 import ckeditor.core.Editor;
@@ -6,7 +6,7 @@ import {debounce} from 'lodash-es';
 import {h, markRaw} from 'vue';
 
 @Runtime(client)
-class Ckeitor extends Component{
+class RichEditor extends Component{
 
     static SAMPLE_READ_ONLY_LOCK_ID = 'Integration Sample';
     static INPUT_EVENT_DEBOUNCE_WAIT = 300;
@@ -16,9 +16,17 @@ class Ckeitor extends Component{
     disableTwoWayDataBinding:boolean=false;
     readonly:boolean = false;
     config:ckeditor.core.EditorConfig = {};
+    width:string = '100%';
+    height:string = '380px';
 
-    protected get editor():class<Editor>{
-        return null;
+    private _editor:class<Editor>=null;
+
+    get editor():class<Editor>{
+        return this._editor;
+    }
+
+    set editor(value:class<Editor>){
+        this._editor = value;
     }
 
     protected instance:Editor=null;
@@ -38,17 +46,30 @@ class Ckeitor extends Component{
 		}
 
         this.watch('value',(value)=>{
-			if(this.instance && value !== this.lastEditorData ) {
-				this.instance.data.set( value );
+			if(this.instance && JSON.stringify(value) !== JSON.stringify(this.lastEditorData)  ) {
+                this.instance.data.set(this.formatValue(value))
 			}
 	    });
+
         this.watch('readonly',(value)=>{
 			if( value ){
-				this.instance.enableReadOnlyMode(Ckeitor.SAMPLE_READ_ONLY_LOCK_ID);
+				this.instance.enableReadOnlyMode(RichEditor.SAMPLE_READ_ONLY_LOCK_ID);
 			}else{
-				this.instance.disableReadOnlyMode(Ckeitor.SAMPLE_READ_ONLY_LOCK_ID);
+				this.instance.disableReadOnlyMode(RichEditor.SAMPLE_READ_ONLY_LOCK_ID);
 			}
 		});
+    }
+
+    protected formatValue(value){
+        return value;
+    }
+
+    protected getContent(options?:{[key:string]:string}){
+        const editor = this.instance;
+        if( editor ){
+            return editor.data.get(options)
+        }
+        return false;
     }
 
     protected setUpEditorEvents() {
@@ -57,10 +78,11 @@ class Ckeitor extends Component{
             if ( this.disableTwoWayDataBinding ) {
                 return;
             }
-            const data = this.lastEditorData = editor.data.get();
-            this.emit( 'update:modelValue', data, evt, editor );
-            this.emit( 'input', data, evt, editor );
-        }, Ckeitor.INPUT_EVENT_DEBOUNCE_WAIT, { leading: true } );
+            const data = this.getContent();
+            this.lastEditorData = data
+            this.onChanged(data, evt, editor)
+            
+        }, RichEditor.INPUT_EVENT_DEBOUNCE_WAIT, { leading: true } );
 
         
         editor.model.document.on( 'change:data', emitDebouncedInputEvent );
@@ -73,6 +95,11 @@ class Ckeitor extends Component{
         });
 	}
 
+    protected onChanged(data, evt, editor){
+        this.emit( 'update:modelValue', data, evt, editor );
+        this.emit( 'input', data, evt, editor );
+    }
+
     @Override
     protected onUnmounted():void{
         if ( this.instance ) {
@@ -82,32 +109,55 @@ class Ckeitor extends Component{
 		this.emit( 'destroy', this.instance);
     }
 
+    protected getInitData(){
+        return this.value;
+    }
+
     @Override
     protected onMounted():void{
         const editorConfig = Object.assign({}, this.config);
-		if ( this.value ) {
-			editorConfig.initialData = this.value;
+        const initValue = this.formatValue(this.getInitData());
+		if ( initValue ) {
+			editorConfig.initialData = initValue;
 		}
+        
 		this.editor
-        .create(this.element, editorConfig)
+        .create(this.getContainer(), editorConfig)
         .then( editor => {
             this.instance = markRaw( editor );
             this.setUpEditorEvents();
-            if ( this.value !== editorConfig.initialData ) {
-                editor.data.set( this.value );
+            
+            if ( JSON.stringify(initValue) !== JSON.stringify(editorConfig.initialData) ) {
+                this.instance.data.set( initValue )
             }
             if ( this.readonly ) {
-                editor.enableReadOnlyMode( Ckeitor.SAMPLE_READ_ONLY_LOCK_ID);
+                editor.enableReadOnlyMode( RichEditor.SAMPLE_READ_ONLY_LOCK_ID);
             }
+            
+            const toolbarContainer = this.getToolbarContainer();
+            if(toolbarContainer){
+                toolbarContainer.appendChild( editor.ui.view.toolbar.element );
+            }
+
             this.emit('ready', editor );
-        } )
+        })
         .catch( error => {
             console.error( error );
         });
+        
+    }
+
+    protected getToolbarContainer(){
+        return this.getRefs('toolbar-container')
+    }
+
+    protected getContainer(){
+        return this.element;
     }
 
     @Override
     protected render(){
-        return h( this.tagName );
+        const style = `width:${this.width};height:${this.height};`;
+        return h( this.tagName, {style} );
     }
 }

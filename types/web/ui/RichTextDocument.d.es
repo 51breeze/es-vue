@@ -2,7 +2,8 @@ package web.ui{
 
     import web.components.Component;
 
-    import ckeditor.editor.Document;
+    import ckeditor.editor.Decoupled;
+    
     import ckeditor.plugins.Paragraph
     import ckeditor.plugins.Essentials
     import ckeditor.plugins.Bold
@@ -13,11 +14,8 @@ package web.ui{
     import ckeditor.plugins.BlockQuote
     import ckeditor.plugins.Heading
     import ckeditor.plugins.Alignment
-
     import ckeditor.plugins.UploadAdapter
     import ckeditor.plugins.Autoformat
-    import ckeditor.plugins.CKBox
-    import ckeditor.plugins.CKFinder
     import ckeditor.plugins.CloudServices
     import ckeditor.plugins.Image
     import ckeditor.plugins.EasyImage
@@ -35,27 +33,55 @@ package web.ui{
     import ckeditor.plugins.TableToolbar
     import ckeditor.plugins.TextTransformation
     import ckeditor.plugins.Italic
+    import ckeditor.plugins.FontBackgroundColor
+    import ckeditor.plugins.FontColor
+    import ckeditor.plugins.FontFamily
+    import ckeditor.plugins.FontSize
+    import ckeditor.plugins.ImageResize
+    import ckeditor.plugins.IndentBlock
+    import ckeditor.plugins.ListProperties
+    import ckeditor.plugins.TableCellProperties
+    import ckeditor.plugins.TableProperties
+    import ckeditor.plugins.TodoList
 
-    import CkeditorVue from '@ckeditor/ckeditor5-vue';
-    
-    class RichTextDocument extends Component implements RichTextEventHandleInterface{
-        tagName:string='div'
-        value:string;
-        config:ckeditor.core.EditorConfig
-        readonly:boolean
-        disableTwoWayDataBinding:boolean
+    import "../styles/rich-text-style.css"
+
+    class RichTextDocument extends RichEditor{
+
+        @Override
+        protected get editor(){
+            return Decoupled;
+        }
+
+        @Override
+        protected getToolbarContainer(){
+            return this.getRefs('rich-text-toolbar')
+        }
+
+        @Override
+        protected getContainer(){
+            return this.getRefs('rich-text-container')
+        }
+
+        @Override
+        protected render(){
+            return <div class="rich-text-document" style={`width:${this.width};`}>
+                <div class="rich-text-toolbar" ref="rich-text-toolbar"></div>
+                <div class="rich-text-container" style={`height:${this.height};`}>
+                    <div ref="rich-text-container" style={`height:${this.height};`}></div>
+                </div>
+            </div>
+        }
 
         @Main
         static main(){
-            Document.builtinPlugins=[
+            Decoupled.builtinPlugins=[
                 Essentials,
                 UploadAdapter,
                 Autoformat,
                 Bold,
                 Italic,
                 BlockQuote,
-                CKBox,
-                CKFinder,
                 CloudServices,
                 EasyImage,
                 Heading,
@@ -78,79 +104,49 @@ package web.ui{
                 Strikethrough,
                 Code,
                 Underline,
-                Alignment
+                Alignment,
+                FontBackgroundColor,
+                FontColor,
+                FontFamily,
+                FontSize,
+                IndentBlock,
+                ListProperties,
+                MediaEmbed,
+                Paragraph,
+                TableCellProperties,
+                TableProperties,
+                TodoList
             ];
-            Document.defaultConfig = {
+            Decoupled.defaultConfig = {
                 toolbar: {
                     items: [
                         'undo', 'redo',
-                        '|', 'heading',
-                        '|', 'bold', 'italic','Underline',
-                        '|', 'link', 'uploadImage', 'insertTable', 'blockQuote', 'mediaEmbed',
-                        '|', 'bulletedList', 'numberedList', 'outdent', 'indent','alignment'
+                        '|', 'heading','fontSize','fontFamily','fontColor','fontBackgroundColor',
+                        '|', 'bold', 'italic','Underline','strikethrough','alignment','bulletedList', 'numberedList', 'outdent', 'indent',
+                        '|', 'link', 'uploadImage', 'imageUpload','insertTable', 'blockQuote', 'mediaEmbed',
+                        '|', 'todoList','blockQuote',
                     ]
                 },
+                language: 'zh-cn',
                 image: {
                     toolbar: [
+                        'imageTextAlternative',
+                        'toggleImageCaption',
                         'imageStyle:inline',
                         'imageStyle:block',
-                        'imageStyle:side',
-                        '|',
-                        'toggleImageCaption',
-                        'imageTextAlternative'
+                        'imageStyle:side'
                     ]
                 },
                 table: {
                     contentToolbar: [
                         'tableColumn',
                         'tableRow',
-                        'mergeTableCells'
+                        'mergeTableCells',
+                        'tableCellProperties',
+                        'tableProperties'
                     ]
-                },
-                language: 'zh'
+                }
             };
-        }
-
-        private onChange(newValue){
-            if(!this.disableTwoWayDataBinding){
-                this.emit('update:modelValue', newValue);
-                this.emit('input', newValue);
-            }
-        }
-
-        getInstance(){
-            return this.getRefs('editor');
-        }
-
-        getEditor(){
-            return this.editorInstance;
-        }
-
-        private editorInstance:Document = null;
-
-        private makeEventHandle(type, ...args){
-            if( type==='ready'){
-                this.editorInstance = args[0];
-            }
-            this.emit(type, ...args);
-        }
-
-        @Override
-        protected render(){
-            return this.createVNode(CkeditorVue.component, {
-                tagName:this.tagName,
-                editor:Document,
-                config:this.config,
-                disabled:this.readonly,
-                disableTwoWayDataBinding:this.disableTwoWayDataBinding,
-                modelValue:this.value,
-                onReady:this.makeEventHandle.bind(this, 'ready'),
-                onDestroy:this.makeEventHandle.bind(this, 'destroy'),
-                onBlur:this.makeEventHandle.bind(this, 'blur'),
-                onFocus:this.makeEventHandle.bind(this, 'focus'),
-                "onUpdate:modelValue":this.onChange.bind(this),
-                ref:'editor'
-            })
         }
     }
 }

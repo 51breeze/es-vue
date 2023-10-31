@@ -43,6 +43,7 @@ class JSXTransformV3Optimize extends JSXTransformV3{
         if(program){
             if(!program[privateKey]){
                 program[privateKey] = this.hoisteNodes;
+
                 program.once('createComplated',(body)=>{
                     const find = ( body )=>{
                         let index = 0;
@@ -521,10 +522,13 @@ class JSXTransformV3Optimize extends JSXTransformV3{
                 pureStaticAttributes = false;
                 this.addPatchFlag(data,ELEMENT_NEED_PATCH);
                 binddingModelValue = value.value;
+                if( !binddingModelValue || !(binddingModelValue.type ==='MemberExpression' || binddingModelValue.type ==='Identifier') ){
+                    binddingModelValue = null
+                }
             }
 
             let bindValuePropName = null;
-            if( item.isMemberProperty && ns ==="@binding" && attrLowerName ==='value' ){
+            if( item.isMemberProperty && ns ==="@binding" && attrLowerName ==='value'){
                 bindValuePropName = propName;
                 if( !isDOMAttribute){
                     data.props.push( this.createPropertyNode( this.createPropertyKeyNode(propName, value.name.stack ), value.value ) );
@@ -1172,10 +1176,18 @@ class JSXTransformV3Optimize extends JSXTransformV3{
 
         nodeElement.pureStaticChildren = false;
         if( isStaticHoisted ){
-            const program = this.getParentByType('Program');
-            if(program && program.type==='Program'){
+            let program = this.getParentByType('Program');
+            if( !program.isProgram ){
+                program = this.getParentByType('ClassDeclaration');
+            }
+            if(program){
                 const hoisteKey = this.checkRefsName(`_hoisted_${this.hoisteNodes.length}_`, true, 0, program, false);
-                this.hoisteNodes.push( this.createDeclarationNode( 'const', [this.createDeclaratorNode( hoisteKey, nodeElement)] ) )
+                const hoistedNode = this.createDeclarationNode( 'const', [this.createDeclaratorNode( hoisteKey, nodeElement)] );
+                if( program.isProgram  ){
+                    this.hoisteNodes.push(hoistedNode)
+                }else{
+                    program.body.push(hoistedNode);
+                }
                 nodeElement = this.createIdentifierNode(hoisteKey, stack.openingElement.name);
                 nodeElement.isElementVNode = true;
                 nodeElement.pureStaticChildren = true;

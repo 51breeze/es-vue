@@ -376,7 +376,6 @@ class VueTemplate extends JSXTransform{
             }
 
             if( !isExpressionFlag ){
-
                 if( ns ==='@slots'){
                     prefix = 'v-slot';
                 }else if( ns ==='@events' || ns === '@natives'){
@@ -397,6 +396,39 @@ class VueTemplate extends JSXTransform{
             }
 
             if( prefix ){
+
+                const lowerName = resolveName && resolveName.toLowerCase();
+                if( prefix==='v-model' && !(lowerName==='value' || lowerName==='modelvalue') ){
+                    prefix = 'v-on';
+                    resolveValue = resolveValue || node.createToken(stack.value);
+                    const bindValue = resolveValue;
+                    if( !resolveValue || !(resolveValue.type ==='MemberExpression' || resolveValue.type ==='Identifier') ){
+                        resolveValue = null;
+                    }
+                    if(resolveValue){
+                        if(appendObject){
+                            appendObject.attributes = appendObject.attributes || [];
+                            appendObject.attributes.push(this.createAttrNode(node, node.createIdentifierNode(`v-bind:${resolveName}`), bindValue))
+                        }
+                        resolveValue = node.createArrowFunctionNode(
+                            [node.createIdentifierNode('e')], 
+                            node.createAssignmentNode(
+                                resolveValue, 
+                                node.createCalleeNode(
+                                    node.createMemberNode([
+                                        createThisNode(node, stack), 
+                                        node.createIdentifierNode('getBindEventValue')
+                                    ]),
+                                    [
+                                        node.createIdentifierNode('e')
+                                    ]
+                                )
+                            )
+                        );
+                    }else{
+                        prefix = 'v-bind';
+                    }
+                }
 
                 if(prefix==='v-model'){
                     node.name = node.createIdentifierNode( prefix );
@@ -450,10 +482,9 @@ class VueTemplate extends JSXTransform{
             }
         }
 
-        if(appendObject && prefix==='v-model' && stack.name.value().toLowerCase()==='value'){
-            appendObject.attributes = [
-                this.createAttrNode(ctx, ctx.createIdentifierNode('v-bind:value'), node.value)
-            ];
+        if(prefix==='v-model' && appendObject && resolveName){
+            appendObject.attributes = appendObject.attributes || [];
+            appendObject.attributes.push(this.createAttrNode(node, node.createIdentifierNode(`v-bind:${resolveName}`), node.value))
         }
 
         return node;

@@ -567,6 +567,9 @@ class JSXTransformV3 extends JSXTransform{
                 return;
             }else if( ns ==="@binding" ){
                 binddingModelValue = propValue;
+                if( !binddingModelValue || !(binddingModelValue.type ==='MemberExpression' || binddingModelValue.type ==='Identifier') ){
+                    binddingModelValue = null;
+                }
             }
             
             if( item.isMemberProperty ){

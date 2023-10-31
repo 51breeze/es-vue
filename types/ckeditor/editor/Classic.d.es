@@ -26,7 +26,7 @@ import ckeditor.core.Editor;
  * {@link module:editor-classic/classiceditor~ClassicEditor.create `ClassicEditor.create()`}.
  */
 
-import {ClassicEditor as Classic} from '@ckeditor/ckeditor5-editor-classic'
+import {ClassicEditor as Classic} from 'es-ckeditor/lib/editor'
 declare class Classic extends Editor<Classic>{
 
 }

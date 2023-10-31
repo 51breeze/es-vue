@@ -26,7 +26,8 @@ import ckeditor.core.Editor;
  * {@link module:editor-classic/classiceditor~ClassicEditor.create `ClassicEditor.create()`}.
  */
 
-import {InlineEditor as Inline} from '@ckeditor/ckeditor5-editor-inline';
+import {InlineEditor as Inline} from 'es-ckeditor/lib/editor'
+//import {InlineEditor as Inline} from '@ckeditor/ckeditor5-editor-inline'
 declare class Inline extends Editor<Inline>{
 
 }

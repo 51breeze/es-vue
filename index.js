@@ -193,7 +193,7 @@ class PluginEsVue extends Core.Plugin{
                 maps['element-plus/lib/components/****::asset'] = 'element-plus/es/components/%.../%filename';
             }
         }
-
+        
         if(options.format ==='vue-raw' || options.format ==='vue-template' || options.format ==='vue-jsx'){
             options.rawJsx = options.rawJsx || {};
             options.rawJsx.enable = true;

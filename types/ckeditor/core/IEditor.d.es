@@ -8,7 +8,7 @@ import ckeditor.engine.DataController;
 import ckeditor.engine.EditingController;
 import ckeditor.ui.EditorUI;
 
-declare interface IEditor{
+declare interface IEditor implements Emitter,DataApi{
 
     /**
     * Commands registered to the editor.
@@ -336,4 +336,198 @@ declare interface IEditor{
     */
     //static create(...args): void;
     
+}
+
+
+
+/**
+ * Interface defining editor methods for setting and getting data to and from the editor's main root element
+ * using the {@link module:core/editor/editor~Editor#data data pipeline}.
+ *
+ * This interface is not a part of the {@link module:core/editor/editor~Editor} class because one may want to implement
+ * an editor with multiple root elements, in which case the methods for setting and getting data will need to be implemented
+ * differently.
+ */
+declare interface DataApi {
+    /**
+     * Sets the data in the editor.
+     *
+     * ```ts
+     * editor.setData( '<p>This is editor!</p>' );
+     * ```
+     *
+     * If your editor implementation uses multiple roots, you should pass an object with keys corresponding
+     * to the editor root names and values equal to the data that should be set in each root:
+     *
+     * ```ts
+     * editor.setData( {
+     *     header: '<p>Content for header part.</p>',
+     *     content: '<p>Content for main part.</p>',
+     *     footer: '<p>Content for footer part.</p>'
+     * } );
+     * ```
+     *
+     * By default the editor accepts HTML. This can be controlled by injecting a different data processor.
+     * See the {@glink features/markdown Markdown output} guide for more details.
+     *
+     * @param data Input data.
+     */
+    setData(data: string | {[key:string]:string}): void;
+    /**
+     * Gets the data from the editor.
+     *
+     * ```ts
+     * editor.getData(); // -> '<p>This is editor!</p>'
+     * ```
+     *
+     * If your editor implementation uses multiple roots, you should pass root name as one of the options:
+     *
+     * ```ts
+     * editor.getData( { rootName: 'header' } ); // -> '<p>Content for header part.</p>'
+     * ```
+     *
+     * By default, the editor outputs HTML. This can be controlled by injecting a different data processor.
+     * See the {@glink features/markdown Markdown output} guide for more details.
+     *
+     * A warning is logged when you try to retrieve data for a detached root, as most probably this is a mistake. A detached root should
+     * be treated like it is removed, and you should not save its data. Note, that the detached root data is always an empty string.
+     *
+     * @param options Additional configuration for the retrieved data.
+     * Editor features may introduce more configuration options that can be set through this parameter.
+     * @param options.rootName Root name. Default to `'main'`.
+     * @param options.trim Whether returned data should be trimmed. This option is set to `'empty'` by default,
+     * which means that whenever editor content is considered empty, an empty string is returned. To turn off trimming
+     * use `'none'`. In such cases exact content will be returned (for example `'<p>&nbsp;</p>'` for an empty editor).
+     * @returns Output data.
+     */
+    getData(options?: {[key:string]:string}): string;
+}
+
+
+declare interface Emitter {
+    /**
+     * Registers a callback function to be executed when an event is fired.
+     *
+     * Shorthand for {@link #listenTo `this.listenTo( this, event, callback, options )`} (it makes the emitter
+     * listen on itself).
+     *
+     * @typeParam TEvent The type descibing the event. See {@link module:utils/emittermixin~BaseEvent}.
+     * @param event The name of the event.
+     * @param callback The function to be called on event.
+     * @param options Additional options.
+     */
+    on(event:string, callback:Function, options?): void;
+    /**
+     * Registers a callback function to be executed on the next time the event is fired only. This is similar to
+     * calling {@link #on} followed by {@link #off} in the callback.
+     *
+     * @typeParam TEvent The type descibing the event. See {@link module:utils/emittermixin~BaseEvent}.
+     * @param event The name of the event.
+     * @param callback The function to be called on event.
+     * @param options Additional options.
+     */
+    once(event:string, callback: Function, options?): void;
+    /**
+     * Stops executing the callback on the given event.
+     * Shorthand for {@link #stopListening `this.stopListening( this, event, callback )`}.
+     *
+     * @param event The name of the event.
+     * @param callback The function to stop being called.
+     */
+    off(event: string, callback: Function): void;
+    /**
+     * Registers a callback function to be executed when an event is fired in a specific (emitter) object.
+     *
+     * Events can be grouped in namespaces using `:`.
+     * When namespaced event is fired, it additionally fires all callbacks for that namespace.
+     *
+     * ```ts
+     * // myEmitter.on( ... ) is a shorthand for myEmitter.listenTo( myEmitter, ... ).
+     * myEmitter.on( 'myGroup', genericCallback );
+     * myEmitter.on( 'myGroup:myEvent', specificCallback );
+     *
+     * // genericCallback is fired.
+     * myEmitter.fire( 'myGroup' );
+     * // both genericCallback and specificCallback are fired.
+     * myEmitter.fire( 'myGroup:myEvent' );
+     * // genericCallback is fired even though there are no callbacks for "foo".
+     * myEmitter.fire( 'myGroup:foo' );
+     * ```
+     *
+     * An event callback can {@link module:utils/eventinfo~EventInfo#stop stop the event} and
+     * set the {@link module:utils/eventinfo~EventInfo#return return value} of the {@link #fire} method.
+     *
+     * @label BASE_EMITTER
+     * @typeParam TEvent The type describing the event. See {@link module:utils/emittermixin~BaseEvent}.
+     * @param emitter The object that fires the event.
+     * @param event The name of the event.
+     * @param callback The function to be called on event.
+     * @param options Additional options.
+     */
+    listenTo(emitter: Emitter, event: string, callback?, options?): void;
+    /**
+     * Stops listening for events. It can be used at different levels:
+     *
+     * * To stop listening to a specific callback.
+     * * To stop listening to a specific event.
+     * * To stop listening to all events fired by a specific object.
+     * * To stop listening to all events fired by all objects.
+     *
+     * @label BASE_STOP
+     * @param emitter The object to stop listening to. If omitted, stops it for all objects.
+     * @param event (Requires the `emitter`) The name of the event to stop listening to. If omitted, stops it
+     * for all events from `emitter`.
+     * @param callback (Requires the `event`) The function to be removed from the call list for the given
+     * `event`.
+     */
+    stopListening(emitter?: Emitter, event?: string, callback?: Function): void;
+    /**
+     * Fires an event, executing all callbacks registered for it.
+     *
+     * The first parameter passed to callbacks is an {@link module:utils/eventinfo~EventInfo} object,
+     * followed by the optional `args` provided in the `fire()` method call.
+     *
+     * @typeParam TEvent The type describing the event. See {@link module:utils/emittermixin~BaseEvent}.
+     * @param eventOrInfo The name of the event or `EventInfo` object if event is delegated.
+     * @param args Additional arguments to be passed to the callbacks.
+     * @returns By default the method returns `undefined`. However, the return value can be changed by listeners
+     * through modification of the {@link module:utils/eventinfo~EventInfo#return `evt.return`}'s property (the event info
+     * is the first param of every callback).
+     */
+    fire(eventOrInfo, ...args);
+    /**
+     * Delegates selected events to another {@link module:utils/emittermixin~Emitter}. For instance:
+     *
+     * ```ts
+     * emitterA.delegate( 'eventX' ).to( emitterB );
+     * emitterA.delegate( 'eventX', 'eventY' ).to( emitterC );
+     * ```
+     *
+     * then `eventX` is delegated (fired by) `emitterB` and `emitterC` along with `data`:
+     *
+     * ```ts
+     * emitterA.fire( 'eventX', data );
+     * ```
+     *
+     * and `eventY` is delegated (fired by) `emitterC` along with `data`:
+     *
+     * ```ts
+     * emitterA.fire( 'eventY', data );
+     * ```
+     *
+     * @param events Event names that will be delegated to another emitter.
+     */
+    delegate(...events: string[]);
+    /**
+     * Stops delegating events. It can be used at different levels:
+     *
+     * * To stop delegating all events.
+     * * To stop delegating a specific event to all emitters.
+     * * To stop delegating a specific event to a specific emitter.
+     *
+     * @param event The name of the event to stop delegating. If omitted, stops it all delegations.
+     * @param emitter (requires `event`) The object to stop delegating a particular event to.
+     * If omitted, stops delegation of `event` to all emitters.
+     */
+    stopDelegating(event?: string, emitter?: Emitter): void;
 }

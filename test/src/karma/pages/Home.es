@@ -49,6 +49,11 @@ class Home extends Component{
             when( Env(testframework, 'karma') ){
                   const assert = new HomeAssert(this);
             }
+            const header = this.getRefs('editor-header')
+            this.layout = {
+                  header:header,
+                  main:this.getRefs('editor-main')
+            };
       }
 
       callee( obj ){
@@ -58,19 +63,19 @@ class Home extends Component{
       @Reactive
       private text:string = 'Hello,worlds'
 
-       @Reactive
+      @Reactive
       private text2:string = 'Hello,worlds 22222'
 
-      @Override
-      protected onInitialized():void{
-           
-            console.log('-------------------')
-      }
+      @Reactive
+      private data = {}
+
+      @Reactive
+      private layout = {}
 
       @Override
       render(){
 
-            console.log('------Home page render-----------', this.title, this.list, this.fromData , this.text)
+            console.log('------Home page render-----------', this.title, this.list, this.fromData)
 
             var VListCom = VList as web.components.Component;
 
@@ -86,14 +91,53 @@ class Home extends Component{
                         </s:head>
 
                         <s:content scope="scope">
+                               <div ref="editor-main">
+                                    editor-main
+                              </div>
+
                               <div d:for="(item,index) in scope.items" ref='slot-item'>definition: {item.label}</div>
                         </s:content>
                         
                   </local:Slot>
                   <local:Directive></local:Directive>
 
+                  {
+
+                  // <div>
+                  //       <ui:RichText bind:value={text}></ui:RichText>
+                  // </div>
+
+                  //  <div>
+                  //       <ui:RichTextInline bind:value={text2}></ui:RichTextInline>
+                  // </div>
+
+                  // <div>
+                  //       <ui:RichTextBalloonBlock bind:value={text2}></ui:RichTextBalloonBlock>
+                  // </div>
+
+
+                  //  <div>
+                  //       <ui:RichTextDocument bind:value={text2}></ui:RichTextDocument>
+                  // </div>
+
+                  }
+
+                
+
+            
+
                   <div>
-                        <ui:RichText bind:value={text}></ui:RichText>
+                        <ui:RichTextDocument bind:value={text2}></ui:RichTextDocument>
+                   </div>
+
+
+                   <div>
+                       <ui:RichTextMultiroot layout={layout} bind:value={data}></ui:RichTextMultiroot>
+                   </div>
+
+                 
+                  <div ref="editor-header">
+                        editor-header
                   </div>
 
 

@@ -70,6 +70,9 @@ declare class Title extends ckeditor.core.Plugin{}
 import { Indent } from '@ckeditor/ckeditor5-indent';
 declare class Indent extends ckeditor.core.Plugin{}
 
+import { IndentBlock } from '@ckeditor/ckeditor5-indent';
+declare class IndentBlock extends ckeditor.core.Plugin{}
+
 import { Alignment } from '@ckeditor/ckeditor5-alignment';
 declare class Alignment extends ckeditor.core.Plugin{}
 
@@ -94,6 +97,9 @@ declare class ImageUpload extends ckeditor.core.Plugin{}
 
 import {PictureEditing} from '@ckeditor/ckeditor5-image';
 declare class PictureEditing extends ckeditor.core.Plugin{}
+
+import {ImageResize} from '@ckeditor/ckeditor5-image';
+declare class ImageResize extends ckeditor.core.Plugin{}
 
 
 /*Clipboard*/
@@ -147,8 +153,18 @@ declare class TableClipboard extends ckeditor.core.Plugin{}
 import {TableUtils} from '@ckeditor/ckeditor5-table';
 declare class TableUtils extends ckeditor.core.Plugin{}
 
+import {TableCellProperties} from '@ckeditor/ckeditor5-table';
+declare class TableCellProperties extends ckeditor.core.Plugin{}
+
+import {TableProperties} from '@ckeditor/ckeditor5-table';
+declare class TableProperties extends ckeditor.core.Plugin{}
+
+
 import { TableOfContents } from '@ckeditor/ckeditor5-document-outline';
 declare class TableOfContents extends ckeditor.core.Plugin{}
+
+import { DocumentOutline } from '@ckeditor/ckeditor5-document-outline';
+declare class DocumentOutline extends ckeditor.core.Plugin{}
 
 import { TextTransformation } from '@ckeditor/ckeditor5-typing';
 declare class TextTransformation extends ckeditor.core.Plugin{}
@@ -237,6 +253,9 @@ declare class LinkImage extends ckeditor.core.Plugin{}
 import {List} from '@ckeditor/ckeditor5-list';
 declare class List extends ckeditor.core.Plugin{}
 
+import {ListProperties} from '@ckeditor/ckeditor5-list';
+declare class ListProperties extends ckeditor.core.Plugin{}
+
 import {DocumentList} from '@ckeditor/ckeditor5-list';
 declare class DocumentList extends ckeditor.core.Plugin{}
 
@@ -263,9 +282,6 @@ declare class FormatPainter extends ckeditor.core.Plugin{}
 
 import { FindAndReplace } from '@ckeditor/ckeditor5-find-and-replace';
 declare class FormatPainter extends ckeditor.core.Plugin{}
-
-import { DocumentOutline } from '@ckeditor/ckeditor5-document-outline';
-declare class DocumentOutline extends ckeditor.core.Plugin{}
 
 import { CodeBlock } from '@ckeditor/ckeditor5-code-block';
 declare class CodeBlock extends ckeditor.core.Plugin{}

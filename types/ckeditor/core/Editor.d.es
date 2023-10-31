@@ -46,16 +46,16 @@ declare class Editor<T=Editor> implements IEditor{
 
         builtinPlugins: any[];
         defaultConfig: {
-            toolbar: {
+            toolbar?: {
                 items: string[]
             },
-            image: {
+            image?: {
                 toolbar: string[]
             },
-            table: {
+            table?: {
                 contentToolbar: string[]
             },
-            language: string
+            language?: string
         };
 
         /**

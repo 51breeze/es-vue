@@ -1,0 +1,24 @@
+.rich-text-document{
+    background-color: rgb(240, 240, 240);
+    border: solid 1px rgb(240, 240, 240);
+    width: 100%;
+    display: flex;
+    flex-flow: column wrap;
+    align-items: center;
+}
+.rich-text-document > .rich-text-toolbar{
+    width: 100%;
+}
+.rich-text-document > .rich-text-container{
+    width: 100%;
+    min-height: 250px;
+    max-height: 650px;
+    overflow-y: auto;
+}
+.rich-text-document > .rich-text-container > div{
+    background-color: rgb(255, 255, 255);
+    width: 90%;
+    min-height: 250px;
+    margin: 20px auto;
+
+}

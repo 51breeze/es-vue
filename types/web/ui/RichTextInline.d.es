@@ -36,15 +36,18 @@ package web.ui{
     import ckeditor.plugins.TextTransformation
     import ckeditor.plugins.Italic
 
-    import CkeditorVue from '@ckeditor/ckeditor5-vue';
+    import ckeditor.plugins.FontBackgroundColor
+    import ckeditor.plugins.FontColor
+    import ckeditor.plugins.FontFamily
+    import ckeditor.plugins.FontSize
     
-    class RichTextInline extends Component implements RichTextEventHandleInterface{
-        tagName:string='div'
-        value:string;
-        config:ckeditor.core.EditorConfig
-        readonly:boolean
-        disableTwoWayDataBinding:boolean
+    class RichTextInline extends RichEditor{
 
+        @Override
+        protected get editor(){
+            return Inline;
+        }
+       
         @Main
         static main(){
             Inline.builtinPlugins=[
@@ -78,16 +81,22 @@ package web.ui{
                 Strikethrough,
                 Code,
                 Underline,
-                Alignment
+                Alignment,
+
+                FontBackgroundColor,
+                FontColor,
+                FontFamily,
+                FontSize,
+                
             ];
             Inline.defaultConfig = {
                 toolbar: {
                     items: [
                         'undo', 'redo',
-                        '|', 'heading',
-                        '|', 'bold', 'italic','Underline',
+                        '|', 'heading','fontSize','fontFamily','fontColor','fontBackgroundColor',
+                        '|', 'bold', 'italic','Underline','outdent', 'indent','alignment',
+                        '|','bulletedList', 'numberedList',,
                         '|', 'link', 'uploadImage', 'insertTable', 'blockQuote', 'mediaEmbed',
-                        '|', 'bulletedList', 'numberedList', 'outdent', 'indent','alignment'
                     ]
                 },
                 image: {
@@ -107,50 +116,8 @@ package web.ui{
                         'mergeTableCells'
                     ]
                 },
-                language: 'zh'
+                language: 'zh-cn'
             };
-        }
-
-        private onChange(newValue){
-            if(!this.disableTwoWayDataBinding){
-                this.emit('update:modelValue', newValue);
-                this.emit('input', newValue);
-            }
-        }
-
-        getInstance(){
-            return this.getRefs('editor');
-        }
-
-        getEditor(){
-            return this.editorInstance;
-        }
-
-        private editorInstance:Inline = null;
-
-        private makeEventHandle(type, ...args){
-            if( type==='ready'){
-                this.editorInstance = args[0];
-            }
-            this.emit(type, ...args);
-        }
-
-        @Override
-        protected render(){
-            return this.createVNode(CkeditorVue.component, {
-                tagName:this.tagName,
-                editor:Inline,
-                config:this.config,
-                disabled:this.readonly,
-                disableTwoWayDataBinding:this.disableTwoWayDataBinding,
-                modelValue:this.value,
-                onReady:this.makeEventHandle.bind(this, 'ready'),
-                onDestroy:this.makeEventHandle.bind(this, 'destroy'),
-                onBlur:this.makeEventHandle.bind(this, 'blur'),
-                onFocus:this.makeEventHandle.bind(this, 'focus'),
-                "onUpdate:modelValue":this.onChange.bind(this),
-                ref:'editor'
-            })
         }
     }
 }

@@ -26,7 +26,9 @@ import ckeditor.core.Editor;
  * {@link module:editor-classic/classiceditor~ClassicEditor.create `ClassicEditor.create()`}.
  */
 
-import {BalloonBlockEditor as BalloonBlock} from '@ckeditor/ckeditor5-editor-balloon-block'
-declare class BalloonBlock extends Editor<BalloonBlock>{
+import {DecoupledEditor as Decoupled} from 'es-ckeditor/lib/editor'
+//import {DecoupledEditor as Decoupled} from '@ckeditor/ckeditor5-editor-decoupled'
+//import Decoupled from '@ckeditor/ckeditor5-build-decoupled-document'
+declare class Decoupled extends Editor<Decoupled>{
 
 }

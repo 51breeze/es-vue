@@ -759,6 +759,10 @@ Object.defineProperty( Component, 'createComponent', {value:function createCompo
             return expose;
         }
     }
+
+
+    //options.emits = ['data']
+
     Component.defineComponent(constructor, options);
     return vccFlag ? options : constructor;
 
