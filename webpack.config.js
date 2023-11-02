@@ -93,14 +93,14 @@ const config = {
          'element-plus':path.join(__dirname, 'node_modules/element-plus'),
          '@babel':path.join(__dirname, 'node_modules/@babel'),
         
-         '@ckeditor/ckeditor5-utils$':path.join(__dirname, 'node_modules/es-ckeditor/lib/utils.js'),
-         '@ckeditor/ckeditor5-engine$':path.join(__dirname, 'node_modules/es-ckeditor/lib/engine.js'),
-         '@ckeditor/ckeditor5-ui$':path.join(__dirname, 'node_modules/es-ckeditor/lib/ui.js'),
-         '@ckeditor/ckeditor5-core$':path.join(__dirname, 'node_modules/es-ckeditor/lib/core.js'),
-         'ckeditor5/src/core$':path.join(__dirname, 'node_modules/es-ckeditor/lib/core.js'),
-         'ckeditor5/src/ui$':path.join(__dirname, 'node_modules/es-ckeditor/lib/ui.js'),
-         'ckeditor5/src/utils$':path.join(__dirname, 'node_modules/es-ckeditor/lib/utils.js'),
-         'ckeditor5/src/engine$':path.join(__dirname, 'node_modules/es-ckeditor/lib/engine.js'),
+        //  '@ckeditor/ckeditor5-utils$':path.join(__dirname, 'node_modules/es-ckeditor/lib/utils.js'),
+        //  '@ckeditor/ckeditor5-engine$':path.join(__dirname, 'node_modules/es-ckeditor/lib/engine.js'),
+        //  '@ckeditor/ckeditor5-ui$':path.join(__dirname, 'node_modules/es-ckeditor/lib/ui.js'),
+        //  '@ckeditor/ckeditor5-core$':path.join(__dirname, 'node_modules/es-ckeditor/lib/core.js'),
+        //  'ckeditor5/src/core$':path.join(__dirname, 'node_modules/es-ckeditor/lib/core.js'),
+        //  'ckeditor5/src/ui$':path.join(__dirname, 'node_modules/es-ckeditor/lib/ui.js'),
+        //  'ckeditor5/src/utils$':path.join(__dirname, 'node_modules/es-ckeditor/lib/utils.js'),
+        //  'ckeditor5/src/engine$':path.join(__dirname, 'node_modules/es-ckeditor/lib/engine.js'),
 
 
          //'@ckeditor/ckeditor5-ui/theme/components/responsive-form':path.join(__dirname, 'node_modules/@ckeditor/ckeditor5-ui/theme/components/responsive-form/responsiveform.css'),

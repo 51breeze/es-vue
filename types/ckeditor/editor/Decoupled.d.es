@@ -26,9 +26,7 @@ import ckeditor.core.Editor;
  * {@link module:editor-classic/classiceditor~ClassicEditor.create `ClassicEditor.create()`}.
  */
 
-import {DecoupledEditor as Decoupled} from 'es-ckeditor/lib/editor'
-//import {DecoupledEditor as Decoupled} from '@ckeditor/ckeditor5-editor-decoupled'
-//import Decoupled from '@ckeditor/ckeditor5-build-decoupled-document'
+import {DecoupledEditor as Decoupled} from '@ckeditor/ckeditor5-editor-decoupled'
 declare class Decoupled extends Editor<Decoupled>{
 
 }

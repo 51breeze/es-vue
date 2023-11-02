@@ -38,8 +38,33 @@ package web.ui{
     import ckeditor.plugins.FontColor
     import ckeditor.plugins.FontFamily
     import ckeditor.plugins.FontSize
+
+    import "../styles/rich-text-style.css"
     
     class RichText extends RichEditor{
+
+        @Override
+        protected onInitialized():void{
+            super.onInitialized();
+            this.on('ready', (type, editor:Classic)=>{
+                editor.editing.view.change( writer => {
+                    const root = editor.editing.view.document.getRoot();
+                    if(!editor.ui.view.element){
+                        writer.setStyle('width',this.width, root);
+                    }else{
+                        writer.setStyle('width','100%', root);
+                    }
+                    writer.setStyle('height',this.height, root);
+                    writer.addClass('rich-text-classic-editable', root);
+                });
+                const element = editor.ui.view.element as HTMLElement;
+                if(element){
+                    const list = [this.className, 'rich-text-editor'].filter( val=>!!val );
+                    element.classList.add( ...list );
+                    element.style.width=this.width;
+                }
+            });
+        }
         
         @Override
         protected get editor(){

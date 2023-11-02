@@ -18,6 +18,7 @@ class RichEditor extends Component{
     config:ckeditor.core.EditorConfig = {};
     width:string = '100%';
     height:string = '380px';
+    className:string = '';
 
     private _editor:class<Editor>=null;
 
@@ -124,6 +125,7 @@ class RichEditor extends Component{
 		this.editor
         .create(this.getContainer(), editorConfig)
         .then( editor => {
+
             this.instance = markRaw( editor );
             this.setUpEditorEvents();
             
@@ -158,6 +160,6 @@ class RichEditor extends Component{
     @Override
     protected render(){
         const style = `width:${this.width};height:${this.height};`;
-        return h( this.tagName, {style} );
+        return h( this.tagName, {style, class:this.className} );
     }
 }

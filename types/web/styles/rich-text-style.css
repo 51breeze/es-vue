@@ -1,3 +1,7 @@
+.ck.ck-editor .rich-text-classic-editable{
+    box-sizing: border-box;
+}
+
 .rich-text-document{
     background-color: rgb(240, 240, 240);
     border: solid 1px rgb(240, 240, 240);
@@ -20,5 +24,4 @@
     width: 90%;
     min-height: 250px;
     margin: 20px auto;
-
 }

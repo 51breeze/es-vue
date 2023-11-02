@@ -26,8 +26,7 @@ import ckeditor.core.Editor;
  * {@link module:editor-classic/classiceditor~ClassicEditor.create `ClassicEditor.create()`}.
  */
 
-import {BalloonEditor as Balloon} from 'es-ckeditor/lib/editor'
-//import {BalloonEditor as Balloon} from '@ckeditor/ckeditor5-editor-balloon'
+import {BalloonEditor as Balloon} from '@ckeditor/ckeditor5-editor-balloon'
 declare class Balloon extends Editor<Balloon>{
 
 }

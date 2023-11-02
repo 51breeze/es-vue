@@ -26,7 +26,7 @@ import ckeditor.core.Editor;
  * {@link module:editor-classic/classiceditor~ClassicEditor.create `ClassicEditor.create()`}.
  */
 
-import {MultiRootEditor as Multiroot} from 'es-ckeditor/lib/editor'
+import {MultiRootEditor as Multiroot} from '@ckeditor/ckeditor5-editor-multi-root'
 declare class Multiroot extends Editor<Multiroot>{
 
     /**
