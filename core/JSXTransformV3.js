@@ -18,7 +18,8 @@ class JSXTransformV3 extends JSXTransform{
             if( value ){
                 if( Array.isArray(value) ){
                     if( value.length > 0 ){
-                        const isObject = value[0].type ==='Property' || value[0].type ==='JSXSpreadAttribute' || value[0].type ==='SpreadElement';
+                        const type = value[0].type;
+                        const isObject = type ==='Property' || type ==='JSXSpreadAttribute' || type ==='SpreadElement';
                         if( isObject ){
                             if( key==='props'||key==='attrs' ){
                                 items.push( ...value );
