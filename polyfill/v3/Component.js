@@ -112,16 +112,21 @@ function injectFactor(name, from, defaultValue){
             value = value();
         }
     }else {
-        const _res = System.getProvide(from, 'global:vue:application');
-        if( _res !== null ){
-            value = _res;
-            if( typeof value ==='function' ){
-                value = value.call(this);
+        const appContext = this[privateKey].instance.appContext;
+        if( appContext.provides ){
+            if( from in appContext.provides ){
+                value = appContext.provides[from];
+                if( value && typeof value ==='function' ){
+                    value = value();
+                }
             }
-        }else if( defaultValue !== void 0 ){
-            value = defaultValue;
         }
     }
+
+    if( value === void 0 && defaultValue !== void 0 ){
+        value = defaultValue;
+    }
+
     if( value !== void 0 ){
         value = this.receivePropValue(value, name);
         if(descriptor.type === Reflect.MEMBERS_ACCESSOR){

@@ -21,62 +21,62 @@ declare final class Cascader extends Component{
         * 次级菜单的展开方式
         * 默认：click
         */
-        expandTrigger:'click' | 'hover',
+        expandTrigger?:'click' | 'hover',
         /*
         * 是否多选
         * 默认：false
         */
-        multiple:boolean,
+        multiple?:boolean,
         /*
         * 是否严格的遵守父子节点不互相关联
         * 默认：false
         */
-        checkStrictly:boolean,
+        checkStrictly?:boolean,
         
         /*
         * 在选中节点改变时，是否返回由该节点所在的各级菜单的值所组成的数组，若设置 false，则只返回该节点的值
         * 默认：true
         */
-        emitPath:boolean,
+        emitPath?:boolean,
 
         /*
         * 是否动态加载子节点，需与 lazyLoad 方法结合使用
         * 默认：false
         */
-        lazy:boolean,
+        lazy?:boolean,
 
         /*
         * 加载动态数据的方法，仅在 lazy 为 true 时有效
         * @param node 为当前点击的节点
         * @param resolve 为数据加载完成的回调(必须调用)
         */
-        lazyLoad:(node:HTMLElement, resolve:(...args)=>void)=>void,
+        lazyLoad?:(node:HTMLElement, resolve:(...args)=>void)=>void,
 
         /*
         * 指定选项的值为选项对象的某个属性值
         * 默认：value
         */
-        value:string,
+        value?:string,
         /*
         * 指定选项标签为选项对象的某个属性值
         * 默认：label
         */
-        label:string,
+        label?:string,
         /*
         * 指定选项的子选项为选项对象的某个属性值
         * 默认：children
         */
-        children:string,
+        children?:string,
         /*
         * 指定选项的禁用为选项对象的某个属性值
         * 默认：disabled
         */
-        disabled:string,
+        disabled?:string,
         /*
         * 指定选项的叶子节点的标志位为选项对象的某个属性值
         * 默认：leaf
         */
-        leaf:string,
+        leaf?:string,
     }
 
     //尺寸

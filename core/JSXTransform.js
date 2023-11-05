@@ -144,7 +144,12 @@ class JSXTransform extends Core.JSXTransform{
                 }
                 return;
             }else if( item.isJSXSpreadAttribute ){
-                spreadAttributes && spreadAttributes.push( this.createToken( item ) );
+                //spreadAttributes && spreadAttributes.push( this.createToken( item ) );
+                if( item.argument ){
+                    const node = this.createNode(item.argument, 'SpreadElement')
+                    node.argument = node.createToken(item.argument)
+                    data.props.push(node);
+                }
                 return;
             }else if( item.isAttributeSlot ){
                 const name = item.name.value();

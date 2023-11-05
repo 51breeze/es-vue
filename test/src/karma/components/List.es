@@ -25,7 +25,7 @@ class List extends Component {
     @Injector
     set homePage(value){
         this._homePage = value;
-         console.log('------Injector(homePage)---------', value )
+         console.log('------Injector(homePage) List components---------' )
     }
 
     get homePage(){
@@ -38,11 +38,17 @@ class List extends Component {
     set homeList(value){
         this.lists = value;
     }
+
+    @Override
+    protected onMounted():void{
+        
+        console.log('---List Component----onMounted-----', this.title, this.items);
+    }
    
     @Override
     render(){
 
-        console.log('---List Component----render-----', this.title, this.items, this.fromData );
+       console.log('---List Component----render-----', this.title, this.items, this.fromData );
 
         return <div class="list" xmlns:ui="web.ui" xmlns:d="@directives">
             <h5 ref='title'>{this.title}</h5>

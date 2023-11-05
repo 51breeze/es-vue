@@ -146,7 +146,7 @@ Object.defineProperty(Application.prototype,'mount',{value:function mount(elemen
     }
     const provides = target._provides;
     for(var name in provides){
-        System.registerProvide(name, provides[name], 'global:vue:application')
+        //System.registerProvide(name, provides[name], 'global:vue:application')
         app.provide(name, provides[name]);
     }
 

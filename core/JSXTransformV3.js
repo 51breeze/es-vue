@@ -18,7 +18,7 @@ class JSXTransformV3 extends JSXTransform{
             if( value ){
                 if( Array.isArray(value) ){
                     if( value.length > 0 ){
-                        const isObject = value[0].type ==='Property';
+                        const isObject = value[0].type ==='Property' || value[0].type ==='JSXSpreadAttribute' || value[0].type ==='SpreadElement';
                         if( isObject ){
                             if( key==='props'||key==='attrs' ){
                                 items.push( ...value );
@@ -518,7 +518,11 @@ class JSXTransformV3 extends JSXTransform{
                 }
                 return;
             }else if( item.isJSXSpreadAttribute ){
-                spreadAttributes && spreadAttributes.push( this.createToken( item ) );
+                if( item.argument ){
+                    const node = this.createNode(item.argument, 'SpreadElement')
+                    node.argument = node.createToken(item.argument)
+                    data.props.push(node);
+                }
                 return;
             }else if( item.isAttributeSlot ){
                 return;
@@ -975,11 +979,11 @@ class JSXTransformV3 extends JSXTransform{
             }
         }
        
-        const spreadAttributes = [];
+        //const spreadAttributes = [];
         this.makeDirectiveComponentProperties(stack, data);
-        this.makeAttributes(stack, childNodes, data, spreadAttributes);
+        this.makeAttributes(stack, childNodes, data, /*spreadAttributes*/);
         this.makeProperties(children, data);
-        this.makeSpreadAttributes(spreadAttributes, data);
+        //this.makeSpreadAttributes(spreadAttributes, data);
         
         const isWebComponent = stack.isWebComponent && !(stack.compilation.JSX && stack.parentStack.isProgram)
         if( isWebComponent ){

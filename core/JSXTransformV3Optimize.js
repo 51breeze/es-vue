@@ -467,7 +467,12 @@ class JSXTransformV3Optimize extends JSXTransformV3{
                 return;
             }else if( item.isJSXSpreadAttribute ){
                 data.hasAttribbuteReferences = true;
-                spreadAttributes && spreadAttributes.push( this.createToken( item ) );
+                if( item.argument ){
+                    const node = this.createNode(item.argument, 'SpreadElement')
+                    node.argument = node.createToken(item.argument)
+                    data.props.push(node);
+                    this.addPatchFlag(data, ELEMENT_FULL_PROPS)
+                }
                 return;
             }else if( item.isAttributeSlot ){
                 return;
@@ -1103,10 +1108,13 @@ class JSXTransformV3Optimize extends JSXTransformV3{
             isInheritComponentDirective = true;
         }
 
-        const spreadAttributes = [];
-        this.makeAttributes(stack, childNodes, data, spreadAttributes);
+        //const spreadAttributes = [];
+        this.makeAttributes(stack, childNodes, data, /*spreadAttributes*/);
         this.makeProperties(children, data);
-        this.makeSpreadAttributes(spreadAttributes, data);
+        //this.makeSpreadAttributes(spreadAttributes, data);
+        //data.attrs.push( ...spreadAttributes )
+
+
 
         let normalDirectives = [];
         if( data.directives && data.directives.length > 0 ){

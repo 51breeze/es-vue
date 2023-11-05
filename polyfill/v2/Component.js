@@ -301,16 +301,32 @@ Object.defineProperty( proto, 'inject', {value:function inject(name, from, defau
             value = value.call(this);
         }
     }else {
-        const _res = System.getProvide(from, 'global:vue:application');
-        if( _res !== null ){
-            value = _res;
-            if( typeof value ==='function' ){
-                value = value.call(this);
+
+        const appContext = this.$root;
+        if( appContext._provided ){
+            if( from in appContext._provided ){
+                value = appContext._provided[from];
+                if( value && typeof value ==='function' ){
+                    value = value();
+                }
             }
-        }else if( defaultValue !== void 0 ){
-            value = defaultValue;
         }
+
+        // const _res = System.getProvide(from, 'global:vue:application');
+        // if( _res !== null ){
+        //     value = _res;
+        //     if( typeof value ==='function' ){
+        //         value = value.call(this);
+        //     }
+        // }else if( defaultValue !== void 0 ){
+        //     value = defaultValue;
+        // }
     }
+
+    if( value === void 0 && defaultValue !== void 0 ){
+        value = defaultValue;
+    }
+
     if( value !== void 0 ){
         value = this.receivePropValue(value, name);
         if(descriptor.type === Reflect.MEMBERS_ACCESSOR){

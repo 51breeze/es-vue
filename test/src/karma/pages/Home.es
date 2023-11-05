@@ -72,6 +72,15 @@ class Home extends Component{
       @Reactive
       private layout = {}
 
+
+      get spreadData(){
+            return {
+                 items:this.list,
+                 title:'spreadData',
+                 fromData:this.fromData
+            }
+      }
+
       @Override
       render(){
 
@@ -81,7 +90,7 @@ class Home extends Component{
 
             return <div data-title="home" xmlns:local="karma.components" xmlns:ui="web.ui"  xmlns:d="@directives" xmlns:s="@slots">
                   <h5 ref='title'>{title}</h5>
-                  <local:List ref='list' items={this.list} title ={this.title} fromData={this.fromData}  ></local:List>
+                  <local:List ref='list' {...spreadData}  ></local:List>
                   <local:Slot ref="slot-component-1" items = {list}>
                         <div>footer default children</div>
                   </local:Slot>

@@ -98,11 +98,11 @@ Object.defineProperty(Application.prototype,'mount',{value:function mount(elemen
     ['router','locale','store','provide'].forEach( key=>{
         const value = key==='provide' ?  this[privateKey]._provides : this[key];
         if( value ){
-            if( key==='provide'){
-                Object.keys(value).forEach(key=>{
-                    System.registerProvide(key, value[key], 'global:vue:application')
-                });
-            }
+            // if( key==='provide'){
+            //     Object.keys(value).forEach(key=>{
+            //         System.registerProvide(key, value[key], 'global:vue:application')
+            //     });
+            // }
             options[key] = value;
         }
     });
