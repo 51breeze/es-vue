@@ -204,7 +204,7 @@ class JSXTransformV3Optimize extends JSXTransformV3{
                         const params = scopeName ? [ this.createAssignmentNode(this.createIdentifierNode('_slotCtx'),this.createObjectNode()) ] : [];
                         const renderSlots= this.createSlotCalleeNode(
                             child, 
-                            this.createLiteralNode(name), 
+                            //this.createLiteralNode(name), 
                             this.createArrowFunctionNode(params,childrenNodes)
                         );
 

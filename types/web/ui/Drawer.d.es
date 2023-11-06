@@ -7,6 +7,7 @@ import web.components.Component;
 
 @define(slot, 'default')
 @define(slot, 'title')
+@define(slot, 'footer')
 
 /** Drawer Component */
 declare final class Drawer extends Component {

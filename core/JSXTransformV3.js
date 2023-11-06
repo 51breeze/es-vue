@@ -162,7 +162,7 @@ class JSXTransformV3 extends JSXTransform{
                         const params = scopeName ? [ this.createAssignmentNode(this.createIdentifierNode(scopeName),this.createObjectNode()) ] : [];
                         const renderSlots= this.createSlotCalleeNode(
                             child, 
-                            this.createLiteralNode(name), 
+                            //this.createLiteralNode(name), 
                             this.createArrowFunctionNode(params,childrenNodes)
                         );
 
@@ -755,17 +755,17 @@ class JSXTransformV3 extends JSXTransform{
         }
     }
 
-    createSlotCalleeNode(...args){
-        const node= this.createCalleeNode(
-            this.createMemberNode([
-                this.createThisNode(), 
-                this.createIdentifierNode('slot')
-            ]),
-            args
-        );
-        node.isSlotNode = true;
-        return node;
-    }
+    // createSlotCalleeNode(...args){
+    //     const node= this.createCalleeNode(
+    //         this.createMemberNode([
+    //             this.createThisNode(), 
+    //             this.createIdentifierNode('slot')
+    //         ]),
+    //         args
+    //     );
+    //     node.isSlotNode = true;
+    //     return node;
+    // }
 
     createSlotCalleeNode(stack,...args){
         if( stack.isSlot && stack.isSlotDeclared){
@@ -781,13 +781,18 @@ class JSXTransformV3 extends JSXTransform{
                 this.createCalleeVueApiNode('renderSlot'),
                 [slots].concat(args)
             );
+            node.isSlotNode = true;
             return node;
         }else{
+            // const node= this.createCalleeNode(
+            //     this.createMemberNode([
+            //         this.createThisNode(), 
+            //         this.createIdentifierNode('slot')
+            //     ]),
+            //     args
+            // );
             const node= this.createCalleeNode(
-                this.createMemberNode([
-                    this.createThisNode(), 
-                    this.createIdentifierNode('slot')
-                ]),
+                this.createCalleeVueApiNode('withCtx'),
                 args
             );
             node.isSlotNode = true;
@@ -797,9 +802,11 @@ class JSXTransformV3 extends JSXTransform{
 
     makeSlotElement(stack , children){
         const openingElement = this.createToken(stack.openingElement);
+        const args = [stack];
         let props = null;
         let params = [];
         if( stack.isSlotDeclared ){
+            args.push(openingElement.name)
             if( openingElement.attributes.length > 0 ){
                 props = openingElement.attributes[0].value;
                 const attribute = stack.openingElement.attributes[0];
@@ -807,26 +814,16 @@ class JSXTransformV3 extends JSXTransform{
             }else{
                 props = this.createObjectNode();
             }
+            args.push( props );
         }else if( stack.openingElement.attributes.length > 0 ){
             const attribute = stack.openingElement.attributes[0];
             if( attribute.value ){
                 params.push( this.createAssignmentNode(this.createIdentifierNode(attribute.value.value()),this.createObjectNode()) );
             }
         }
-        const args = [stack, openingElement.name];
-        let len = 2;
-
-        if( props ){
-            len = 3;
-            args.push( props );
-        }
-
         if( children ){
-            len = props ? 4 : 3;
             args.push( this.createArrowFunctionNode(params,children) );
         }
-
-        args.length = len;
         return this.createSlotCalleeNode(...args);
     }
 
