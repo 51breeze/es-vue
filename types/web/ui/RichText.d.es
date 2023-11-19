@@ -16,9 +16,7 @@ package web.ui{
 
     import ckeditor.plugins.UploadAdapter
     import ckeditor.plugins.Autoformat
-    import ckeditor.plugins.CloudServices
     import ckeditor.plugins.Image
-    import ckeditor.plugins.EasyImage
     import ckeditor.plugins.ImageCaption
     import ckeditor.plugins.ImageStyle
     import ckeditor.plugins.ImageToolbar
@@ -38,6 +36,8 @@ package web.ui{
     import ckeditor.plugins.FontColor
     import ckeditor.plugins.FontFamily
     import ckeditor.plugins.FontSize
+    import ckeditor.plugins.FullScreen
+    import ckeditor.plugins.SourceEditing
 
     import "../styles/rich-text-style.css"
     
@@ -47,6 +47,7 @@ package web.ui{
         protected onInitialized():void{
             super.onInitialized();
             this.on('ready', (type, editor:Classic)=>{
+
                 editor.editing.view.change( writer => {
                     const root = editor.editing.view.document.getRoot();
                     if(!editor.ui.view.element){
@@ -54,15 +55,52 @@ package web.ui{
                     }else{
                         writer.setStyle('width','100%', root);
                     }
+
+                    if( editor.ui.view.editable ){
+                        const parentNode = editor.ui.view.editable.element.parentNode as HTMLElement;
+                        if( parentNode ){
+                            parentNode.style.height = this.height;
+                        }
+                    }
                     writer.setStyle('height',this.height, root);
                     writer.addClass('rich-text-classic-editable', root);
                 });
+                
                 const element = editor.ui.view.element as HTMLElement;
                 if(element){
                     const list = [this.className, 'rich-text-editor'].filter( val=>!!val );
                     element.classList.add( ...list );
                     element.style.width=this.width;
                 }
+
+                editor.on('fullscreen', (event, status)=>{
+                    editor.editing.view.change( writer => {
+                        const root = editor.editing.view.document.getRoot();
+                        const stickyPanel = editor.ui.view.stickyPanel;
+                        const editable = editor.ui.view.editable;
+                        if(root && stickyPanel && editable){
+                            const editableElement = editable.element as HTMLElement;
+                            const topElement = stickyPanel.element as HTMLElement;
+                            if(editableElement && topElement){
+                                const parentNode = editableElement.parentNode as HTMLElement
+                                if( status === 1 ){
+                                    let offsetHeight = topElement.offsetHeight || 39;
+                                    let height = `calc( 100vh - ${offsetHeight}px )`;
+                                    if(parentNode){
+                                        parentNode.style.height=height;
+                                    }
+                                    writer.setStyle('height', height, root);
+                                }else{
+                                    if(parentNode){
+                                        parentNode.style.height=this.height;
+                                    }
+                                    writer.setStyle('height', this.height, root);
+                                }
+                            }
+                        }
+                    })
+                });
+                
             });
         }
         
@@ -80,8 +118,6 @@ package web.ui{
                 Bold,
                 Italic,
                 BlockQuote,
-                CloudServices,
-                EasyImage,
                 Heading,
                 Image,
                 ImageCaption,
@@ -107,15 +143,19 @@ package web.ui{
                 FontColor,
                 FontFamily,
                 FontSize,
+                FullScreen,
+                SourceEditing,
             ];
             Classic.defaultConfig = {
                 toolbar: {
                     items: [
                         'undo', 'redo',
                         '|', 'heading','fontSize','fontFamily','fontColor','fontBackgroundColor',
-                        '|', 'bold', 'italic','Underline','outdent', 'indent','alignment',
-                        '|','bulletedList', 'numberedList',
-                        '|', 'link', 'uploadImage', 'insertTable', 'blockQuote', 'mediaEmbed',
+                        '|', 'bold', 'italic','underline', 'strikethrough','Subscript', 'outdent', 'indent','alignment',
+                        '|','bulletedList', 'numberedList','blockQuote',
+                        '|','link','imageUpload','insertTable',
+                        '|','SourceEditing','Code',
+                        '|','FullScreen'
                     ]
                 },
                 image: {

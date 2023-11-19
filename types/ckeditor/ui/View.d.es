@@ -68,7 +68,7 @@ import ckeditor.utils.LocaleTranslate
  * } );
  * ```
  */
-declare class View<TElement extends HTMLElement> {
+declare class View<TElement extends HTMLElement>{
     /**
      * An HTML element of the view. `null` until {@link #render rendered}
      * from the {@link #template}.

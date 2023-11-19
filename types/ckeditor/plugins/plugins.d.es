@@ -285,3 +285,24 @@ declare class FormatPainter extends ckeditor.core.Plugin{}
 
 import { CodeBlock } from '@ckeditor/ckeditor5-code-block';
 declare class CodeBlock extends ckeditor.core.Plugin{}
+
+import {GeneralHtmlSupport} from '@ckeditor/ckeditor5-html-support';
+declare class GeneralHtmlSupport extends ckeditor.core.Plugin{}
+
+import {DataFilter} from '@ckeditor/ckeditor5-html-support';
+declare class DataFilter extends ckeditor.core.Plugin{}
+
+import {DataSchema} from '@ckeditor/ckeditor5-html-support';
+declare class DataSchema extends ckeditor.core.Plugin{}
+
+import {HtmlComment} from '@ckeditor/ckeditor5-html-support';
+declare class HtmlComment extends ckeditor.core.Plugin{}
+
+import {FullPage} from '@ckeditor/ckeditor5-html-support';
+declare class FullPage extends ckeditor.core.Plugin{}
+
+import { SourceEditing } from '@ckeditor/ckeditor5-source-editing';
+declare class SourceEditing extends ckeditor.core.Plugin{}
+
+import { Markdown } from '@ckeditor/ckeditor5-markdown-gfm';
+declare class Markdown extends ckeditor.core.Plugin{}

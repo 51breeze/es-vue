@@ -3,6 +3,10 @@ package ckeditor.core;
 /**
 * The base class for CKEditor plugin classes.
 */
+import Plugin from '@ckeditor/ckeditor5-core/src/plugin';
+
+@Define(ES6Class)
+@Runtime(client)
 declare class Plugin implements PluginInterface {
 
     /**

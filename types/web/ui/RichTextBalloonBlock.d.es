@@ -14,9 +14,7 @@ package web.ui{
 
     import ckeditor.plugins.UploadAdapter
     import ckeditor.plugins.Autoformat
-    import ckeditor.plugins.CloudServices
     import ckeditor.plugins.Image
-    import ckeditor.plugins.EasyImage
     import ckeditor.plugins.ImageCaption
     import ckeditor.plugins.ImageStyle
     import ckeditor.plugins.ImageToolbar
@@ -58,8 +56,6 @@ package web.ui{
                 Code,
                 Italic,
                 BlockQuote,
-                CloudServices,
-                EasyImage,
                 Heading,
                 Alignment,
                 Image,

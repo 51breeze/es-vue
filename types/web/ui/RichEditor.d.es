@@ -16,8 +16,8 @@ class RichEditor extends Component{
     disableTwoWayDataBinding:boolean=false;
     readonly:boolean = false;
     config:ckeditor.core.EditorConfig = {};
-    width:string = '100%';
-    height:string = '380px';
+    width:string = 'auto';
+    height:string = 'auto';
     className:string = '';
 
     private _editor:class<Editor>=null;
@@ -121,7 +121,7 @@ class RichEditor extends Component{
 		if ( initValue ) {
 			editorConfig.initialData = initValue;
 		}
-        
+
 		this.editor
         .create(this.getContainer(), editorConfig)
         .then( editor => {
@@ -138,8 +138,15 @@ class RichEditor extends Component{
             
             const toolbarContainer = this.getToolbarContainer();
             if(toolbarContainer){
-                toolbarContainer.appendChild( editor.ui.view.toolbar.element );
+                const toolbar = editor.ui.view.toolbar as {element:HTMLElement};
+                if(toolbar){
+                    toolbarContainer.appendChild( toolbar.element );
+                }
             }
+
+            editor.on('fullscreen', (event, status)=>{
+                this.emit('fullscreen', event, editor, status);
+            });
 
             this.emit('ready', editor );
         })

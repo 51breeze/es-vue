@@ -16,11 +16,7 @@ package web.ui{
 
     import ckeditor.plugins.UploadAdapter
     import ckeditor.plugins.Autoformat
-    import ckeditor.plugins.CKBox
-    import ckeditor.plugins.CKFinder
-    import ckeditor.plugins.CloudServices
     import ckeditor.plugins.Image
-    import ckeditor.plugins.EasyImage
     import ckeditor.plugins.ImageCaption
     import ckeditor.plugins.ImageStyle
     import ckeditor.plugins.ImageToolbar
@@ -57,10 +53,6 @@ package web.ui{
                 Bold,
                 Italic,
                 BlockQuote,
-                CKBox,
-                CKFinder,
-                CloudServices,
-                EasyImage,
                 Heading,
                 Image,
                 ImageCaption,

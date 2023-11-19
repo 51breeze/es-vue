@@ -122,9 +122,8 @@ package web.ui{
                     items: [
                         'undo', 'redo',
                         '|', 'heading','fontSize','fontFamily','fontColor','fontBackgroundColor',
-                        '|', 'bold', 'italic','Underline','strikethrough','alignment','bulletedList', 'numberedList', 'outdent', 'indent',
-                        '|', 'link', 'uploadImage', 'imageUpload','insertTable', 'blockQuote', 'mediaEmbed',
-                        '|', 'todoList','blockQuote',
+                        '|', 'bold', 'italic','underline','outdent', 'indent','strikethrough','alignment','bulletedList', 'numberedList', 'todoList',
+                        '|', 'link', 'uploadImage', 'imageUpload','insertTable', 'blockQuote', 'mediaEmbed'
                     ]
                 },
                 language: 'zh-cn',
