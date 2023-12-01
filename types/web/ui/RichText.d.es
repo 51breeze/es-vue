@@ -8,6 +8,7 @@ package web.ui{
     import ckeditor.plugins.Bold
     import ckeditor.plugins.Underline
     import ckeditor.plugins.Code
+    import ckeditor.plugins.CodeBlock
     import ckeditor.plugins.Strikethrough
     import ckeditor.plugins.Subscript
     import ckeditor.plugins.BlockQuote
@@ -17,12 +18,17 @@ package web.ui{
     import ckeditor.plugins.UploadAdapter
     import ckeditor.plugins.Autoformat
     import ckeditor.plugins.Image
+    import ckeditor.plugins.SimpleUploadAdapter
+    import ckeditor.plugins.Base64UploadAdapter 
+    import ckeditor.plugins.ImageInsert
+    import ckeditor.plugins.ImageResize
     import ckeditor.plugins.ImageCaption
     import ckeditor.plugins.ImageStyle
     import ckeditor.plugins.ImageToolbar
     import ckeditor.plugins.ImageUpload
     import ckeditor.plugins.Indent
     import ckeditor.plugins.Link
+    import ckeditor.plugins.LinkImage
     import ckeditor.plugins.List
     import ckeditor.plugins.MediaEmbed
     import ckeditor.plugins.PasteFromOffice
@@ -120,12 +126,17 @@ package web.ui{
                 BlockQuote,
                 Heading,
                 Image,
+                ImageInsert,
+                SimpleUploadAdapter,
+                Base64UploadAdapter,
+                ImageResize,
                 ImageCaption,
                 ImageStyle,
                 ImageToolbar,
                 ImageUpload,
                 Indent,
                 Link,
+                LinkImage,
                 List,
                 MediaEmbed,
                 Paragraph,
@@ -137,6 +148,7 @@ package web.ui{
                 Subscript,
                 Strikethrough,
                 Code,
+                CodeBlock,
                 Underline,
                 Alignment,
                 FontBackgroundColor,
@@ -153,26 +165,61 @@ package web.ui{
                         '|', 'heading','fontSize','fontFamily','fontColor','fontBackgroundColor',
                         '|', 'bold', 'italic','underline', 'strikethrough','Subscript', 'outdent', 'indent','alignment',
                         '|','bulletedList', 'numberedList','blockQuote',
-                        '|','link','imageUpload','insertTable',
-                        '|','SourceEditing','Code',
+                        '|','link','insertImage','mediaEmbed','insertTable',
+                        '|','SourceEditing','Code','CodeBlock',
                         '|','FullScreen'
                     ]
                 },
                 image: {
+                    styles: [
+                        'alignCenter',
+                        'alignLeft',
+                        'alignRight'
+                    ],
+                    resizeOptions: [
+                        {
+                            name: 'resizeImage:original',
+                            label: 'Original',
+                            value: null
+                        },
+                        {
+                            name: 'resizeImage:50',
+                            label: '50%',
+                            value: '50'
+                        },
+                        {
+                            name: 'resizeImage:75',
+                            label: '75%',
+                            value: '75'
+                        }
+                    ],
                     toolbar: [
-                        'imageStyle:inline',
-                        'imageStyle:block',
-                        'imageStyle:side',
-                        '|',
-                        'toggleImageCaption',
-                        'imageTextAlternative'
-                    ]
+                        'imageTextAlternative', 'toggleImageCaption', '|',
+                        'imageStyle:inline', 'imageStyle:wrapText', 'imageStyle:breakText', 'imageStyle:side', '|',
+                        'resizeImage'
+                    ],
+                    insert: {
+                        integrations: [
+                            'insertImageViaUrl'
+                        ]
+                    }
                 },
                 table: {
                     contentToolbar: [
                         'tableColumn',
                         'tableRow',
                         'mergeTableCells'
+                    ]
+                },
+                heading: {
+                    options: [
+                        { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
+                        { model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
+                        { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
+                        { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' },
+                        { model: 'heading4', view: 'h4', title: 'Heading 4', class: 'ck-heading_heading4' },
+                        { model: 'heading5', view: 'h5', title: 'Heading 5', class: 'ck-heading_heading5' },
+                        { model: 'heading6', view: 'h6', title: 'Heading 6', class: 'ck-heading_heading6' }
                     ]
                 },
                 language: 'zh-cn'

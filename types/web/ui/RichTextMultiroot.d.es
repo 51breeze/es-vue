@@ -19,6 +19,8 @@ package web.ui{
     import ckeditor.plugins.UploadAdapter
     import ckeditor.plugins.Autoformat
     import ckeditor.plugins.Image
+    import ckeditor.plugins.SimpleUploadAdapter
+    import ckeditor.plugins.ImageInsert
     import ckeditor.plugins.ImageCaption
     import ckeditor.plugins.ImageStyle
     import ckeditor.plugins.ImageToolbar
@@ -217,6 +219,8 @@ package web.ui{
                 BlockQuote,
                 Heading,
                 Image,
+                ImageInsert,
+                SimpleUploadAdapter,
                 ImageCaption,
                 ImageStyle,
                 ImageToolbar,
@@ -247,8 +251,8 @@ package web.ui{
                         'undo', 'redo',
                         '|', 'heading','fontSize','fontFamily','fontColor','fontBackgroundColor',
                         '|', 'bold', 'italic','Underline','outdent', 'indent','alignment',
-                        '|','bulletedList', 'numberedList',
-                        '|', 'link', 'uploadImage', 'insertTable', 'blockQuote', 'mediaEmbed',
+                        '|','bulletedList', 'numberedList','blockQuote',
+                        '|', 'link', 'insertImage', 'insertTable','mediaEmbed',
                     ]
                 },
                 image: {

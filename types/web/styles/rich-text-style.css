@@ -6,6 +6,10 @@
     height: 100%;
 }
 
+.ck.ck-editor.rich-text-editor .ck-source-editing-area textarea{
+    overflow: auto;
+}
+
 .rich-text-document{
     background-color: rgb(240, 240, 240);
     border: solid 1px rgb(240, 240, 240);

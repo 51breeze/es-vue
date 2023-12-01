@@ -18,6 +18,8 @@ package web.ui{
     import ckeditor.plugins.Autoformat
     import ckeditor.plugins.CloudServices
     import ckeditor.plugins.Image
+    import ckeditor.plugins.SimpleUploadAdapter
+    import ckeditor.plugins.ImageInsert
     import ckeditor.plugins.EasyImage
     import ckeditor.plugins.ImageCaption
     import ckeditor.plugins.ImageStyle
@@ -86,6 +88,8 @@ package web.ui{
                 EasyImage,
                 Heading,
                 Image,
+                ImageInsert,
+                SimpleUploadAdapter,
                 ImageCaption,
                 ImageStyle,
                 ImageToolbar,
@@ -122,8 +126,8 @@ package web.ui{
                     items: [
                         'undo', 'redo',
                         '|', 'heading','fontSize','fontFamily','fontColor','fontBackgroundColor',
-                        '|', 'bold', 'italic','underline','outdent', 'indent','strikethrough','alignment','bulletedList', 'numberedList', 'todoList',
-                        '|', 'link', 'uploadImage', 'imageUpload','insertTable', 'blockQuote', 'mediaEmbed'
+                        '|', 'bold', 'italic','underline','outdent', 'indent','strikethrough','alignment','bulletedList', 'numberedList', 'todoList','blockQuote',
+                        '|', 'link', 'insertImage','mediaEmbed','insertTable'
                     ]
                 },
                 language: 'zh-cn',
