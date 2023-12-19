@@ -1,8 +1,10 @@
 /node_modules
 /package-lock.json
 /test
+/scripts
 webpack.config.js
 karma.conf.js
+es.config.js
 yarn.lock
 .babelrc
 .gitattributes

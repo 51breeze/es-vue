@@ -3,7 +3,7 @@
   "version": "0.4.4",
   "description": "test",
   "main": "index.js",
-  "typings": "types/index.d.es",
+  "typings": "types/typings.json",
   "scripts": {
     "es": "es -V",
     "dev-test": "jasmine ./test/index.js",
@@ -11,7 +11,8 @@
     "webpack": "webpack-dev-server --hot",
     "build": "webpack --mode production",
     "dev-test-run": "npm run dev-test & npm run dev-run",
-    "karma": "karma start"
+    "karma": "karma start",
+    "manifest": "node ./scripts/manifest.js"
   },
   "repository": {
     "type": "git",
@@ -90,6 +91,7 @@
   },
   "esconfig": {
     "scope": "es-vue",
+    "typings":["types/web/components","types/web/events","types/hmr.d.es","types/vue.d.es"],
     "inherits": [
       "es-javascript"
     ]

@@ -298,7 +298,7 @@ declare class ListProperties extends ckeditor.core.Plugin{}
 import {DocumentList} from '@ckeditor/ckeditor5-list';
 declare class DocumentList extends ckeditor.core.Plugin{}
 
-import {TodoList} from '@ckeditor/ckeditor5-lis';
+import {TodoList} from '@ckeditor/ckeditor5-list';
 declare class TodoList extends ckeditor.core.Plugin{}
 
 import {GeneralHtmlSupport} from '@ckeditor/ckeditor5-html-support';

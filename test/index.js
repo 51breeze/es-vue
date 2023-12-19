@@ -2,87 +2,94 @@ const fs = require('fs')
 const path = require('path')
 const compiler = require("./compiler");
 
-//const root = path.join(__dirname,'./specs');
-//const specs = fs.readdirSync( root );
-//specs.forEach(file=>require(path.join(root,file)));
-
 describe('compile file', function() {
     const creator = new compiler.Creator();
-    creator.startByFile("./Index.es").then( compilation=>{
-        it('should compile success and build', function() {
-            const errors = compilation.compiler.errors;
-            expect('Expected 0 errors').toContain( errors.length );
-            if( errors.length===0 ){
-                creator.build( compilation, ()=>{
-                    
-                    //console.log("==========", require( './build/Index' ) )
+    let compilation = null;
+    let errors = [];
+    let module = null;
+    beforeAll(async function() {
+        compilation = await creator.startByFile('./Index.es');
+        errors = compilation.compiler.errors;
+    });
 
-                });
-            }else{
-                errors.forEach((error)=>{
-                    fail( error.toString() );
-                });
+    afterAll(()=>{
+        errors.forEach( item=>{
+            if( item.kind == 0 ){
+                fail( item.toString() )
             }
         });
-    }).catch( error=>{
-        const errors=error.errors;
-        it(`compiler failed 'Index.es'`, function() {
-            errors && errors.forEach((error)=>{
-                fail( error.message );
+        compilation = null;
+    })
+
+    it('should compile success and build', function() {
+        expect('Expected 0 errors').toContain( errors.length );
+        if( errors.length===0 ){
+            creator.build( compilation, ()=>{
+                console.log("build[Index.es] done")
             });
-        });
+        }
     });
+    
 });
 
 
 describe('compile file', function() {
     const creator = new compiler.Creator();
-    creator.startByFile("./karma/Index.es").then( compilation=>{
-        it('should compile success and build', function() {
-            const errors = compilation.compiler.errors;
-            expect('Expected 0 errors').toContain( errors.length );
-            if( errors.length===0 ){
-                creator.build( compilation, ()=>{
-                    console.log("build[karma/Index.es] done")
-                });
-            }else{
-                errors.forEach((error)=>{
-                    fail( error.toString() );
-                });
+    let compilation = null;
+    let errors = [];
+    let module = null;
+    beforeAll(async function() {
+        compilation = await creator.startByFile('./karma/Index.es');
+        errors = compilation.compiler.errors;
+    });
+
+    afterAll(()=>{
+        errors.forEach( item=>{
+            if( item.kind == 0 ){
+                fail( item.toString() )
             }
         });
-    }).catch( error=>{
-        const errors=error.errors;
-        it(`compiler failed 'Index.es'`, function() {
-            errors.forEach((error)=>{
-                fail( error.message );
+        compilation = null;
+    })
+
+    it('should compile success and build', function() {
+        expect('Expected 0 errors').toContain( errors.length );
+        if( errors.length===0 ){
+            creator.build( compilation, ()=>{
+                console.log("build[karma/Index.es] done")
             });
-        });
+        }
     });
+    
 });
 
 describe('compile file', function() {
     const creator = new compiler.Creator();
-    creator.startByFile("./karma/Test.es").then( compilation=>{
-        it('should compile success and build', function() {
-            const errors = compilation.compiler.errors;
-            expect('Expected 0 errors').toContain( errors.length );
-            if( errors.length===0 ){
-                creator.build( compilation, ()=>{
-                    console.log("build[karma/Test.es] done")
-                });
-            }else{
-                errors.forEach((error)=>{
-                    fail( error.toString() );
-                });
+    let compilation = null;
+    let errors = [];
+    let module = null;
+    beforeAll(async function() {
+        compilation = await creator.startByFile('./karma/Test.es');
+        errors = compilation.compiler.errors;
+    });
+
+    afterAll(()=>{
+        errors.forEach( item=>{
+            if( item.kind == 0 ){
+                fail( item.toString() )
             }
         });
-    }).catch( error=>{
-        const errors=error.errors;
-        it(`compiler failed 'Test.es'`, function() {
-            errors.forEach((error)=>{
-                fail( error.message );
+        compilation = null;
+    })
+
+    
+    it('should compile success and build', function() {
+        expect('Expected 0 errors').toContain( errors.length );
+        if( errors.length===0 ){
+            creator.build( compilation, ()=>{
+                console.log("build[karma/Test.es] done")
             });
-        });
+        }
     });
+    
 });

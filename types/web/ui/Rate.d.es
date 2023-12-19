@@ -24,7 +24,7 @@ declare final class Rate extends Component{
   highThreshold: number
 
   /** Colors for icons. If array, it should have 3 elements, each of which corresponds with a score level, else if object, the key should be threshold value between two levels, and the value should be corresponding color */
-  colors: string[] | Option
+  colors: string[] | RateOption
 
   /** Color of unselected icons */
   voidColor: string
@@ -33,7 +33,7 @@ declare final class Rate extends Component{
   disabledVoidColor: string
 
   /** Class names of icons. If array, it should have 3 elements, each of which corresponds with a score level, else if object, the key should be threshold value between two levels, and the value should be corresponding class name */
-  iconClasses: string[] | Options
+  iconClasses: string[] | RateOptions
 
   /** Class name of unselected icons */
   voidIconClass: string
@@ -57,13 +57,11 @@ declare final class Rate extends Component{
   scoreTemplate: string
 }
 
-
-
-declare internal interface Option{
+declare interface RateOption{
     value: string,
     excluded?: boolean
 }
 
-declare internal interface Options{
-    [threshold: number]: string | Option
+declare interface RateOptions{
+    [threshold: number]: string | RateOption
 }

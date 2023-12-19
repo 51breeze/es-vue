@@ -7,7 +7,7 @@ const plugin = require("../index");
 class Creator {
     constructor(options){
         const compiler = new Compiler(Object.assign({
-            debug:true,
+            debug:false,
             diagnose:false,
             autoLoadDescribeFile:true,
             output:path.join(__dirname,"./build"),
@@ -16,7 +16,6 @@ class Creator {
                 locations:true
             }
         },options || {}));
-        compiler.initialize();
         this._compiler = compiler;
         this.plugin = compiler.applyPlugin({
             plugin,
@@ -45,12 +44,17 @@ class Creator {
     }
 
     factor(file,source){
-        return new Promise((resolved,reject)=>{
+        return new Promise( async(resolved,reject)=>{
             const compiler = this.compiler;
+            await compiler.initialize();
+
+            const typesfile = path.join( __dirname, '../types/typings.json')
+            compiler.manifester.add(require(typesfile), path.dirname(typesfile));
+
+            let compilation = null;
             try{
-                const compilation=file ? compiler.createCompilation(file) : new Compilation( compiler );
-                compilation.parser(source);
-                compilation.checker();
+                const compilation=file ? await compiler.createCompilation(file) : new Compilation( compiler );
+                await compilation.parserAsync(source);
                 if(compilation.stack){
                     resolved(compilation);
                 }else{
@@ -62,6 +66,7 @@ class Creator {
             }
         });
     }
+
 
     startBySource(source){
         return this.factor(null, source);
