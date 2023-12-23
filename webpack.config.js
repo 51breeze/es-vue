@@ -26,12 +26,14 @@ const plugins=[
       version:3,
       srcCSS:false,
       optimize:true,
+      projectConfigFile:'.env',
+      pageDir:'pages',
       metadata:{
         env:process.env,
         //platform:'server'
       },
       hot:true,
-      format:'vue-template', //vue-template
+      //format:'vue-template', //vue-template
       
       babel:false,
       // babel:{

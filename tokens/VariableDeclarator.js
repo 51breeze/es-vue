@@ -2,8 +2,8 @@ const Core = require("../core/Core");
 const Utils = require('../core/Utils')
 module.exports = function(ctx,stack){
     if(!stack.parentStack.isPropertyDefinition && stack.useRefItems.size == 0){
-        if( !(stack.id.isArrayPattern || stack.id.isObjectPattern) ){
-            return null;
+        if(!stack.parentStack.parentStack.isExportNamedDeclaration && !stack.useRefItems.size ){
+            if( !stack.init )return null;
         }
     }
 

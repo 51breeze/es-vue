@@ -9,11 +9,9 @@ module.exports = function(ctx,stack,type){
             return builder.create();
         }
     }
-    if( stack.isModuleForWebComponent( stack.module ) ){
+    if(stack.isModuleForWebComponent( stack.module ) ){
         const builder = new JSXClassBuilder(stack, ctx);
         return builder.create();
     }
     return ClassBuilder.createClassNode(stack,ctx,type);
 };
-
-

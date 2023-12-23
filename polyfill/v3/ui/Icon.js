@@ -8,9 +8,10 @@
 ///<referenceAssets value='false' />
 
 System.registerHook('application:created', (app)=>{
+    app = app.getAttribute('app');
     Object.keys(ElementPlusIconsVue).forEach( key=>{
         const com = ElementPlusIconsVue[key];
-        app.app.component(com.name||key, com);
+        app.component(com.name||key, com);
     });
 });
 

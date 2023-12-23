@@ -1,11 +1,15 @@
-
 package web.components{
+
+    import web.IApplication;
 
     @WebComponent
     declare class Component implements IEventDispatcher {
+
         static getAttribute<T>(target:Component,name:string):T;
         static getPolyfillValue(value:any, name:string, classModule:class<any>):any;
-        public constructor(props?:{[key:string]:any});
+
+        constructor(props?:{[key:string]:any});
+
         protected onInitialized():void;
         protected onBeforeMount():void;
         protected onMounted():void;
@@ -20,37 +24,40 @@ package web.components{
         protected beforeReceiveProp(value:any,name:string):boolean;
         protected render():VNode | Component;
         protected withAsyncContext<T=any>(handler:()=>Promise<T>):[Promise<T>, ()=>void]
+        protected createVNode(name:string|Component,data?:VNodeDataConfig,children?:VNode|Component[]):VNode;
+        
+        get parent():Component|vue.ComponentPublicInstance;
+        get children():Component[];
+        get element():HTMLElement;
 
-        public get parent():Component;
-        public get children():Component[];
-        public get element():HTMLElement;
-        public getParentComponent( filter:boolean | (child?:Component)=>boolean ):Component;
-        public getConfig():object;
-        public slot( name:string , scope?:boolean, called?:boolean, params?:object ):VNode|Component[];
-        public createVNode(name:string|Component,data?:VNodeDataConfig,children?:VNode|Component[]):VNode;
-        public getRefs<T=NodeElementType | NodeElementType[]>(name:string):T;
-        public provide(name:string, provider:()=>any):void;
-        public inject<T=any>(name:string, from?:string, defaultValue?:T):T;
-        public forceUpdate();
-        public on(type: string, listener:(...args)=>void):void;
-        public off(type: string, listener?:(...args)=>void):void;
-        public emit(type: string, ...args?:any[]):void;
-        public watch(name: string, callback:(uewVlaue?,oldValue?)=>void, options?:boolean | {immediate?:boolean,deep?:boolean}):void;
-        public reactive<T>(name:string, value?:T, initValue?:any):T;
-        public reference<T>(value?:T,shallowFlag?:boolean):vue.Ref<T>;
-        public observable<T extends object>(target:T):T;
-        public nextTick(callback:()=>void):void;
-        public toValue<T>(value:T):T;
-        public getRoute():web.components.Route | null;
+        getParentComponent( filter:boolean | (child?:Component|vue.ComponentPublicInstance)=>boolean ):Component|vue.ComponentPublicInstance;
 
         /**
-        * 获取原始对象中的属性
+        * 获取应用实例
+        * 此访问器在子类中不可重写
+        * @return IApplication
         */
-        public getAttribute<T>(name:string):T;
-        public addEventListener(type: string, listener: (event?:Event)=>void):this;
-        public dispatchEvent(event: Event):boolean;
-        public removeEventListener(type: string, listener?: (event?:Event)=>void):boolean;
-        public hasEventListener(type: string, listener?: (event?:Event)=>void):boolean;
+        final get app():IApplication
+        slot( name:string , scope?:boolean, called?:boolean, params?:object ):VNode|Component[];
+        reactive<T>(name:string, value?:T, initValue?:any):T;
+        reference<T>(value?:T,shallowFlag?:boolean):vue.Ref<T>;
+        observable<T extends object>(target:T):T;
+        nextTick(callback:()=>void):void;
+        forceUpdate();
+        provide(name:string, provider:()=>any):void;
+        inject<T=any>(name:string, from?:string, defaultValue?:T):T;
+        watch(name: string, callback:(uewVlaue?,oldValue?)=>void, options?:boolean | {immediate?:boolean,deep?:boolean}):void;
+        getRoute():web.components.Route | null;
+        getRefs<T=NodeElementType | NodeElementType[]>(name:string, toArray=false):T;
+        toValue<T>(value:T):T;
+        getAttribute<T>(name:string):T;
+        on(type: string, listener:(...args)=>void):void;
+        off(type: string, listener?:(...args)=>void):void;
+        emit(type: string, ...args?:any[]):void;
+        addEventListener(type: string, listener: (event?:Event)=>void):this;
+        dispatchEvent(event: Event):boolean;
+        removeEventListener(type: string, listener?: (event?:Event)=>void):boolean;
+        hasEventListener(type: string, listener?: (event?:Event)=>void):boolean;
     }
 
     declare type NodeElementType = HTMLElement | Component;

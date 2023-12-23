@@ -58,6 +58,7 @@ class HomeAssert extends Base {
                         app.removeEventListener( ComponentEvent.UPDATED );
                         done();
                     });
+
                     app.addItem({label:"five"});
                     app.title = 'test home page 1';
                     app.title = 'test home page 2';
@@ -70,11 +71,11 @@ class HomeAssert extends Base {
                 const slotTwo = app.getRefs<Component>('slot-component-2');
 
                 slotOne.addEventListener(ComponentEvent.UPDATED,()=>{
-                        const items = slotOne.getAttribute<HTMLElement>('el').querySelectorAll<HTMLElement>('.content div')
-                        expect( app.list.length ).toEqual( items.length );
-                        app.list.forEach( (item,index)=>{
-                            expect( `default: ${item.label}` ).toEqual( items[index].textContent );
-                        });
+                    const items = slotOne.getAttribute<HTMLElement>('el').querySelectorAll<HTMLElement>('.content div')
+                    expect( app.list.length ).toEqual( items.length );
+                    app.list.forEach( (item,index)=>{
+                        expect( `default: ${item.label}` ).toEqual( items[index].textContent );
+                    });
                 });
 
                 slotTwo.addEventListener(ComponentEvent.UPDATED,()=>{
@@ -161,8 +162,8 @@ class HomeAssert extends Base {
                         const from_data_type_el = listEl.querySelector('.from-data > .type');
                         expect('type:email').toEqual( from_data_type_el && from_data_type_el.textContent );
 
-                        slotOne.removeEventListener(ComponentEvent.UPDATED)
-                        slotTwo.removeEventListener(ComponentEvent.UPDATED)
+                        //slotOne.removeEventListener(ComponentEvent.UPDATED)
+                        //slotTwo.removeEventListener(ComponentEvent.UPDATED)
                         list.removeEventListener(ComponentEvent.UPDATED)
                         callback();
 
@@ -184,7 +185,6 @@ class HomeAssert extends Base {
                 app.title = 'test home 1';
                 app.title = 'test home 2';
                 app.title = 'test home title 123';
-
 
             })
         });

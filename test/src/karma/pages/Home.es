@@ -18,9 +18,6 @@ class Home extends Component{
       @reactive
       private _title:string='Home page';
 
-      @Injector
-      app:any = null;
-
       @Provider('homePage')
       providesss(){
             return [1];
@@ -29,6 +26,7 @@ class Home extends Component{
       protected response = 'null'
 
       set title(value:string){
+            console.trace(this.toString(), '-------set title------', this.title,  value)
             this._title = value;
       }
 
@@ -76,7 +74,7 @@ class Home extends Component{
       get spreadData(){
             return {
                  items:this.list,
-                 title:'spreadData',
+                 title:this.title,
                  fromData:this.fromData
             }
       }
@@ -100,10 +98,6 @@ class Home extends Component{
                         </s:head>
 
                         <s:content scope="scope">
-                               <div ref="editor-main">
-                                    editor-main
-                              </div>
-
                               <div d:for="(item,index) in scope.items" ref='slot-item'>definition: {item.label}</div>
                         </s:content>
                         
@@ -130,6 +124,10 @@ class Home extends Component{
                   // </div>
 
                   }
+
+                  <div ref="editor-main">
+                        editor-main
+                  </div>
 
                 
 

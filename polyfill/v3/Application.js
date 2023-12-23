@@ -12,28 +12,30 @@
 ///<references from='Reflect' />
 ///<references from='System' />
 ///<import from='element-plus/theme-chalk/base.css' />
+///<import from='${__filename}?callhook&action=config' name='__config'/>
+///<import from='${__filename}?callhook&action=route' name='__routes' />
 ///<namespaces name='web' />
-///<createClass value='false' />
 
 const hasOwn = Object.prototype.hasOwnProperty;
 const privateKey = Symbol('private');
 function Application( options ){
     Component.call(this);
     this[privateKey] = Object.create({
-        _app:null,
+        _vueApp:null,
         _provides:Object.create(null),
         _mixins:Object.create(null),
         _plugins:[],
         _children:[],
         _options:options
     });
+    System.registerProvide('Application:instance', this);
 }
 
 Application.prototype = Object.create( Component.prototype );
 Application.prototype.constructor = Application;
 
 Object.defineProperty(Application.prototype,'app',{get:function app(){
-   return this[privateKey]._app;
+   return this;
 }});
 
 Object.defineProperty(Application.prototype,'plugin',{value:function plugin( plugin ){
@@ -63,7 +65,11 @@ Object.defineProperty(Application.prototype,'directives',{get:function directive
 }});
 
 Object.defineProperty(Application.prototype,'routes',{get:function routes(){
-    return [];
+    return __routes;
+}});
+
+Object.defineProperty( Application.prototype, 'config', {get:function config(){
+    return __config;
 }});
 
 Object.defineProperty(Application.prototype,'render',{value:function render(){
@@ -78,6 +84,13 @@ Object.defineProperty(Application.prototype,'router',{get:function router(){
     return this[privateKey]._router = new Router({
         routes:this.routes
     });
+}});
+
+Object.defineProperty( Application.prototype, 'getAttribute', {value:function getAttribute(name){
+    if(name==='app' || name==='instance'){
+        return this[privateKey]._vueApp;
+    }
+    return Component.prototype.getAttribute.call(this,name);
 }});
 
 Object.defineProperty(Application.prototype,'mount',{value:function mount(element){
@@ -117,7 +130,7 @@ Object.defineProperty(Application.prototype,'mount',{value:function mount(elemen
         }
     });
 
-    target._app = app;
+    target._vueApp = app;
     if( mixins ){
         app.mixin( mixins );
     }
@@ -146,7 +159,6 @@ Object.defineProperty(Application.prototype,'mount',{value:function mount(elemen
     }
     const provides = target._provides;
     for(var name in provides){
-        //System.registerProvide(name, provides[name], 'global:vue:application')
         app.provide(name, provides[name]);
     }
 
@@ -156,8 +168,8 @@ Object.defineProperty(Application.prototype,'mount',{value:function mount(elemen
 }});
 
 Object.defineProperty( Application.prototype, 'unmount', {value:function unmount(){
-    const instance = this.app;
-    if( instance )instance.unmount();
+    const instance = this.getAttribute('app');
+    if(instance)instance.unmount();
     return this;
 }});
 

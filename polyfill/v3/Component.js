@@ -70,8 +70,8 @@ Object.defineProperty( proto, 'render', {value: function render(){
     return null
 }});
 
-Object.defineProperty( proto, 'getConfig', {value:function getConfig(){
-    return this[privateKey].config;
+Object.defineProperty( proto, 'app', {get:function app(){
+    return System.getProvide('Application:instance');
 }});
 
 Object.defineProperty( proto, 'receivePropValue', {value: function receivePropValue(value,name){
@@ -676,6 +676,7 @@ Object.defineProperty( Component, 'createComponent', {value:function createCompo
             esInstance[privateKey].rawProps = options.props;
             const propsData = props;
             for(let key in propsData){
+                if(propsData[key]===void 0)continue;
                 if( esInstance.beforeReceiveProp(propsData[key],key) ){
                     const value =esInstance.receivePropValue(propsData[key],key);
                     const descriptor = Reflect.getDescriptor(esInstance, key);
@@ -764,9 +765,6 @@ Object.defineProperty( Component, 'createComponent', {value:function createCompo
             return expose;
         }
     }
-
-
-    //options.emits = ['data']
 
     Component.defineComponent(constructor, options);
     return vccFlag ? options : constructor;

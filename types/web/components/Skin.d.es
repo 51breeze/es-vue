@@ -3,7 +3,7 @@ package web.components{
     import web.components.Component;
 
     @SkinClass
-    class Skin<T extends Component > implements IEventDispatcher{
+    class Skin<T extends Component> implements IEventDispatcher{
 
         private var _hostComponent:T;
         public constructor(hostComponent:T){
@@ -30,9 +30,9 @@ package web.components{
             return this.hostComponent.slot(name,scope,called,params);
         }
 
-        createVNode(name:string|Component,data?:VNodeDataConfig,children?:VNode|Component[]){
-            return this.hostComponent.createVNode(name,data,children);
-        }
+        // createVNode(name:string|Component,data?:VNodeDataConfig,children?:VNode|Component[]){
+        //     return this.hostComponent.createVNode(name,data,children);
+        // }
 
         watch(name: string, callback:(uewVlaue?,oldValue?)=>void):void{
             this.hostComponent.watch(name, callback);

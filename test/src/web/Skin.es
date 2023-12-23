@@ -29,7 +29,7 @@ class Skin<T extends Component > implements IEventDispatcher{
     }
 
     createElement(name:string|Component,data?:web.components.VNodeDataConfig,children?:VNode | Component[]){
-        return this.hostComponent.createVNode(name,data,children);
+        //return this.hostComponent.createVNode(name,data,children);
     }
 
     watch(name: string, callback:(uewVlaue?,oldValue?)=>void):void{

@@ -37,6 +37,7 @@ class Index extends Application{
         });
     }
 
+    @Override
     onMounted(){
         when( Env(testframework, 'karma') ){
             new IndexAssert(this as Component );
@@ -56,6 +57,10 @@ class Index extends Application{
 
     @Override
     get routes(){
+
+        const ro = super.routes;
+        console.log( ro )
+
         return [
             {
                 path:"/",

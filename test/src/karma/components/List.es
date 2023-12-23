@@ -41,7 +41,7 @@ class List extends Component {
 
     @Override
     protected onMounted():void{
-        
+        console.log( this.getAttribute('config') )
         console.log('---List Component----onMounted-----', this.title, this.items);
     }
    

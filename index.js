@@ -46,6 +46,8 @@ const defaultConfig ={
             filter:null,
         }
     },
+    pageDir:'pages',
+    projectConfigFile:'.env',
     reserved:[
         '_data',
         '_props',
@@ -204,9 +206,9 @@ class PluginEsVue extends Core.Plugin{
                 options.rawJsx.jsx = true;
             }
         }
-        
-
+    
         super(complier, options);
+
         this.name = pkg.name;
         this.version = pkg.version;
         this.platform = 'client';
@@ -222,6 +224,18 @@ class PluginEsVue extends Core.Plugin{
         this[privateKey] = {
             builders:new Map()
         }
+    }
+
+    async callHook(action,compilation, query={}){
+        const builder = this.getBuilder(compilation);
+        if(action==='config'){
+            return builder.loadConfig(query);
+        }else if(action==='route'){
+            return builder.getPageRoutes(query);
+        }else if(action==='metadata'){
+            return builder.getModuleMetadata(query);
+        }
+        return null;
     }
 
     getTokenNode(name, flag=false){

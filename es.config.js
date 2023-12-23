@@ -1,3 +1,4 @@
 module.exports = {
-    workspace:'test/src'
+    workspace:'test/src',
+    annotations:['Redirect','Metadata'],
 }

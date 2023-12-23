@@ -139,5 +139,8 @@ Object.defineProperty( Application.prototype, 'createVNode', {value:function cre
 }});
 
 Object.defineProperty( Application.prototype, 'getAttribute', {value:function getAttribute(name){
+    if(name=='app'||name==='instance'){
+        return this[privateKey]._app;
+    }
     return this.app['$'+name] || null;
 }});

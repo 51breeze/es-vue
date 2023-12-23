@@ -1,37 +1,37 @@
-package web;
-import web.components.Component;
-import web.Skin;
-import web.components.Route;
+// package web;
+// import web.components.Component;
+// import web.Skin;
+// import web.components.Route;
 
-class View<T extends Component> extends Component{
+// class View<T extends Component> extends Component{
 
-    enter(to: Route, from: Route){
+//     enter(to: Route, from: Route){
 
-    }
+//     }
 
-    leave(){
+//     leave(){
 
-    }
+//     }
 
-    get skin(){
+//     get skin(){
 
-       // return new Skin<T>( this )
+//        // return new Skin<T>( this )
     
-        return new this.skinClass(this);
-    }
+//         return new this.skinClass(this);
+//     }
 
-    private _skinClass:class< Skin<T> >;
+//     private _skinClass:class< Skin<T> >;
 
-    set skinClass(value:class< Skin<T> > ){
-        this._skinClass = value;
-    }
+//     set skinClass(value:class< Skin<T> > ){
+//         this._skinClass = value;
+//     }
 
-    get skinClass(){
-        return this._skinClass;
-    }
+//     get skinClass(){
+//         return this._skinClass;
+//     }
 
-    @override
-    render(){
-        return this.skin.render();
-    }
-}
+//     @override
+//     render(){
+//         return this.skin.render();
+//     }
+// }
