@@ -167,7 +167,7 @@ class List extends Component{
 
 
       private loadList(){
-            console.log('----loadList------')
+            console.log('----loadList------', this.formData.infiniteCount )
             this.formData.infiniteCount+=2;
       }
 
@@ -429,7 +429,7 @@ class List extends Component{
                   <ui:Transfer bind:value={this.formData.transferOptions} data = {this.getTransferOptions()}></ui:Transfer>
 
                   
-                  <ui:InfiniteScroll value = {this.loadList} disabled = {this.formData.infiniteCount > 20}>
+                  <ui:InfiniteScroll value = {this.loadList} disabled = {this.formData.infiniteCount > 20} distance={5}>
                         <ul class="infinite-list" style="overflow: auto">
                               <li d:for="i in this.formData.infiniteCount"  key={i} class="infinite-list-item">infinite-scroll {i}</li>
                         </ul>

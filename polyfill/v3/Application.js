@@ -34,10 +34,6 @@ function Application( options ){
 Application.prototype = Object.create( Component.prototype );
 Application.prototype.constructor = Application;
 
-Object.defineProperty(Application.prototype,'app',{get:function app(){
-   return this;
-}});
-
 Object.defineProperty(Application.prototype,'plugin',{value:function plugin( plugin ){
     plugin = Array.isArray(plugin) ? plugin : [plugin];
     this[privateKey]._plugins.push( ...plugin );
@@ -87,7 +83,7 @@ Object.defineProperty(Application.prototype,'router',{get:function router(){
 }});
 
 Object.defineProperty( Application.prototype, 'getAttribute', {value:function getAttribute(name){
-    if(name==='app' || name==='instance'){
+    if(name==='instance' || name==='vueApp'){
         return this[privateKey]._vueApp;
     }
     return Component.prototype.getAttribute.call(this,name);

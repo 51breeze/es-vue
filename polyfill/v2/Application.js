@@ -8,12 +8,16 @@
 ///<references from='System' />
 ///<references from='web.components.Component' />
 ///<references from='web.components.Router' />
+///<references from='Reflect' />
 ///<import from='element-ui/lib/theme-chalk/base.css' />
+///<import from='${__filename}?callhook&action=config' name='__config'/>
+///<import from='${__filename}?callhook&action=route' name='__routes' />
 ///<namespaces name='web' />
 const privateKey = Symbol('private');
 function Application( options ){
+    Component.prototype._init.call(this, {});
     this[privateKey] = {
-        _app:null,
+        _vueApp:null,
         _provides:{},
         _plugins:[],
         _mixins:{},
@@ -23,10 +27,6 @@ function Application( options ){
 
 Application.prototype = Object.create( Component.prototype );
 Application.prototype.constructor = Application;
-
-Object.defineProperty(Application.prototype,'app',{get:function app(){
-   return this[privateKey]._app;
-}});
 
 Object.defineProperty(Application.prototype,'plugin',{value:function plugin( plugin ){
     plugin = Array.isArray(plugin) ? plugin : [plugin];
@@ -57,7 +57,11 @@ Object.defineProperty(Application.prototype,'directives',{get:function directive
 }});
 
 Object.defineProperty(Application.prototype,'routes',{get:function routes(){
-    return [];
+    return __routes;
+}});
+
+Object.defineProperty( Application.prototype, 'config', {get:function config(){
+    return __config;
 }});
 
 Object.defineProperty(Application.prototype,'render',{get:function render(){
@@ -110,37 +114,135 @@ Object.defineProperty(Application.prototype,'mount',{value:function mount(elemen
     options.render=(h)=>{
         return this.render(h);
     }
-    this[privateKey]._app = new Vue(options);
+    options.mixins = [{
+        beforeMount:()=>{
+            if( this.hasEventListener(ComponentEvent.BEFORE_MOUNT) ){
+                this.dispatchEvent( new ComponentEvent( ComponentEvent.BEFORE_MOUNT ) );
+            }
+            this.onBeforeMount();
+        },
+        mounted:()=>{
+            if( this.hasEventListener(ComponentEvent.MOUNTED) ){
+                this.dispatchEvent( new ComponentEvent( ComponentEvent.MOUNTED ) );
+            }
+            this.onMounted();
+        },
+        beforeUpdate(){
+            if( this.hasEventListener(ComponentEvent.BEFORE_UPDATE) ){
+                this.dispatchEvent( new ComponentEvent( ComponentEvent.BEFORE_UPDATE ) );
+            }
+            this.onBeforeUpdate();
+        },
+        updated:()=>{
+            if( this.hasEventListener(ComponentEvent.UPDATED) ){
+                this.dispatchEvent( new ComponentEvent( ComponentEvent.UPDATED ) );
+            }
+            this.onUpdated();
+        },
+        beforeDestroy:()=>{
+            if( this.hasEventListener(ComponentEvent.BEFORE_DESTROY) ){
+                this.dispatchEvent( new ComponentEvent( ComponentEvent.BEFORE_DESTROY ) );
+            }
+            this.onBeforeUnmount();
+        },
+        destroyed:()=>{
+            if( this.hasEventListener(ComponentEvent.DESTROYED) ){
+                this.dispatchEvent( new ComponentEvent( ComponentEvent.DESTROYED ) );
+            }
+            this.onUnmounted();
+        },
+        errorCaptured:()=>{
+            if( this.hasEventListener(ComponentEvent.ERROR_CAPTURED) ){
+                this.dispatchEvent( new ComponentEvent( ComponentEvent.ERROR_CAPTURED ) );
+            }
+            this.onErrorCaptured();
+        },
+        activated:()=>{
+            if( this.hasEventListener(ComponentEvent.ACTIVATED) ){
+                this.dispatchEvent( new ComponentEvent( ComponentEvent.ACTIVATED ) );
+            }
+            this.onActivated();
+        },
+        deactivated:()=>{
+            if( this.hasEventListener(ComponentEvent.DEACTIVATED) ){
+                this.dispatchEvent( new ComponentEvent( ComponentEvent.DEACTIVATED ) );
+            }
+            this.onDeactivated();
+        }
+    }];
+    this[privateKey]._vueApp = new Vue(options);
 }});
 
 Object.defineProperty( Application.prototype, 'unmount', {value:function unmount(){
-    this.app.$destroy();
+    getVueApp(this).$destroy();
     return this;
 }});
 
-Object.defineProperty( Application.prototype, 'getRefs', {value:function getRefs(name){
-    return this.app.$refs[name];
+Object.defineProperty( Application.prototype, 'forceUpdate', {value:function forceUpdate(){
+    getVueApp(this).$forceUpdate();
+}});
+
+Object.defineProperty( Application.prototype, 'slot', {value:function slot(){
+    return [];
 }});
 
 Object.defineProperty( Application.prototype, 'element', {get:function element(){
-    return this.app.$el;
+    return getVueApp(this).$el;
 }});
 
 Object.defineProperty( Application.prototype, 'parent', {get:function parent(){
-    return this.app.$parent;
+    return getVueApp(this).$parent;
 }});
 
 Object.defineProperty( Application.prototype, 'children', {get:function children(){
-    return this.app.$children;
+    return getVueApp(this).$children;
+}});
+
+Object.defineProperty( Application.prototype, 'getParentComponent', {value:function getParentComponent(){
+    return null;
 }});
 
 Object.defineProperty( Application.prototype, 'createVNode', {value:function createVNode(name,config,children){
-    return this.app.$createElement(name, config, children);
+    return getVueApp(this).$createElement(name, config, children);
+}});
+
+Object.defineProperty( Application.prototype, 'getRefs', {value:function getRefs(name){
+    return getVueApp(this).$refs[name];
+}});
+
+Object.defineProperty( Application.prototype, 'on', {value:function on(type, listener){
+    return getVueApp(this).$on(type,listener);
+}});
+
+Object.defineProperty( Application.prototype, 'off', {value:function off(type, listener){
+    return getVueApp(this).$off( type, listener);
+}});
+
+Object.defineProperty( Application.prototype, 'emit', {value:function emit(type){
+    var args = Array.from(arguments);
+    return getVueApp(this).$emit.apply(this, args);
+}});
+
+Object.defineProperty( Application.prototype, 'watch', {value:function watch(name, callback, options){
+    return Component.prototype.watch.call(getVueApp(this),name, callback, options)
+}});
+
+Object.defineProperty( Application.prototype, 'nextTick', {value:function nextTick(callback){
+    return getVueApp(this).$nextTick(callback);
 }});
 
 Object.defineProperty( Application.prototype, 'getAttribute', {value:function getAttribute(name){
-    if(name=='app'||name==='instance'){
-        return this[privateKey]._app;
+    const vueApp = this[privateKey]._vueApp
+    if(name=='vueApp'||name==='instance'){
+        return this[privateKey]._vueApp;
     }
-    return this.app['$'+name] || null;
+    return vueApp['$'+name] || null;
 }});
+
+function getVueApp(target){
+    const app = target[privateKey]._vueApp;
+    if(!app){
+        throw new Error('[es-vue] Vue app unavailable.')
+    }
+    return app;
+}

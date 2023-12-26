@@ -87,13 +87,12 @@ class Builder extends Core.Builder{
                 compilation.createCompleted().then(resolve);
             });
         }));
-        
-        const Page = this.compilation.getGlobalTypeById('web.components.Page')
+
         const pagesModule = new Set();
         const routesData = {};
         compilations.forEach( compilation=>{
             const module = compilation.mainModule;
-            if(module && !module.isDeclaratorModule && module.isClass && Page.is(module) ){
+            if(module && !module.isDeclaratorModule && module.isWebComponent()){
                 pagesModule.add(module)
             }
         });
@@ -322,23 +321,28 @@ class Builder extends Core.Builder{
         return redirect;
     }
 
-    getModuleRoutes(module, isPage=false, onlyRoute=false){
+    getModuleRoutes(module, isPage=false){
         if(!module)return null;
-        if(!module.isModule || !module.isClass || module.isDeclaratorModule)return null;
+        if(!module.isModule || !module.isClass || module.isDeclaratorModule || !module.isWebComponent())return null;
         let routes = super.getModuleRoutes(module);
         if( routes && routes.length>0 )return routes;
-        if(onlyRoute)return null;
+
         if(!isPage){
-            const Page = this.compilation.getGlobalTypeById('web.components.Page');
-            if(Page && Page.is(module) ){
-                isPage = true;
+            const pageDir = this.plugin.options.pageDir;
+            if(pageDir){
+                const context = path.isAbsolute(pageDir) ? pageDir : path.join(this.compiler.options.workspace, pageDir);
+                isPage = module.file.includes(this.compiler.normalizePath(context));
             }
         }
-        const name = module.getName('/');
-        return [{
-            path:'/'+name,
-            name
-        }]
+
+        if( isPage ){
+            const name = module.getName('/');
+            return [{
+                path:'/'+name,
+                name
+            }]
+        }
+        return null;
     }
 
     babelTransformSync(content, sourceMap, babelOps, module, stack, compilation){

@@ -220,11 +220,11 @@ Object.defineProperty( proto, '_initialized', {value: function _initialized(){
     this.onInitialized();
 }});
 
-Object.defineProperty( proto, 'render', {value: function render(){return null}});
-
-Object.defineProperty( proto, 'getConfig', {value:function getConfig(){
-    return this[key].config;
+Object.defineProperty( proto, 'app', {get:function app(){
+    return System.getProvide('Application:instance');
 }});
+
+Object.defineProperty( proto, 'render', {value: function render(){return null}});
 
 Object.defineProperty( proto, 'isWebComponent', {value:true});
 
@@ -538,6 +538,9 @@ Object.defineProperty( proto, 'nextTick', {value:function nextTick(callback){
 }});
 
 Object.defineProperty( proto, 'getAttribute', {value:function getAttribute(name){
+    if(name ==='states'){
+        return this[key].states;
+    }
     return this['$'+name] || this[name];
 }});
 

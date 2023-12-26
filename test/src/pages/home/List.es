@@ -1,8 +1,8 @@
 package pages.home;
 
-import web.components.Page;
+import web.components.Component;
 
-class List extends Page{
+class List extends Component{
 
     @Override
     render(){

@@ -8,7 +8,7 @@
 ///<referenceAssets value='false' />
 
 System.registerHook('application:created', (app)=>{
-    app = app.getAttribute('app');
+    app = app.getAttribute('vueApp');
     Object.keys(ElementPlusIconsVue).forEach( key=>{
         const com = ElementPlusIconsVue[key];
         app.component(com.name||key, com);
