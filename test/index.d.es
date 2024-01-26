@@ -91,7 +91,7 @@ declare interface Matchers {
 }
 
 
-declare function it(title:string,callback:(done?:()=>void)=>any):int;
+declare function it(title:string,callback:(done?:()=>void)=>void):int|void;
 declare function describe(title:string,callback:()=>void):void;
 declare function afterEach(callback:(done?:()=>void)=>any|void):void;
 declare function beforeEach(callback:(done?:()=>void)=>any):void;

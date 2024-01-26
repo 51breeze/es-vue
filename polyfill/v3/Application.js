@@ -56,6 +56,9 @@ Object.defineProperty(Application.prototype,'locale',{get:function locale(){
 Object.defineProperty(Application.prototype,'store',{get:function store(){
     return null;
 }});
+Object.defineProperty(Application.prototype,'globals',{get:function globals(){
+    return null;
+}});
 Object.defineProperty(Application.prototype,'directives',{get:function directives(){
     return null;
 }});
@@ -125,6 +128,12 @@ Object.defineProperty(Application.prototype,'mount',{value:function mount(elemen
             }
         }
     });
+
+    const globals = this.globals;
+    if(globals){
+        const globalProperties = app.config.globalProperties || (app.config.globalProperties = {});
+        Object.assign(globalProperties, Object(globals));
+    }
 
     target._vueApp = app;
     if( mixins ){

@@ -186,6 +186,26 @@ package vue{
     declare function isVNode(value: any):boolean
     declare function markRaw<T>(value:T):T;
 
+    declare function watch<T>(source: WatchSource<T>,callback:WatchCallback<T>,options?:WatchOptions):()=>void
+    declare function watch<T>(sources: WatchSource<T>[],callback: WatchCallback<T>[],options?:WatchOptions): ()=>void
+    declare type WatchCallback<T> = (value: T,oldValue: T, onCleanup: (cleanupFn: () => void) => void) => void
+    declare type WatchSource<T> = Ref<T> | (() => T) | object;
+
+    declare interface WatchEffectOptions {
+        flush?: 'pre' | 'post' | 'sync' // 默认：'pre'
+        onTrack?: (event: Record) => void
+        onTrigger?: (event: Record) => void
+    }
+
+    declare interface WatchOptions extends WatchEffectOptions {
+        immediate?: boolean // 默认：false
+        deep?: boolean // 默认：false
+        flush?: 'pre' | 'post' | 'sync' // 默认：'pre'
+        onTrack?: (event: Record) => void
+        onTrigger?: (event: Record) => void
+    }
+
+    declare function reactive<T extends object>(target:T):T
     declare function renderList<T>(source: Iterable, renderItem: (value: T, index: number) => VNode): VNode[];
     declare function renderSlot(slots: Record, name: string, props?: Record, fallback?: () => VNode[], noSlotted?: boolean): VNode;
 

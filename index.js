@@ -47,6 +47,8 @@ const defaultConfig ={
         }
     },
     pageDir:'pages',
+    localeDir:'locales',
+    pageExcludeRegular:null,
     projectConfigFile:'.env',
     reserved:[
         '_data',
@@ -106,8 +108,6 @@ function getVersion( val ){
     const [a="0",b="0",c="0"] = Array.from( String(val).matchAll( /\d+/g ) ).map( item=>item ? item[0].substring(0,2) : "0" );
     return [a,b,c].join('.');
 }
-
-const privateKey = Symbol('privateKey')
 
 class PluginEsVue extends Core.Plugin{
 
@@ -206,24 +206,20 @@ class PluginEsVue extends Core.Plugin{
                 options.rawJsx.jsx = true;
             }
         }
+
+        if(options.pageExcludeRegular){
+            if(!(options.pageExcludeRegular instanceof RegExp)){
+                throw new Error('Options.pageExcludeRegular invalid. must is regexp type.')
+            }
+        }
     
         super(complier, options);
 
         this.name = pkg.name;
         this.version = pkg.version;
         this.platform = 'client';
-        if( !complier.options.scanTypings ){
-            complier.loadTypes([require.resolve('./types/index.d.es')], {
-                scope:'es-vue',
-                inherits:['es-javascript']
-            });
-        }
-        
         registerError(complier.diagnostic.defineError, complier.diagnostic.LANG_CN, complier.diagnostic.LANG_EN );
 
-        this[privateKey] = {
-            builders:new Map()
-        }
     }
 
     async callHook(action,compilation, query={}){
@@ -231,7 +227,7 @@ class PluginEsVue extends Core.Plugin{
         if(action==='config'){
             return builder.loadConfig(query);
         }else if(action==='route'){
-            return builder.getPageRoutes(query);
+            return await builder.getPageRoutes(query);
         }else if(action==='metadata'){
             return builder.getModuleMetadata(query);
         }

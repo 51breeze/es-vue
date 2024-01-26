@@ -24,15 +24,17 @@ package web{
 
         /**
         * 获取一个语言包实例，通常为 i18n 实例对象
-        * return object;
+        * return web.Lang;
         */
-        get locale():object
+        get locale():web.Lang | null
 
         /**
         * 获取一个全局数据存储实例，通常为 Store 实例对象
-        * return object;
+        * return web.Store;
         */
-        get store():object
+        get store():web.Store | null
+
+        get globals():{[key:string]:any} | null;
 
         /**
         * 获取应用配置

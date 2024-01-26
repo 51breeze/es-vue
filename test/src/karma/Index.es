@@ -12,6 +12,8 @@ import karma.asserts.IndexAssert;
 import karma.Manger;
 import karma.ui.Layout;
 
+import web.Lang;
+
 import "../theme.scss";
 
 class Index extends Application{
@@ -23,6 +25,10 @@ class Index extends Application{
         const app = document.createElement('div')
         document.body.append( app );
         obj.mount(app);
+
+        const lang = Lang.use();
+
+        console.log( lang.format('home.start', {start:'2002.12'}), lang.getLocale() , '-----------------', Lang.format('home.start', {start:'2002.12'}), Lang.format('Begin', {}), Lang.format('start', {start:'2012'}) )
     }
 
     async start(){
@@ -35,6 +41,13 @@ class Index extends Application{
         Manger.getInstance().register('routes',()=>{
             return this.routes;
         });
+    }
+
+    @Override
+    get globals(){
+        return {
+            Lang
+        }
     }
 
     @Override
@@ -80,6 +93,11 @@ class Index extends Application{
                 component:List
             }
         ]
+    }
+
+    @Override
+    get locale(){
+        return Lang.use();
     }
 
     title:string = 'Karma Testing';

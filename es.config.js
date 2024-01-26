@@ -1,4 +1,4 @@
 module.exports = {
     workspace:'test/src',
-    annotations:['Redirect','Metadata'],
+    annotations:['Redirect','Metadata','Readfile'],
 }

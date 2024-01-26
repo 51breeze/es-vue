@@ -3,6 +3,10 @@ package karma.pages;
 import web.components.Component
 import karma.asserts.HomeAssert;
 
+import stores.UserStore;
+import web.Store;
+import web.Lang;
+
 import VList from '../vue/list.es';
 
 
@@ -52,6 +56,26 @@ class Home extends Component{
                   header:header,
                   main:this.getRefs('editor-main')
             };
+
+            const store = UserStore.use();
+
+            UserStore.use().info = {add:123, name:'zhangsan'}
+
+            store.watch( (s)=>{
+                  console.log( s , '----watch----')
+            })
+
+            store.onAction(({name})=>{
+                  console.log( name , '----onAction----')
+            });
+
+            console.log( UserStore.use().isLogin, '------------UserStore.store-------------' )
+
+            setTimeout(()=>{
+                  console.log( UserStore.use().fetch().name,  '---------UserStore.store().fetch()-------------', UserStore.use().addName, UserStore.use().isLogin )
+            }, 5000)
+
+           //     
       }
 
       callee( obj ){
@@ -84,11 +108,13 @@ class Home extends Component{
 
             console.log('------Home page render-----------', this.title, this.list, this.fromData)
 
+            console.log( UserStore.use().isLogin, '-------render-----UserStore.store-------------' )
+
             var VListCom = VList as web.components.Component;
 
             return <div data-title="home" xmlns:local="karma.components" xmlns:ui="web.ui"  xmlns:d="@directives" xmlns:s="@slots">
                   <h5 ref='title'>{title}</h5>
-                  <local:List ref='list' {...spreadData}  ></local:List>
+                  <local:List ref='list' {...spreadData} ></local:List>
                   <local:Slot ref="slot-component-1" items = {list}>
                         <div>footer default children</div>
                   </local:Slot>
@@ -129,10 +155,6 @@ class Home extends Component{
                         editor-main
                   </div>
 
-                
-
-            
-
                   <div>
                         <ui:RichTextDocument bind:value={text2}></ui:RichTextDocument>
                    </div>
@@ -146,6 +168,8 @@ class Home extends Component{
                   <div ref="editor-header">
                         editor-header
                   </div>
+
+                  <div>{Lang.fetch('home.start')}</div>
 
 
 

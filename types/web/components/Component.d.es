@@ -22,7 +22,7 @@ package web.components{
         protected onErrorCaptured():void;
         protected receivePropValue<T>(value:T,name:string):T;
         protected beforeReceiveProp(value:any,name:string):boolean;
-        protected render():VNode | Component;
+        protected render():vue.VNode | Component;
         protected withAsyncContext<T=any>(handler:()=>Promise<T>):[Promise<T>, ()=>void]
         protected createVNode(name:string|Component,data?:VNodeDataConfig,children?:VNode|Component[]):VNode;
         
@@ -38,6 +38,7 @@ package web.components{
         * @return IApplication
         */
         final get app():IApplication
+
         slot( name:string , scope?:boolean, called?:boolean, params?:object ):VNode|Component[];
         reactive<T>(name:string, value?:T, initValue?:any):T;
         reference<T>(value?:T,shallowFlag?:boolean):vue.Ref<T>;
@@ -51,6 +52,7 @@ package web.components{
         getRefs<T=NodeElementType | NodeElementType[]>(name:string, toArray=false):T;
         toValue<T>(value:T):T;
         getAttribute<T>(name:string):T;
+        getAttribute(name:'vueApp'):vue.App;
         on(type: string, listener:(...args)=>void):void;
         off(type: string, listener?:(...args)=>void):void;
         emit(type: string, ...args?:any[]):void;

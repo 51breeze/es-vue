@@ -74,6 +74,14 @@ Object.defineProperty( proto, 'app', {get:function app(){
     return System.getProvide('Application:instance');
 }});
 
+Object.defineProperty( proto, 'store', {get:function store(){
+    return this.app.store;
+}});
+
+Object.defineProperty( proto, 'locale', {get:function locale(){
+    return this.app.locale;
+}});
+
 Object.defineProperty( proto, 'receivePropValue', {value: function receivePropValue(value,name){
     return Vue.unref(value);
 }});
