@@ -21,6 +21,7 @@ package web.ui{
     import ckeditor.plugins.SimpleUploadAdapter
     import ckeditor.plugins.Base64UploadAdapter 
     import ckeditor.plugins.ImageInsert
+    import ckeditor.plugins.ImageInsertViaUrl
     import ckeditor.plugins.ImageResize
     import ckeditor.plugins.ImageCaption
     import ckeditor.plugins.ImageStyle
@@ -127,6 +128,7 @@ package web.ui{
                 Heading,
                 Image,
                 ImageInsert,
+                ImageInsertViaUrl,
                 SimpleUploadAdapter,
                 Base64UploadAdapter,
                 ImageResize,
@@ -200,7 +202,7 @@ package web.ui{
                     ],
                     insert: {
                         integrations: [
-                            'insertImageViaUrl'
+                            'upload', 'assetManager', 'url'
                         ]
                     }
                 },

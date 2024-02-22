@@ -26,7 +26,7 @@ import {FontFamily} from '@ckeditor/ckeditor5-font';
 declare class FontFamily extends ckeditor.core.Plugin{}
 
 /*Upload*/
-import {UploadAdapter} from '@ckeditor/ckeditor5-adapter-ckfinder';
+import {CKFinderUploadAdapter as UploadAdapter} from '@ckeditor/ckeditor5-adapter-ckfinder';
 declare class UploadAdapter extends ckeditor.core.Plugin{}
 
 import {FileRepository} from '@ckeditor/ckeditor5-upload';
@@ -102,6 +102,9 @@ declare class AutoImage extends ckeditor.core.Plugin{}
 
 import {ImageInsert} from '@ckeditor/ckeditor5-image';
 declare class ImageInsert extends ckeditor.core.Plugin{}
+
+import {ImageInsertViaUrl} from '@ckeditor/ckeditor5-image';
+declare class ImageInsertViaUrl extends ckeditor.core.Plugin{}
 
 import {ImageInline} from '@ckeditor/ckeditor5-image';
 declare class ImageInline extends ckeditor.core.Plugin{}

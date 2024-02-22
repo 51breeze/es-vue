@@ -52,12 +52,7 @@ module.exports = function(ctx,stack,type){
                 }
             }
             return ctx.createLiteralNode('');
-        }
-        case 'readfile' :{
-
-            return ctx.builder.createReadfileAnnotationNode(ctx, stack) || ctx.createLiteralNode(null);
-
-        }
+        } 
     }
     const AnnotationExpression = ctx.plugin.getTokenNode('AnnotationExpression', true);
     return AnnotationExpression(ctx, stack, type);
