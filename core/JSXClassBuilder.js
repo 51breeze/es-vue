@@ -676,6 +676,15 @@ class JSXClassBuilder extends Core.JSXClassBuilder{
                 }
             }
         }
+
+        if(this.builder.__scopeId){
+            properties.push( this.createPropertyNode(this.createIdentifierNode('__scopeId'), this.createLiteralNode(this.plugin.options.scopeIdPrefix+this.builder.__scopeId) ) )
+        }
+
+        if(this.builder.plugin.options.hot){
+            properties.push( this.createPropertyNode(this.createIdentifierNode('__hmrId'), this.createLiteralNode(this.builder.__scopeId) ) )
+        }
+
         if( opts.ssr && opts.vueOptions.ssrContext ){
             const compiler = this.compiler;
             const ws = compiler.workspace;

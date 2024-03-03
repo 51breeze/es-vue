@@ -46,6 +46,7 @@ const defaultConfig ={
             filter:null,
         }
     },
+    scopeIdPrefix:'data-v-',
     pageDir:'pages',
     localeDir:'locales',
     pageExcludeRegular:null,

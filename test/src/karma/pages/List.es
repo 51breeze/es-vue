@@ -205,7 +205,7 @@ class List extends Component{
 
                   
 
-                  <div>
+                  <div class="container">
                        <ui:Checkbox bind:value={this.formData.checkAll} indeterminate={this.formData.isIndeterminate} on:change={handleCheckAllChange.bind(this)} />
                   </div>
                   <ui:CheckboxGroup bind:value={this.formData.checkedCities}>
@@ -471,7 +471,10 @@ class List extends Component{
 }
 
 
-<style type='scss' scoped>
+<style type='scss' scoped >
+.container{
+      background-color: antiquewhite;
+}
 .infinite-list {
   height: 300px;
   padding: 0;

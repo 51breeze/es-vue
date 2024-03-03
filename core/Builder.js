@@ -6,11 +6,32 @@ const {createThisNode} = require('./Utils');
 const dotenv = require('dotenv')
 const dotenvExpand = require('dotenv-expand')
 const Generator = require('es-javascript/core/Generator');
+const HashSum = require('hash-sum');
 class Builder extends Core.Builder{
 
     constructor(compilation){
         super(compilation);
         this.cacheMembersNamedMap = new Map();
+        const scoped = compilation.jsxStyles.some( style=>{
+            return style.openingElement.attributes.some( attr=>{
+                if(attr.name.value().toLowerCase()==='scoped'){
+                    if(!attr.value)return true;
+                    return attr.value.value() !== 'false';
+                }
+            })
+        });
+        if(scoped){
+            this.__scopeId = HashSum(compilation.file);
+        }else{
+            this.__scopeId = null;
+        }
+    }
+
+    getModuleFile(module, uniKey, type, resolve, attrs=null, action=null){
+        if(type==='style' && action !=='emitAssets' && this.__scopeId ){
+            return this.compiler.normalizeModuleFile(module, uniKey, type, resolve, {scopeId:this.plugin.options.scopeIdPrefix+this.__scopeId});
+        }
+        return this.compiler.normalizeModuleFile(module, uniKey, type, resolve);
     }
 
     createThisNode(stack, ctx, flag){

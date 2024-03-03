@@ -31,7 +31,6 @@ package web{
             };
 
             const members = descriptor.members || {};
-            const setters:{[key:string]:(value)=>void} = {};
             const bindMethods = {};
             const proxy = new Proxy(this, {
                 get:(target,key,receiver)=>{

@@ -36,7 +36,7 @@ declare interface CollectionBindToChain<S, T> {
 *
 * @typeParam T The type of the collection element.
 */
-declare class Collection<T extends {[key:string]:any} | IEditor> implements Iterator<T> {
+declare class Collection<T> implements Iterator<T> {
 
     /**
     * Creates a new Collection instance.
