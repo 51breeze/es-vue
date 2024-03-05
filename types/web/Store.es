@@ -125,7 +125,7 @@ package web{
             const id = this.key+':'+(descriptor.namespace ? descriptor.namespace +'.'+ descriptor.className : descriptor.className);
             let store:StoreInstance = null;
             when( Env(mode, 'production', expect=false) ){
-                const pinia = getActivePinia();
+                const pinia = getActivePinia() as {_s:Map<string,any>}
                 const oldFactory = pinia._s.get(id);
                 const newFactory = defineStore(id, opts) as (...args)=>any;
                 if(oldFactory){
