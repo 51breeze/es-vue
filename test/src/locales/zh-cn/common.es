@@ -1,5 +1,5 @@
 export default {
-    title:'es-vue',
+    title:'es-vue 5555',
     meta:{
         keyword:'web,es'
     }

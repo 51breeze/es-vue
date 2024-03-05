@@ -28,7 +28,7 @@ function Application( options ){
         _children:[],
         _options:options
     });
-    System.registerProvide('Application:instance', this);
+    System.setConfig('#global#application#instance#',this)
 }
 
 Application.prototype = Object.create( Component.prototype );

@@ -58,29 +58,10 @@ class Home extends Component{
             };
 
             const store = UserStore.use();
-
-            UserStore.use().info = {add:123, name:'zhangsan'}
-
-            store.watch( (s)=>{
-                  console.log( s , '----watch----')
-            })
-
-            store.onAction(({name})=>{
-                  console.log( name , '----onAction----')
-            });
-
-            console.log( UserStore.use().isLogin, '------------UserStore.store-------------' )
-
-            setTimeout(()=>{
-                  console.log( UserStore.use().fetch().name,  '---------UserStore.store().fetch()-------------', UserStore.use().addName, UserStore.use().isLogin )
-            }, 5000)
-
-           //     
+            store.info = {add:123, name:'zhangsan'}
+            store.fetch()
       }
 
-      callee( obj ){
-            console.log( obj, '----------------' )
-      }
 
       @Reactive
       private text:string = 'Hello,worlds'
@@ -107,10 +88,6 @@ class Home extends Component{
       render(){
 
             console.log('------Home page render-----------', this.title, this.list, this.fromData)
-
-            console.log( UserStore.use().isLogin, '-------render-----UserStore.store-------------' )
-
-            var VListCom = VList as web.components.Component;
 
             return <div data-title="home" xmlns:local="karma.components" xmlns:ui="web.ui"  xmlns:d="@directives" xmlns:s="@slots">
                   <h5 ref='title'>{title}</h5>
@@ -177,6 +154,3 @@ class Home extends Component{
       }
 
 }
-
-
-

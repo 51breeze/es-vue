@@ -1,5 +1,4 @@
-const Core = require("../core/Core");
-const ClassBuilder = Core.ClassBuilder;
+const ClassBuilder = require("../core/ClassBuilder");
 module.exports = function(ctx, stack, type){
     const module = stack.module;
     const polyfillModule = ctx.builder.getPolyfillModule( module.getName() );

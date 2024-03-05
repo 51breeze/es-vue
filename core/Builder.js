@@ -28,7 +28,7 @@ class Builder extends Core.Builder{
     }
 
     getModuleFile(module, uniKey, type, resolve, attrs=null, action=null){
-        if(type==='style' && action !=='emitAssets' && this.__scopeId ){
+        if(attrs && attrs.scoped && type==='style' && this.__scopeId){
             return this.compiler.normalizeModuleFile(module, uniKey, type, resolve, {scopeId:this.plugin.options.scopeIdPrefix+this.__scopeId});
         }
         return this.compiler.normalizeModuleFile(module, uniKey, type, resolve);
@@ -348,8 +348,8 @@ class Builder extends Core.Builder{
     }
 
     getModuleRoutes(module, isPage=false){
-        if(!module)return null;
-        if(!module.isModule || !module.isClass || module.isDeclaratorModule || !module.isWebComponent())return null;
+        if(!module)return [];
+        if(!module.isModule || !module.isClass || module.isDeclaratorModule)return [];
         let routes = super.getModuleRoutes(module);
         if( routes && routes.length>0 )return routes;
         if(!isPage){

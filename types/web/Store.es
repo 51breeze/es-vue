@@ -1,25 +1,37 @@
 package web{
 
-    import {defineStore, createPinia} from 'pinia'; 
+    import {defineStore, createPinia,getActivePinia,setActivePinia} from 'pinia'; 
     import {watch as _watch} from 'vue';
     class Store{
 
-        static protected instances = new Map();
+        static protected getInstances():Map<class<Store>,Store>{
+            let dataset = System.getConfig('globals.webStoreInstances');
+            if(!dataset){
+                System.setConfig('globals.webStoreInstances', dataset=new Map());
+            }
+            return dataset;
+        }
+
         static use<T extends class<Store>>(storeClass:T){
-            let instance = Store.instances.get(storeClass) as Store;
+            let dataset = Store.getInstances();
+            let instance = dataset.get(storeClass) as Store;
             if(!instance){
-                if( instances.size===0 ){
-                    System.registerHook('application:created', (app)=>{
-                        const vue = (app as web.Application).getAttribute('vueApp')
-                        vue.use(createPinia())
+                if(dataset.size===0){
+                    System.registerOnceHook('application:created', (app)=>{
+                        const vue = (app as web.Application).getAttribute('vueApp');
+                        const pinia =createPinia();
+                        setActivePinia(pinia);
+                        vue.use(pinia);
                     });
                 }
                 instance = new storeClass() as Store;
                 instance.create();
-                Store.instances.set(storeClass, instance);
+                dataset.set(storeClass, instance);
             }
-            return instance.store as T;
+            return instance.storeProxy as T;
         }
+
+        protected key = 'store';
 
         protected create(){
             const descriptor = Reflect.getDescriptor(this) || {};
@@ -30,108 +42,162 @@ package web{
                 actions:{}
             };
 
-            const members = descriptor.members || {};
+            type DT = {[key:string]:any, value:Function, get:Function, set:Function};
+            const members:{[key:string]:DT} = descriptor.members || {};
             const bindMethods = {};
-            const proxy = new Proxy(this, {
+            const selfMethods = ['setState','getState'];
+            const selfProperties = ['store','key','instance'];
+            const publicMethods = ['patch','onAction','reset','subscribe','watch','dispose']
+            const _proxy = new Proxy(this, {
                 get:(target,key,receiver)=>{
-
                     if(descriptor.privateKey === key){
                         return this[descriptor.privateKey];
                     }
-
-                    if(states.hasOwnProperty(key)){
-                        return store.$state[key];
+                    const desc = members[key];
+                    if(desc){
+                        if(desc.label==='property'){
+                            if(store.$state.hasOwnProperty(key)){
+                                return store.$state[key];
+                            }
+                            return this[key];
+                        }else if(desc.label==='accessor'){
+                            if(desc.get){
+                                return desc.get.call(this);
+                            }else{
+                                throw new ReferenceError(`Store property the "${key}" is not readable.`) 
+                            }
+                        }else if(desc.label==='method'){
+                            if( bindMethods.hasOwnProperty(key) ){
+                                return bindMethods[key];
+                            }
+                            return bindMethods[key] = desc.value.bind(this);
+                        }
+                    }else{
+                        if(selfMethods.includes(key)){
+                            if( bindMethods.hasOwnProperty(key) ){
+                                return bindMethods[key];
+                            }
+                            return bindMethods[key] = (this[key] as Function).bind(this);
+                        }else if(selfProperties.includes(key)){
+                            return this[key];
+                        }else{
+                            throw new ReferenceError(`Store property the "${key}" is not exist.`)
+                        }
                     }
-
-                    if( bindMethods.hasOwnProperty(key) ){
-                        return bindMethods[key];
-                    }
-
-                    let method = this[key] as Function;
-                    if( typeof method ==='function'){
-                        return bindMethods[key] = method.bind(this);
-                    }
-                    throw new ReferenceError(`Store.state "${key}" property is not exist.`)
                 },
                 set:(target,key,value)=>{
-                    if(states.hasOwnProperty(key)){
-                        store.$state[key] = value;
-                        return true;
+                    const desc = members[key];
+                    if(desc){
+                        if(desc.label==='property'){
+                            if(desc.permission==='public'){
+                                store.$state[key]=value
+                            }else{
+                                this[key] = value;
+                            }
+                            return true
+                        }else if(desc.label==='accessor'){
+                            if(desc.set){
+                                desc.set.call(this, value);
+                                return true;
+                            }
+                        }
+                        throw new ReferenceError(`Store property the "${key}" is not writable.`)
+                    }else{
+                        throw new ReferenceError(`Store property the "${key}" is not exist.`)
                     }
-                    throw new ReferenceError(`Store.state "${key}" property is not exist.`)
                 }
             });
             
             for(let name in members){
-                const desc = members[name] as {[key:string]:any, value:Function, get:Function, set:Function};
-                if(desc.permission==='private')continue;
+                const desc = members[name];
+                if(desc.permission!=='public')continue;
                 if(desc.label==='property'){
                     states[name] = desc.value;
-                }
-                if(desc.permission==='public'){
-                    if(desc.label==='accessor'){
-                        if(desc.get){
-                            opts.getters[name] = desc.get.bind(proxy);
-                        }
-                    }else if(desc.label==='method'){
-                        opts.actions[name] = desc.value.bind(proxy);
+                }else if(desc.label==='accessor'){
+                    if(desc.get){
+                        opts.getters[name] = desc.get.bind(_proxy);
                     }
+                }else if(desc.label==='method'){
+                    opts.actions[name] = desc.value.bind(_proxy);
                 }
             }
 
-            const id = descriptor.namespace ? descriptor.namespace +'.'+ descriptor.className : descriptor.className;
-            const make = defineStore(id, opts) as Function;
-            const store = make() as StoreInstance
-            this.instance = store;
-            this.store = new Proxy(store, {
+            const id = this.key+':'+(descriptor.namespace ? descriptor.namespace +'.'+ descriptor.className : descriptor.className);
+            let store:StoreInstance = null;
+            when( Env(mode, 'production', expect=false) ){
+                const pinia = getActivePinia();
+                const oldFactory = pinia._s.get(id);
+                const newFactory = defineStore(id, opts) as (...args)=>any;
+                if(oldFactory){
+                    store = newFactory(pinia, oldFactory);
+                }else{
+                    store = newFactory();
+                }
+            }then{
+                const newFactory = defineStore(id, opts) as Function;
+                store = newFactory();
+            }
+
+            this.storeInstance = store;
+            this.storeProxy = new Proxy(store, {
                 set:(target,key,value)=>{
-                    const desc = members[key] as {[key:string]:any, value:Function, get:Function, set:Function};
+                    const desc = members[key];
                     if(!desc){
-                        throw new ReferenceError(`Store.state "${key}" property is not exist`)
+                        throw new ReferenceError(`Store property the "${key}" is not exist`)
                     }
                     if(desc.permission!=='public'){
-                        throw new ReferenceError(`Store.state "${key}" ${desc.label} is not accessible`)
+                        throw new ReferenceError(`Store ${desc.label} the "${key}" is not accessible`)
                     }
                     if(desc.label==='accessor'){
                         if(desc.set){
-                            desc.set.call(proxy, value);
+                            desc.set.call(this, value);
                             return true;
                         }else{
-                            throw new ReferenceError(`Store.state "${key}" property is not writable.`)
+                            throw new ReferenceError(`Store property the "${key}" is not writable.`)
                         }
                     }else if(desc.label==='property'){
                         if(desc.writable){
                             store.$state[key] = value;
                             return true;
                         }else{
-                            throw new ReferenceError(`Store.state "${key}" property is not writable.`)
+                            throw new ReferenceError(`Store state the "${key}" is not writable.`)
                         }
                     }else{
-                        throw new ReferenceError(`Cannot assign value to the 'Store.${key}' method.`)
+                        throw new ReferenceError(`Store property the "${key}" is not writable`)
                     }
                 },
                 get:(target,key,receiver)=>{
-                    if(['setState','patch','onAction','reset','subscribe','watch'].includes(key) ){
-                        return this[key].bind(this);
+                    if(publicMethods.includes(key)){
+                        if( bindMethods.hasOwnProperty(key) ){
+                            return bindMethods[key];
+                        }
+                        return bindMethods[key] = (this[key] as Function).bind(this);
+                    }
+                    const desc = members[key];
+                    if(!desc){
+                        throw new ReferenceError(`Store property the "${key}" is not exist`)
+                    }
+                    if(desc.permission!=='public'){
+                        throw new ReferenceError(`Store ${desc.label} the "${key}" is not accessible`)
                     }
                     return store[key];
                 }
             });
         }
 
-        protected store=null;
-        protected instance:StoreInstance= null
+        protected storeProxy=null;
+        protected storeInstance:StoreInstance= null
 
-        setState(name:string, value:any){
-            this.instance.$state[name] = value;
+        protected setState(name:string, value:any){
+            this.storeInstance.$state[name] = value;
         }
 
-        getState<T=any>(name:string){
-            return this.instance.$state[name] as T;
+        protected getState<T=any>(name:string){
+            return this.storeInstance.$state[name] as T;
         }
 
         patch(data:vue.Record|(state:vue.Record)=>void){
-            this.instance.$patch(data);
+            this.storeInstance.$patch(data);
         }
 
         onAction(callback:(options:{
@@ -141,22 +207,25 @@ package web{
             after?:(callback:(...args)=>void)=>void,
             onError?:(callback:(...args)=>void)=>void,
         })=>void, always=false){
-           return this.instance.$onAction(callback, always);
+           return this.storeInstance.$onAction(callback, always);
         }
 
         subscribe(callback:(mutation:vue.Record, state:vue.Record)=>void, options?:{detached: boolean}&vue.Record){
-            this.instance.$subscribe(callback);
+            this.storeInstance.$subscribe(callback);
         }
 
         watch(callback:vue.WatchCallback<vue.Record>, options?:vue.WatchOptions):()=>void{
-            return _watch(this.instance.$state, callback, options)
+            return _watch(this.storeInstance.$state, callback, options)
+        }
+
+        dispose(){
+            this.storeInstance.$dispose();
         }
 
         reset(){
-            this.instance.$reset();
+            this.storeInstance.$reset();
         }
     }
-
 
     declare interface StoreInstance{
         $state:vue.Record
@@ -164,7 +233,18 @@ package web{
         $reset:(...args)=>void
         $patch:(...args)=>void
         $subscribe:(...args)=>void
+        $dispose:()=>void
         [key:string]:any
+    }
+
+    declare interface PiniaInstance{
+        install(app):void
+        use(plugin):this
+        _p:any[]
+        _a:any
+        _e:any
+        _s:Map<string,any>
+        state:{[key:string]:any}
     }
     
 }

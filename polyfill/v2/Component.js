@@ -221,7 +221,7 @@ Object.defineProperty( proto, '_initialized', {value: function _initialized(){
 }});
 
 Object.defineProperty( proto, 'app', {get:function app(){
-    return System.getProvide('Application:instance');
+    return System.getConfig('#global#application#instance#');
 }});
 
 Object.defineProperty( proto, 'render', {value: function render(){return null}});

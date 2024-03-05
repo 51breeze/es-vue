@@ -1,6 +1,7 @@
 const Core = require('./Core');
+const ClassBuilder = require('./ClassBuilder');
 const path = require('path');
-class JSXClassBuilder extends Core.JSXClassBuilder{
+class JSXClassBuilder extends ClassBuilder{
     constructor(stack, ctx, type){
         super(stack, ctx, type);
         this.injectProperties = [];
@@ -429,13 +430,15 @@ class JSXClassBuilder extends Core.JSXClassBuilder{
     }
 
     createHMRDependency( body ){
-        if(!this.builder.plugin.options.hot)return null;
+        const opts = this.plugin.options;
+        if(!opts.hot || opts.mode === 'production')return null;
         const HMR = this.builder.getGlobalModuleById('dev.tools.HMR');
         this.addDepend( HMR );
     }
 
     createHMRHotAcceptNode(id){
-        if(!this.builder.plugin.options.hot)return null;
+        const opts = this.plugin.options;
+        if(!opts.hot || opts.mode === 'production')return null
 
         const program = this.getParentByType('Program');
         if( program._createHMRHotAcceptNodeFlag )return null;
@@ -535,7 +538,7 @@ class JSXClassBuilder extends Core.JSXClassBuilder{
         this.exportVueComponentNameRefNode = this.createStatementNode(
             this.createCreateVueComponentNode('createComponent', [
                 this.createIdentifierNode(module.id),
-                this.createCreateVueComponentOptionsNode(module.id)
+                this.createCreateVueComponentOptionsNode(module.id, module)
             ])
         );
     }
@@ -634,7 +637,7 @@ class JSXClassBuilder extends Core.JSXClassBuilder{
         this.construct = this.createDeclarationNode('const',[
             this.createDeclaratorNode(
                 this.createIdentifierNode(module.id),
-                this.createCreateVueComponentNode('createComponent', [this.createCreateVueComponentOptionsNode(module.id)])
+                this.createCreateVueComponentNode('createComponent', [this.createCreateVueComponentOptionsNode(module.id, module)])
             )
         ]);
         
@@ -653,7 +656,7 @@ class JSXClassBuilder extends Core.JSXClassBuilder{
         );
     }
 
-    createCreateVueComponentOptionsNode(name){
+    createCreateVueComponentOptionsNode(name, module){
         const properties = [
             this.createPropertyNode(this.createIdentifierNode('name'), this.createLiteralNode(`es-${name}`) )
         ];
@@ -681,8 +684,8 @@ class JSXClassBuilder extends Core.JSXClassBuilder{
             properties.push( this.createPropertyNode(this.createIdentifierNode('__scopeId'), this.createLiteralNode(this.plugin.options.scopeIdPrefix+this.builder.__scopeId) ) )
         }
 
-        if(this.builder.plugin.options.hot){
-            properties.push( this.createPropertyNode(this.createIdentifierNode('__hmrId'), this.createLiteralNode(this.builder.__scopeId) ) )
+        if(opts.hot !==false && opts.mode !== 'production'){
+            properties.push( this.createPropertyNode(this.createIdentifierNode('__hmrId'), this.createLiteralNode(module.getName()) ) )
         }
 
         if( opts.ssr && opts.vueOptions.ssrContext ){

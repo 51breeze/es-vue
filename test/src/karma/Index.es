@@ -28,7 +28,7 @@ class Index extends Application{
 
         const lang = Lang.use();
 
-        console.log( lang.format('home.start', {start:'2002.12'}), lang.getLocale() , '-----------------', Lang.format('home.start', {start:'2002.12'}), Lang.format('Begin', {}), Lang.format('start', {start:'2012'}) )
+        console.trace( lang.format('home.start', {start:'2002.12'}), lang.getLocale() , '---------------', Lang.format('home.start', {start:'2002.12'}), Lang.format('Begin', {}), Lang.format('start', {start:'2012'}) )
     }
 
     async start(){
@@ -55,6 +55,10 @@ class Index extends Application{
         when( Env(testframework, 'karma') ){
             new IndexAssert(this as Component );
         }
+
+        const lang = Lang.use();
+        console.log('onMounted', lang.fetch('home.title') )
+        this.title = lang.fetch('home.title');
     }
 
     private _router:Router;
@@ -100,7 +104,7 @@ class Index extends Application{
         return Lang.use();
     }
 
-    title:string = 'Karma Testing';
+    title:string = 'Karma Testing555';
 
     styles = 'ssss';
 
@@ -109,6 +113,7 @@ class Index extends Application{
         const styles={
             padding:"0 1rem"
         }
+         
         return <div xmlns:d="@directives" >
             <h5 class="title">{title}</h5>
             <div class="menus">

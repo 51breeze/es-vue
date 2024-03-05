@@ -71,7 +71,7 @@ Object.defineProperty( proto, 'render', {value: function render(){
 }});
 
 Object.defineProperty( proto, 'app', {get:function app(){
-    return System.getProvide('Application:instance');
+    return System.getConfig('#global#application#instance#');
 }});
 
 Object.defineProperty( proto, 'store', {get:function store(){

@@ -473,7 +473,7 @@ class List extends Component{
 
 <style type='scss' scoped >
 .container{
-      background-color: antiquewhite;
+      background-color: rgb(212, 178, 136);
 }
 .infinite-list {
   height: 300px;

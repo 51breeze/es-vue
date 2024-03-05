@@ -1,5 +1,4 @@
-const Core = require("../core/Core");
-const ClassBuilder = Core.ClassBuilder;
+const ClassBuilder = require("../core/ClassBuilder");
 const JSXClassBuilder = require("../core/JSXClassBuilder");
 const VueBuilder = require("../core/vue/VueBuilder");
 module.exports = function(ctx,stack,type){

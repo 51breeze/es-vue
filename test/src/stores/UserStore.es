@@ -8,26 +8,33 @@ class UserStore extends Store{
 
     isLogin = false;
 
+    isLoginssss = false;
+
     persson = null;
 
-    private add = "";
+    protected add = "===99999==";
 
     set info( value ){
         this.persson = value;
-        console.log('-------set info-------', value )
+        console.log('-------set info----', value )
         
     }
 
     get addName(){
+        
         return this.add;
     }
+
     fetch(){
         this.isLogin = true;
-        this.add = '123';
-        this.userinfo.name = 'zh666666666'
+        //this.add = '===999999=============';
 
-        console.log( this.add ,'-------add--------')
-        return this.userinfo;
+         this.setState('add', '==6666666666=2222===========')
+
+
+         this.userinfo.name = '6666'
+         console.log( this.add, this, '------666-333--6666666-')
+         return this.userinfo;
     }
 
     static use(){

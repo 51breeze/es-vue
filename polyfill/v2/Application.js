@@ -23,6 +23,7 @@ function Application( options ){
         _mixins:{},
         _options:options
     };
+    System.setConfig('#global#application#instance#',this)
 }
 
 Application.prototype = Object.create( Component.prototype );
