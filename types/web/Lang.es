@@ -61,15 +61,15 @@ package web{
             if(language){
                 return language;
             }
-
-            language = window.navigator.language || window.navigator.userLanguage;
-            if(language){
-                return language
-            }
-
-            const languages = window.navigator.languages;
-            if(languages && Array.isArray(languages) ){
-                return languages[0];
+            when( Env(platform, 'client') ){
+                language = window.navigator.language || window.navigator.userLanguage;
+                if(language){
+                    return language
+                }
+                const languages = window.navigator.languages;
+                if(languages && Array.isArray(languages) ){
+                    return languages[0];
+                }
             }
             return 'zh-CN';
         }
@@ -176,8 +176,8 @@ package web{
             return target;
         }
 
-        fetch(locale:string, assigned:string = null){
-            const segs = this.getSegs(locale);
+        fetch(name:string, assigned:string = null){
+            const segs = this.getSegs(name);
             const prop = segs.pop();
             const current = assigned || this.getLocale();
 
@@ -202,15 +202,15 @@ package web{
 
             const de = this.defaultLocale;
             if(de && de !== current){
-                return this.fetch(locale, de)
+                return this.fetch(name, de)
             }
 
-            return locale;
+            return name;
         }
 
-        format(locale:string, data:any){
-            let value = this.fetch(locale) as string;
-            if( value !== locale ){
+        format(name:string, data:any){
+            let value = this.fetch(name) as string;
+            if( value !== name ){
                 value = String(value) as string;
                 const isObject = System.isObject(data);
                 return value.replaceAll(/(\$|\@)\{(\w+)\}/g, (a, p:string, b:string)=>{
@@ -225,7 +225,7 @@ package web{
                     return a;
                 });
             }
-            return locale;
+            return value;
         }
 
     }
