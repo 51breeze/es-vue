@@ -1,7 +1,7 @@
 package;
 import web.components.SkinComponent;
 import web.Skin;
-import web.View;
+//import web.View;
 import web.components.Route;
 import MySkin;
 

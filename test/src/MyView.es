@@ -1,6 +1,6 @@
 package;
 import web.components.SkinComponent;
-import web.View;
+//import web.View;
 import MySkin;
 
 class MyView extends SkinComponent<MyView>{

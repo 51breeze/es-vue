@@ -155,6 +155,7 @@ function initPrivate(target){
         target[key] = Object.create(null);
         target[key].event=new EventDispatcher();
         target[key].initialized=false;
+        target[key].propsData=null;
         target[key].states=Object.create(null);
         target[key].statePrevious = Object.create(null);
         target[key].preventedProps = Object.create(null);
@@ -174,6 +175,7 @@ Object.defineProperty( proto, '_init', {value:function _init(options, propsData)
         target.context = options;
         target.options = context.componentOptions || {};
         target.config = context.data || {};
+        target.propsData = _propsData;
 
         const {hasTemplate, esHandle, esPrivateKey} = this.$options;
         if( hasTemplate ){
@@ -540,6 +542,12 @@ Object.defineProperty( proto, 'nextTick', {value:function nextTick(callback){
 Object.defineProperty( proto, 'getAttribute', {value:function getAttribute(name){
     if(name ==='states'){
         return this[key].states;
+    }else if(name==='config'){
+        return this[key].config;
+    }else if(name==='props'){
+        return this[key].propsData;
+    }else if(name==='context'){
+        return this[key].context;
     }
     return this['$'+name] || this[name];
 }});

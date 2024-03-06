@@ -51,6 +51,8 @@ function Component(props){
         this[privateKey] = Object.create({
             initialized:false,
             instance:null,
+            vueProps:null,
+            vueContext:null,
             children:[],
             injecteds:[],
             propsUpdating:false,
@@ -437,11 +439,17 @@ Object.defineProperty( proto, 'getRoute', {value:function getRoute(){
 
 Object.defineProperty( proto, 'getAttribute', {value:function getAttribute(name){
     if( name==='states'){
-        return Object.assign(Object.create(null),this[privateKey].states);
+        return this[privateKey].states;
+    }else if(name==='props'){
+        return this[privateKey].vueProps;
+    }else if(name==='context'){
+        return this[privateKey].vueContext;
     }
     const target = this[privateKey].instance;
     if( name==='instance'){
         return target;
+    }else if(name==='config'){
+        return target.vnode.props;
     }
     if( target ){
         return target.proxy['$'+name];
@@ -757,16 +765,20 @@ Object.defineProperty( Component, 'createComponent', {value:function createCompo
     }
 
     if(asyncSetup){
-        options.setup = async()=>{
+        options.setup = async(props, context)=>{
             const [esInstance, expose, initialized] = init();
+            esInstance[privateKey].vueProps = props;
+            esInstance[privateKey].vueContext = context;
             if( !initialized ){
                 await esInstance.onInitialized();
             }
             return expose;
         }
     }else{
-        options.setup = ()=>{
+        options.setup = (props, context)=>{
             const [esInstance, expose, initialized] = init();
+            esInstance[privateKey].vueProps = props;
+            esInstance[privateKey].vueContext = context;
             if( !initialized ){
                 esInstance.onInitialized();
             }

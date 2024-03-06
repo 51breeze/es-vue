@@ -9,7 +9,7 @@ package{
         @override
         render(){
             console.log( this, '------------MyOption-----' )
-            return this.createVNode( Option, this.getConfig() as web.components.VNodeDataConfig, {default:()=>{
+            return this.createVNode( Option, this.getAttribute('config') as web.components.VNodeDataConfig, {default:()=>{
                 const child = this.slot('default') as any;
                 if( typeof child ==='function' ){
                     return child()
