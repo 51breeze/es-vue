@@ -25,6 +25,7 @@ const plugins=[
       output:build,
       sourceMaps:true,
       version:3,
+      mode:'development',
       srcCSS:false,
       optimize:true,
       projectConfigFile:'.env',

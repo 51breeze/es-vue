@@ -606,7 +606,6 @@ Object.defineProperty( Component, 'createComponent', {value:function createCompo
     const esHandle = options.esHandle || 'esInstance';
     const esPrivateKey = options.esPrivateKey;
     const ssrCtx = options.__ssrContext;
-    const vccFlag = options.__vccOpts;
     const asyncSetup = options.__asyncSetup;
     const classDescriptor = Class.getDescriptor(constructor);
     options.props = options.props || {};
@@ -657,6 +656,10 @@ Object.defineProperty( Component, 'createComponent', {value:function createCompo
         const {...props} = originProps;
         const esInstance = options.props ? new constructor( props ) : new constructor();
         Component.setCompnentInstanceForVueInstance(esInstance, vueInstance);
+
+        if(!hasTemplate && options.__hmrId){
+            vueInstance.withProxy = esInstance;
+        }
 
         const parent = esInstance.getParentComponent(true);
         const provides = parent ? parent[privateKey].provides : vueInstance.provides;
@@ -787,17 +790,18 @@ Object.defineProperty( Component, 'createComponent', {value:function createCompo
     }
 
     Component.defineComponent(constructor, options);
-    return vccFlag ? options : constructor;
+    return hasTemplate ? options : constructor;
 
 }});
 
-Object.defineProperty( Component, 'defineComponent', {value:function defineComponent(target, options){
+Object.defineProperty( Component, 'defineComponent', {value:function defineComponent(target, options={}){
     Object.defineProperty(target, '__vccOpts', {
         enumerable:false,
         configurable:true,
         writable:true,
         value:options
     });
+    options[Class.bindClassKey] = target;
     return target;
 }});
 

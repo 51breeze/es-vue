@@ -1,4 +1,5 @@
 const JSXTransformV3 = require('./JSXTransformV3');
+const Utils = require('./Utils')
 const toUpperCaseFirst=(str)=>{
     return str.substring(0,1).toUpperCase()+str.substring(1);
 }
@@ -207,19 +208,10 @@ class JSXTransformV3Optimize extends JSXTransformV3{
                             //this.createLiteralNode(name), 
                             this.createArrowFunctionNode(params,childrenNodes)
                         );
-
-                        if( scopeName ){
-                            data.defineSlots[name] = {
-                                node:renderSlots,
-                                scope:scopeName,
-                                child
-                            }
-                        }else{
-                            data.defineSlots[name] = {
-                                node:renderSlots,
-                                scope:null,
-                                child
-                            }
+                        data.defineSlots[name] = {
+                            node:renderSlots,
+                            scope:scopeName,
+                            child
                         }
                         return next();
                     }
@@ -398,9 +390,18 @@ class JSXTransformV3Optimize extends JSXTransformV3{
         return node;
     }
 
-    addPatchFlag(data, flag){
+    addPatchFlag(data, flag, isProps=false){
         if( (data.patchFlag & flag) !== flag ){
-            data.patchFlag |= flag;
+            if(data.hasDynamicKeys && isProps && flag !== ELEMENT_FULL_PROPS){
+                return data;
+            }
+            if(flag===ELEMENT_HOISTED){
+                data.patchFlag = ELEMENT_HOISTED
+            }else if(flag===ELEMENT_BAIL){
+                data.patchFlag = ELEMENT_BAIL
+            }else{
+                data.patchFlag |= flag;
+            }
         }
         return data;
     };
@@ -468,10 +469,11 @@ class JSXTransformV3Optimize extends JSXTransformV3{
             }else if( item.isJSXSpreadAttribute ){
                 data.hasAttribbuteReferences = true;
                 if( item.argument ){
-                    const node = this.createNode(item.argument, 'SpreadElement')
-                    node.argument = node.createToken(item.argument)
+                    const node = this.createNode(item.argument, 'SpreadElement');
+                    node.argument = node.createToken(item.argument);
                     data.props.push(node);
-                    this.addPatchFlag(data, ELEMENT_FULL_PROPS)
+                    data.hasDynamicKeys = true;
+                    this.addPatchFlag(data, ELEMENT_FULL_PROPS, true);
                 }
                 return;
             }else if( item.isAttributeSlot ){
@@ -515,17 +517,17 @@ class JSXTransformV3Optimize extends JSXTransformV3{
 
             if( ns ==="@events" ){
                 pureStaticAttributes = false;
-                this.addPatchFlag(data,ELEMENT_HYDRATE_EVENTS);
+                //this.addPatchFlag(data,ELEMENT_HYDRATE_EVENTS,true);
                 pushEvent( name, this.makeAttributeBindEventFunctionNode(item,value.value), 'on')
                 return;
             }else if( ns ==="@natives" ){
                 pureStaticAttributes = false;
-                this.addPatchFlag(data,ELEMENT_HYDRATE_EVENTS);
+                //this.addPatchFlag(data,ELEMENT_HYDRATE_EVENTS,true);
                 pushEvent( name, this.makeAttributeBindEventFunctionNode(item,value.value), 'on')
                 return;
             }else if( ns ==="@binding" ){
                 pureStaticAttributes = false;
-                this.addPatchFlag(data,ELEMENT_NEED_PATCH);
+                //this.addPatchFlag(data,ELEMENT_NEED_PATCH,true);
                 binddingModelValue = value.value;
                 if( !binddingModelValue || !(binddingModelValue.type ==='MemberExpression' || binddingModelValue.type ==='Identifier') ){
                     binddingModelValue = null
@@ -553,7 +555,7 @@ class JSXTransformV3Optimize extends JSXTransformV3{
                         keyProps.push( this.createLiteralNode(bindValuePropName, void 0, value.name.stack) );
                     }
                     keyProps.push( this.createLiteralNode(propName, void 0, value.name.stack) );
-                    this.addPatchFlag(data, ELEMENT_PROPS);
+                    this.addPatchFlag(data, ELEMENT_PROPS, true);
                 }
             }
 
@@ -658,14 +660,14 @@ class JSXTransformV3Optimize extends JSXTransformV3{
             const property = this.createPropertyNode( this.createPropertyKeyNode(propName, value.name.stack), propValue );
             switch(name){
                 case "class" :
-                    if( item.value && !item.value.isLiteral ){
-                        this.addPatchFlag(data,ELEMENT_CLASS);
+                    if( item.value && !item.value.isLiteral && !isComponent){
+                        this.addPatchFlag(data, ELEMENT_CLASS, true);
                     }
                     data[name] = property
                     break;
                 case "style" :
-                    if( item.value && !item.value.isLiteral ){
-                        this.addPatchFlag(data,ELEMENT_STYLE);
+                    if( item.value && !item.value.isLiteral && !isComponent ){
+                        this.addPatchFlag(data,ELEMENT_STYLE, true);
                     }
                     data[name] = property
                     break;
@@ -679,7 +681,9 @@ class JSXTransformV3Optimize extends JSXTransformV3{
                     data.attrs.push( property );
                     break;
                 case "ref" :
-                    this.addPatchFlag(data,ELEMENT_NEED_PATCH);
+                    if(!isComponent && childNodes.length>1){
+                        this.addPatchFlag(data,ELEMENT_NEED_PATCH,true);
+                    }
                     data[name] = property
                     break;
                 case "value" :
@@ -961,7 +965,7 @@ class JSXTransformV3Optimize extends JSXTransformV3{
         else{
             name = this.createLiteralNode(stack.openingElement.name.value(), void 0, stack.openingElement.name);
         }
-
+        
         const dataObject = this.makeConfig(data);
         const items = [name, null, null, null, null];
 
@@ -1053,16 +1057,19 @@ class JSXTransformV3Optimize extends JSXTransformV3{
     }
 
     create(stack, ctx){
+
         const isRoot = stack.jsxRootElement === stack;
         const data = this.getElementConfig();
         const keyProps = data.keyProps || (data.keyProps = []);
         const children = stack.children.filter(child=>!( (child.isJSXScript && child.isScriptProgram) || child.isJSXStyle) );
         const isWebComponent = stack.isWebComponent && !(stack.compilation.JSX && stack.parentStack.isProgram);
         let componentDirective = this.getComponentDirectiveForDefine( stack );
+        let hasDynamicSlots = false;
         data.patchFlag = 0;
         stack[childrenNumKey] = children.length;
-
+        
         let childNodes =this.makeChildren(children, data, stack);
+
         
         if( stack.isDirective && stack.openingElement.name.value().toLowerCase() ==="custom" ){
             componentDirective = true;
@@ -1107,14 +1114,9 @@ class JSXTransformV3Optimize extends JSXTransformV3{
         })){
             isInheritComponentDirective = true;
         }
-
-        //const spreadAttributes = [];
+        
         this.makeAttributes(stack, childNodes, data, /*spreadAttributes*/);
         this.makeProperties(children, data);
-        //this.makeSpreadAttributes(spreadAttributes, data);
-        //data.attrs.push( ...spreadAttributes )
-
-
 
         let normalDirectives = [];
         if( data.directives && data.directives.length > 0 ){
@@ -1124,11 +1126,31 @@ class JSXTransformV3Optimize extends JSXTransformV3{
             }
         }
 
-        const isBlockNode = this.isBlockNode(stack) || isInheritComponentDirective;
+        if(isWebComponent && children.length>0){
+            const desc = stack.description();
+            if(desc && desc.isModule){
+                const fullname = desc.getName();
+                if(fullname === 'web.components.KeepAlive'){
+                    hasDynamicSlots = true;
+                }
+            }
+        }
+
+        const ps = stack.parentStack.scope;
+        if(!hasDynamicSlots){
+            hasDynamicSlots = isWebComponent && (ps.isSlotScope || ps.isAttributeSlotScope || this.isForDirective(stack) || this.hasForAttrDirective(stack.parentStack) );
+        }
+
+        const isBlockNode = hasDynamicSlots || this.isBlockNode(stack) || isInheritComponentDirective;
         const isStaticHoisted = !(stack.isComponent || stack.isDirective || stack.isSlot || isBlockNode || normalDirectives.length > 0) 
                                 && data.pureStaticChildren && data.pureStaticAttributes && !isInheritComponentDirective;
+
         if( isStaticHoisted ){
             this.addPatchFlag(data, ELEMENT_HOISTED);
+        }
+
+        if(hasDynamicSlots){
+            this.addPatchFlag(data, ELEMENT_DYNAMIC_SLOTS);
         }
 
         if( isWebComponent && !(stack.isDirective || stack.isSlot) ){
@@ -1142,10 +1164,11 @@ class JSXTransformV3Optimize extends JSXTransformV3{
                 ));
                 childNodes = null;
             }
+
             if( data.defineSlots ){
                 for(let key in data.defineSlots){
-                   const {node,scope} =  data.defineSlots[key];
-                   properties.push( this.createPropertyNode(
+                    const {node,scope} =  data.defineSlots[key];
+                    properties.push( this.createPropertyNode(
                         this.createIdentifierNode(key), 
                         node 
                     ));
@@ -1153,17 +1176,17 @@ class JSXTransformV3Optimize extends JSXTransformV3{
             } 
 
             if( properties.length > 0 ){
-                if( this.isForDirective(stack) || this.hasForAttrDirective(stack.parentStack) ){
-                    this.addPatchFlag(data, ELEMENT_DYNAMIC_SLOTS);
-                    // properties.push( this.createPropertyNode(
-                    //     this.createIdentifierNode('_'), 
-                    //     this.createLiteralNode(2) 
-                    // ))
+
+                if( (data.patchFlag & ELEMENT_DYNAMIC_SLOTS) === ELEMENT_DYNAMIC_SLOTS){
+                    properties.push( this.createPropertyNode(
+                        this.createIdentifierNode('_'), 
+                        this.createLiteralNode(2) 
+                    ))
                 }else{
-                    // properties.push( this.createPropertyNode(
-                    //     this.createIdentifierNode('_'), 
-                    //     this.createLiteralNode(1)
-                    // ))
+                    properties.push( this.createPropertyNode(
+                        this.createIdentifierNode('_'), 
+                        this.createLiteralNode(1)
+                    ))
                 }
                 childNodes = this.createObjectNode( properties );
             }

@@ -84,12 +84,22 @@ class Home extends Component{
             }
       }
 
+      @Reactive
+      private showEditor = false;
+
       @Override
       render(){
 
             console.log('------Home page render-----------', this.title, this.list, this.fromData)
 
             return <div data-title="home" xmlns:local="karma.components" xmlns:ui="web.ui"  xmlns:d="@directives" xmlns:s="@slots">
+                       66666666666666 2222--33388866667777
+
+                  <ui:Button on:click={this.showEditor=true}>fdfdfdsf</ui:Button>
+                  <ui:Dialog b:value={showEditor}>
+                       88866699996666
+                  </ui:Dialog>
+
                   <h5 ref='title'>{title}</h5>
                   <local:List ref='list' {...spreadData} ></local:List>
                   <local:Slot ref="slot-component-1" items = {list}>

@@ -6,7 +6,7 @@ const {createThisNode} = require('./Utils');
 const dotenv = require('dotenv')
 const dotenvExpand = require('dotenv-expand')
 const Generator = require('es-javascript/core/Generator');
-const HashSum = require('hash-sum');
+const {createHash} = require('crypto');
 class Builder extends Core.Builder{
 
     constructor(compilation){
@@ -21,7 +21,7 @@ class Builder extends Core.Builder{
             })
         });
         if(scoped){
-            this.__scopeId = HashSum(compilation.file);
+            this.__scopeId = createHash("sha256").update(`${compilation.file}`).digest("hex").substring(0, 8);
         }else{
             this.__scopeId = null;
         }

@@ -10,19 +10,30 @@ package web.components{
 
         constructor(props?:{[key:string]:any});
 
+        @Noop
         protected onInitialized():void;
+        @Noop
         protected onBeforeMount():void;
+        @Noop
         protected onMounted():void;
+        @Noop
         protected onBeforeUpdate():void;
+        @Noop
         protected onUpdated():void;
+        @Noop
         protected onBeforeUnmount():void;
+        @Noop
         protected onUnmounted():void;
+        @Noop
         protected onActivated():void;
+        @Noop
         protected onDeactivated():void;
+        @Noop
         protected onErrorCaptured():void;
+        @Noop
+        protected render():vue.VNode | Component;
         protected receivePropValue<T>(value:T,name:string):T;
         protected beforeReceiveProp(value:any,name:string):boolean;
-        protected render():vue.VNode | Component;
         protected withAsyncContext<T=any>(handler:()=>Promise<T>):[Promise<T>, ()=>void]
         protected createVNode(name:string|Component,data?:VNodeDataConfig,children?:VNode|Component[]):VNode;
         

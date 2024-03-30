@@ -1,6 +1,8 @@
 const Core = require('./Core');
 const ClassBuilder = require('./ClassBuilder');
 const path = require('path');
+const hotRecords = new Map();
+const removeNewlineRE = /[\r\n\t]/g;
 class JSXClassBuilder extends ClassBuilder{
     constructor(stack, ctx, type){
         super(stack, ctx, type);
@@ -436,12 +438,46 @@ class JSXClassBuilder extends ClassBuilder{
         this.addDepend( HMR );
     }
 
+    getCodeSections(compilation){
+        let jsx = '';
+        let style = '';
+        let script = compilation.source;
+        let offset = 0;
+        const substring = (stack)=>{
+            let len = stack.node.end - stack.node.start;
+            let start = stack.node.start - offset;
+            let end = stack.node.end - offset;
+            script = script.substring(0, start) + script.substring(end, script.length);
+            offset+=len;
+        }
+        compilation.jsxElements.forEach(stack=>{
+            jsx+=stack.raw();
+            substring(stack);
+        });
+        compilation.jsxStyles.forEach(stack=>{
+            style+=stack.raw();
+            substring(stack);
+        });
+        style = style.replace(removeNewlineRE, '');
+        jsx   = jsx.replace(removeNewlineRE, '');
+        script = script.replace(removeNewlineRE, '');
+        return {jsx, style, script};
+    }
+
     createHMRHotAcceptNode(id){
         const opts = this.plugin.options;
         if(!opts.hot || opts.mode === 'production')return null
 
         const program = this.getParentByType('Program');
         if( program._createHMRHotAcceptNodeFlag )return null;
+
+        const records = hotRecords.get(this.compilation);
+        const sections = this.getCodeSections(this.compilation);
+        let onlyRender = false;
+        if(records){
+            onlyRender = records.script === sections.script && records.style === sections.style && records.jsx !== sections.jsx;
+        }
+        hotRecords.set(this.compilation, sections);
 
         program._createHMRHotAcceptNodeFlag = true;
         const HMR = this.builder.getGlobalModuleById('dev.tools.HMR');
@@ -454,6 +490,7 @@ class JSXClassBuilder extends ClassBuilder{
         const block = ifNode.createNode('BlockStatement');
         ifNode.consequent = block;
 
+        const hashIdNode = this.createLiteralNode(this.getModuleHashId());
         const createApiNode = block.createNode('IfStatement');
         const unaryNode = createApiNode.createNode('UnaryExpression')
         unaryNode.argument = unaryNode.createCalleeNode(
@@ -462,7 +499,7 @@ class JSXClassBuilder extends ClassBuilder{
                 unaryNode.createIdentifierNode('createRecord')
             ]),
             [
-                this.createLiteralNode( module.getName() ),
+                hashIdNode,
                 moduleId
             ]
         );
@@ -474,10 +511,10 @@ class JSXClassBuilder extends ClassBuilder{
             createApiNode.consequent.createCalleeNode(
                 createApiNode.consequent.createMemberNode([
                     createApiNode.consequent.createIdentifierNode(this.getModuleReferenceName(HMR, module)),
-                    createApiNode.consequent.createIdentifierNode('reload')
+                    createApiNode.consequent.createIdentifierNode( onlyRender ? 'rerender' : 'reload')
                 ]),
                 [
-                    this.createLiteralNode( module.getName() ),
+                    hashIdNode,
                     moduleId
                 ]
             )
@@ -685,7 +722,7 @@ class JSXClassBuilder extends ClassBuilder{
         }
 
         if(opts.hot !==false && opts.mode !== 'production'){
-            properties.push( this.createPropertyNode(this.createIdentifierNode('__hmrId'), this.createLiteralNode(module.getName()) ) )
+            properties.push( this.createPropertyNode(this.createIdentifierNode('__hmrId'), this.createLiteralNode(this.getModuleHashId()) ) )
         }
 
         if( opts.ssr && opts.vueOptions.ssrContext ){
@@ -694,6 +731,7 @@ class JSXClassBuilder extends ClassBuilder{
             const file = compiler.normalizePath(path.relative(ws, this.compilation.file));
             properties.push( this.createPropertyNode(this.createIdentifierNode('__ssrContext'), this.createLiteralNode(file) ) )
         }
+        
         if( this.props.length > 0 ){
             properties.push( this.createPropertyNode('props',this.createObjectNode( this.props )) )
         }

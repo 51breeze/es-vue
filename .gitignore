@@ -1,5 +1,6 @@
 /node_modules
 /package-lock.json
 /test/build
+/build
 webpack.config.js
 package.json

@@ -631,14 +631,15 @@ Object.defineProperty( Component, 'resolveDirective', {value:function resolveDir
     return directive;
 }});
 
-Object.defineProperty( Component, 'createComponent', {value:function createComponent(options){
-    options = options || {};
+Object.defineProperty( Component, 'createComponent', {value:function createComponent(options={}){
     if( Array.isArray(options.mixins) ){
         options.mixins.push( ...mixins );
     }else{
         options.mixins = mixins;
     }
-    return Vue.extend( options );
+    const fn = Vue.extend(options);
+    options[Class.bindClassKey] = fn;
+    return fn;
 }});
 
 System.registerHook('polyfills:value',function(value, property, className){

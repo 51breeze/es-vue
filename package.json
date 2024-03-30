@@ -6,6 +6,7 @@
   "typings": "types/typings.json",
   "scripts": {
     "es": "es -V",
+    "esc":"es -f karma/Test.es",
     "dev-test": "jasmine ./test/index.js",
     "dev-run": "jasmine babel-node ./test/build/Index.js",
     "webpack": "webpack-dev-server --hot",

@@ -10,7 +10,6 @@ import web.ui.Tree as TreeCom;
 import web.ui.Loading;
 import karma.components.MyDirective;
 
-
 class List extends Component{
 
       constructor(props){
@@ -190,7 +189,7 @@ class List extends Component{
                               <s:default scope="item">
                                     <ui:Dropdown on:command={this.handleCommand.bind(this)}>
                                           <span>更多 <i class="el-icon-arrow-down el-icon--right"></i></span>
-                                          <ui:DropdownMenu s:dropdown>
+                                          <ui:DropdownMenu s:dropdown >
                                                 <ui:DropdownItem command = {[item,true]}>编辑</ui:DropdownItem>
                                                 <ui:DropdownItem command = {[item,false]}>删除</ui:DropdownItem>
                                           </ui:DropdownMenu>
@@ -198,6 +197,7 @@ class List extends Component{
                               </s:default>
                         </ui:TableColumn>
                   </ui:Table>
+
                   <ui:Select bind:value={this.formData.select} size="large">
                         <ui:Option label = "CN" value = "CN"></ui:Option>
                         <ui:Option label = "US" value = "US"></ui:Option>
@@ -471,10 +471,7 @@ class List extends Component{
 }
 
 
-<style type='scss' scoped >
-.container{
-      background-color: rgb(212, 178, 136);
-}
+<style type='scss'>
 .infinite-list {
   height: 300px;
   padding: 0;

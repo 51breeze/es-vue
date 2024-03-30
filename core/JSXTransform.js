@@ -63,22 +63,8 @@ class JSXTransform extends Core.JSXTransform{
     makeAttributeBindEventFunctionNode(attribute, valueTokenNode){
         if( attribute.value.isJSXExpressionContainer ){
             const expr = attribute.value.expression;
-            if( expr.isAssignmentExpression ){
-                return this.createCalleeNode(
-                    this.createMemberNode([
-                        this.createParenthesNode(
-                            this.createFunctionNode((block)=>{
-                                block.body=[
-                                    valueTokenNode
-                                ]
-                            })
-                        ),
-                        this.createIdentifierNode('bind')
-                    ]),
-                    [
-                        this.createThisNode()
-                    ]
-                );
+            if( expr.isAssignmentExpression || expr.isSequenceExpression){
+                return this.createArrowFunctionNode([], valueTokenNode);
             }else if( !expr.isFunctionExpression ){
                 if( expr.isCallExpression ){
                     const isbindFn = expr.callee.isMemberExpression && expr.callee.property.value() === 'bind' &&
