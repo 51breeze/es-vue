@@ -57,9 +57,15 @@ class Home extends Component{
                   main:this.getRefs('editor-main')
             };
 
+            try{
+
             const store = UserStore.use();
             store.info = {add:123, name:'zhangsan'}
             store.fetch()
+
+            }catch(e){
+                  console.log(e, '--------------')
+            }
       }
 
 

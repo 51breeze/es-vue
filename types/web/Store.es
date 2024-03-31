@@ -81,7 +81,12 @@ package web{
                         }else if(selfProperties.includes(key)){
                             return this[key];
                         }else{
-                            throw new ReferenceError(`Store property the "${key}" is not exist.`)
+                            key = String(key);
+                            if(key==='Symbol(Symbol.toStringTag)'){
+                                return this.toString()
+                            }else{
+                                return this.whenPropertyNotExists(key);
+                            }
                         }
                     }
                 },
@@ -175,7 +180,7 @@ package web{
                     }
                     const desc = members[key];
                     if(!desc){
-                        throw new ReferenceError(`Store property the "${key}" is not exist`)
+                        return this.whenPropertyNotExists(String(key))
                     }
                     if(desc.permission!=='public'){
                         throw new ReferenceError(`Store ${desc.label} the "${key}" is not accessible`)
@@ -194,6 +199,10 @@ package web{
 
         protected getState<T=any>(name:string){
             return this.storeInstance.$state[name] as T;
+        }
+
+        protected whenPropertyNotExists(key){
+            throw new ReferenceError(`Store property the "${key}" is not exist.`)
         }
 
         patch(data:vue.Record|(state:vue.Record)=>void){

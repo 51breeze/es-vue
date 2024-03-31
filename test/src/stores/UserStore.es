@@ -33,7 +33,7 @@ class UserStore extends Store{
 
 
          this.userinfo.name = '6666'
-         console.log( this.add, this, '------666-333--6666666-')
+         console.log( this.add,  '------666-333--6666666-')
          return this.userinfo;
     }
 
