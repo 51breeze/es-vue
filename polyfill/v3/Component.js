@@ -769,26 +769,35 @@ Object.defineProperty( Component, 'createComponent', {value:function createCompo
 
     if(asyncSetup){
         options.setup = async(props, context)=>{
-            const [esInstance, expose, initialized] = init();
-            esInstance[privateKey].vueProps = props;
-            esInstance[privateKey].vueContext = context;
-            if( !initialized ){
-                await esInstance.onInitialized();
+            try{
+                const [esInstance, expose, initialized] = init();
+                esInstance[privateKey].vueProps = props;
+                esInstance[privateKey].vueContext = context;
+                if( !initialized ){
+                    await esInstance.onInitialized();
+                }
+                return expose;
+            }catch(e){
+                console.error(e);
+                return ()=>_createVNode('div', String(e.stack||e.message).replace(/[\r\n]+/g, '<br/>') );
             }
-            return expose;
         }
     }else{
         options.setup = (props, context)=>{
-            const [esInstance, expose, initialized] = init();
-            esInstance[privateKey].vueProps = props;
-            esInstance[privateKey].vueContext = context;
-            if( !initialized ){
-                esInstance.onInitialized();
+            try{
+                const [esInstance, expose, initialized] = init();
+                esInstance[privateKey].vueProps = props;
+                esInstance[privateKey].vueContext = context;
+                if( !initialized ){
+                    esInstance.onInitialized();
+                }
+                return expose;
+            }catch(e){
+                console.error(e);
+                return ()=>_createVNode('div', String(e.stack||e.message).replace(/[\r\n]+/g, '<br/>') );
             }
-            return expose;
         }
     }
-
     Component.defineComponent(constructor, options);
     return hasTemplate ? options : constructor;
 

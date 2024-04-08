@@ -52,7 +52,7 @@ package web.components{
 
         slot( name:string , scope?:boolean, called?:boolean, params?:object ):VNode|Component[];
         reactive<T>(name:string, value?:T, initValue?:any):T;
-        reference<T>(value?:T,shallowFlag?:boolean):vue.Ref<T>;
+        reference<T>(value:T,shallowFlag?:boolean):vue.Ref<T>;
         observable<T extends object>(target:T):T;
         nextTick(callback:()=>void):void;
         forceUpdate();
@@ -60,9 +60,10 @@ package web.components{
         inject<T=any>(name:string, from?:string, defaultValue?:T):T;
         watch(name: string, callback:(uewVlaue?,oldValue?)=>void, options?:boolean | {immediate?:boolean,deep?:boolean}):void;
         getRoute():web.components.Route | null;
-        getRefs<T=NodeElementType | NodeElementType[]>(name:string, toArray=false):T;
+        getRefs<T=NodeElementType>(name:string):T;
+        getRefs<T=NodeElementType[]>(name:string, toArray:boolean):T;
         toValue<T>(value:T):T;
-        getAttribute<T>(name:string):T;
+        getAttribute<T=any>(name:string):T;
         getAttribute(name:'vueApp'):vue.App;
         on(type: string, listener:(...args)=>void):void;
         off(type: string, listener?:(...args)=>void):void;
