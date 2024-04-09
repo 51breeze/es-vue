@@ -2,7 +2,9 @@
 /package-lock.json
 /test
 /scripts
+/build
 webpack.config.js
+index.html
 karma.conf.js
 es.config.js
 yarn.lock
