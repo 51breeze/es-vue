@@ -172,6 +172,9 @@ package web{
                     }
                 },
                 get:(target,key,receiver)=>{
+                    if(key==="$id"){
+                        return store[key];
+                    }
                     if(publicMethods.includes(key)){
                         if( bindMethods.hasOwnProperty(key) ){
                             return bindMethods[key];

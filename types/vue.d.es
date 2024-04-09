@@ -12,14 +12,14 @@ package vue{
         directive(name: string, directive: any): this;
         mount(rootContainer: HostElement | string, isHydrate?: boolean, isSVG?: boolean): any;
         unmount(): void;
-        provide<T>(key:any, value: T): this;
+        provide<T=any>(key:any, value: T): this;
         /**
         * Runs a function with the app as active instance. This allows using of `inject()` within the function to get access
         * to variables provided via `app.provide()`.
         *
         * @param fn - function to run with the app as active instance
         */
-        runWithContext<T>(fn: () => T): T;
+        runWithContext<T=any>(fn: () => T): T;
         _uid: number;
         _component: any;
         _props: {[key:string]:any} | null;
@@ -179,17 +179,17 @@ package vue{
     declare function createTextVNode(text?: string, flag?: number): VNode;
     declare function createCommentVNode(text?: string, asBlock?: boolean): VNode;
     declare function createStaticVNode(content: string, numberOfNodes: number): VNode;
-    declare function cloneVNode<T, U>(vnode: VNode, extraProps?:Record | null, mergeRef?: boolean): VNode;
+    declare function cloneVNode(vnode: VNode, extraProps?:Record | null, mergeRef?: boolean): VNode;
     declare function mergeProps<A extends Record, B extends Record>(a:A, b:B): A & B;
     declare function mergeProps<A extends Record, B extends Record, C extends Record>(a:A, b:B, c:C): A & B & C;
     declare function mergeProps<A extends Record, B extends Record, C extends Record, D extends Record>(a:A, b:B, c:C, d:D): A & B & C & D;
     declare function isVNode(value: any):boolean
-    declare function markRaw<T>(value:T):T;
+    declare function markRaw<T=any>(value:T):T;
 
-    declare function watch<T>(source: WatchSource<T>,callback:WatchCallback<T>,options?:WatchOptions):()=>void
-    declare function watch<T>(sources: WatchSource<T>[],callback: WatchCallback<T>[],options?:WatchOptions): ()=>void
-    declare type WatchCallback<T> = (value: T,oldValue: T, onCleanup: (cleanupFn: () => void) => void) => void
-    declare type WatchSource<T> = Ref<T> | (() => T) | object;
+    declare function watch<T=any>(source: WatchSource<T>,callback:WatchCallback<T>,options?:WatchOptions):()=>void
+    declare function watch<T=any>(sources: WatchSource<T>[],callback: WatchCallback<T>[],options?:WatchOptions): ()=>void
+    declare type WatchCallback<T=any> = (value: T,oldValue: T, onCleanup: (cleanupFn: () => void) => void) => void
+    declare type WatchSource<T=any> = Ref<T> | (() => T) | object;
 
     declare interface WatchEffectOptions {
         flush?: 'pre' | 'post' | 'sync' // 默认：'pre'
