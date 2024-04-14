@@ -99,31 +99,15 @@ Object.defineProperty(Application.prototype,'mount',{value:function mount(elemen
     const options = target._options || {};
     const esInstance = this;
     const vccOpts = this.constructor.__vccOpts || {};
-    const hasTemplate = vccOpts.hasTemplate;
-    const esHandle = vccOpts.esHandle || 'esInstance';
-    const esPrivateKey = vccOpts.esPrivateKey;
     const app = Vue.createApp({
         ...vccOpts,
         ...options,
-        setup(){
-            const vueInstance = Vue.getCurrentInstance();
-            esInstance[privateKey].instance = vueInstance;
-            Component.setCompnentInstanceForVueInstance(esInstance, vueInstance);
-            Component.setupLifecycleHooks(esInstance);
-            if( esInstance.hasEventListener('componentInitialized') ){
-                esInstance.dispatchEvent( new ComponentEvent( 'componentInitialized' ) );
-            }
-            if( hasTemplate ){
-                const expose = Object.create(null);
-                expose[esHandle] = esInstance;
-                if( esPrivateKey ){
-                    const descriptor = Reflect.getDescriptor(esInstance);
-                    expose[esPrivateKey] = descriptor.privateKey;
-                }
-                return expose;
+        setup(...args){
+            if( vccOpts.setup ){
+                return vccOpts.setup.call(this, ...args);
             }else{
                 return function(){
-                    return esInstance.render( Vue.h );
+                    return esInstance.render(Vue.h);
                 }
             }
         }

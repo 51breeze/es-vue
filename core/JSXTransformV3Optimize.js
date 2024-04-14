@@ -877,8 +877,23 @@ class JSXTransformV3Optimize extends JSXTransformV3{
         return node;
     }
 
-    createVueVNode(isComponent, args, stack){
+    createVueVNode(isComponent, args, stack, data){
         stack = stack && stack.openingElement ? stack.openingElement.name : null;
+        if(data.patchFlag === ELEMENT_HOISTED && this.builder.__scopeId){
+            const Component = this.builder.getModuleById('web.components.Component')
+            this.addDepend(Component);
+            const scopeId = String(this.plugin.options.scopeIdPrefix||"")+this.builder.__scopeId;
+            const node = this.createCalleeNode(
+                this.createMemberNode([
+                    this.getModuleReferenceName(Component), 
+                    this.createIdentifierNode('createHoistedVnode')
+                ]),
+                [...args.slice(0,3), this.createLiteralNode(scopeId)],
+                stack
+            );
+            node.isElementVNode = true;
+            return node;
+        }
         let node = this.createCalleeNode(
             this.createCalleeVueApiNode( isComponent ? 'createVNode' : 'createElementVNode'),
             args,
@@ -994,7 +1009,7 @@ class JSXTransformV3Optimize extends JSXTransformV3{
         if( isBlock ){
             return this.createVueBlockVNode(isComponent, args, false, stack);
         }else{
-            return this.createVueVNode(isComponent, args, stack);
+            return this.createVueVNode(isComponent, args, stack, data);
         }
     }
 

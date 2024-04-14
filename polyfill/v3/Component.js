@@ -279,13 +279,19 @@ function normalizeVNode(value){
     }else if( type === 'object'){
         return Vue.createVNode(value);
     }else{
-        return Vue.createVNode(Vue.Text, null, Vue.toDisplayString(value))
+        return Vue.createVNode(Vue.Text, null, Vue.toDisplayString(value), 1)
     }
 }
 
 Object.defineProperty( proto, 'createVNode', {value:function createVNode(name,config,children){
     if(arguments.length===1){
         return normalizeVNode(name);
+    }
+    if(Array.isArray(children) && children.length===1 ){
+        const type = typeof children[0];
+        if(type ==='number' || type==='string' || type==='boolean'){
+            children = children[0];
+        }
     }
     return _createVNode(name, config, children);
 }});
@@ -812,6 +818,13 @@ Object.defineProperty( Component, 'defineComponent', {value:function defineCompo
     });
     options[Class.bindClassKey] = target;
     return target;
+}});
+
+Object.defineProperty( Component, 'createHoistedVnode', {value:function createHoistedVnode(tag, attrs, children,scopeId=null){
+    if(scopeId)Vue.pushScopeId(scopeId);
+    let vnode = Vue.createElementVNode(tag, attrs, children, -1)
+    if(scopeId)Vue.popScopeId();
+    return vnode;
 }});
 
 Object.defineProperty( Component, 'normalChildrenVNode', {value:function normalChildrenVNode(value, flag=false){

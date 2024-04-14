@@ -289,11 +289,7 @@ class VueBuilder extends JSXClassBuilder{
 
         const options = this.createObjectNode(this.vueComponentOptionProperties);
         const args = [this.createIdentifierNode(module.id), options];
-        if( this.builder.isApplication(this.module) ){
-            this.exportVueComponentNameRefNode = this.createCreateVueComponentNode('defineComponent', args);
-        }else{
-            this.exportVueComponentNameRefNode = this.createCreateVueComponentNode('createComponent',args);
-        }
+        this.exportVueComponentNameRefNode = this.createCreateVueComponentNode('createComponent',args);
         return this.construct;
     }
 

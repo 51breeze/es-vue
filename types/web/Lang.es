@@ -3,13 +3,13 @@ package web{
     class Lang{
 
         static private _langDefaultClass:class<Lang> = Lang;
-        static protected instances:Map<any, Lang> = new Map();
+        static protected const instances:Map<any, Lang> = new Map();
 
         static use<T extends class<Lang>>(langClass?:T){
             langClass = langClass||_langDefaultClass;
             let instance = instances.get(langClass)
             if( !instance ){
-                instances.set(langClass, instance =new Lang() )
+                instances.set(langClass, instance =new langClass() )
                 instance.create();
             }
             return instance;
@@ -25,6 +25,26 @@ package web{
 
         static format(locale:string, data:{}, langClass:class<Lang>=null){
             return use(langClass).format(locale, data);
+        }
+
+        static getLocale<T extends class<Lang>>(langClass:T=null, defaultValue='zh-CN'){
+            if(langClass){
+                const obj = instances.get(langClass);
+                return obj ? obj.getLocale() : defaultValue;
+            }
+            const obj = Array.from(instances.values())
+            return obj.length>0 ? obj[0].getLocale() : defaultValue;
+        }
+
+        static setLocale<T extends class<Lang>>(value:string, langClass:T=null){
+            if(langClass){
+                const obj = instances.get(langClass);
+                return obj ? obj.setLocale(value) : false;
+            }
+            instances.forEach( obj=>{
+                obj.setLocale(value);
+            });
+            return instances.size>0;
         }
 
         private _qureyLanguageField = 'lang';
@@ -75,20 +95,22 @@ package web{
         }
 
         protected qureyLanguage(){
-            let search = location.search;
-            let field = this.qureyLanguageField;
-            if(search){
-                const params = new URLSearchParams(search);
-                if(params.has(field)){
-                    return params.get(field);
+            when( Env(platform, 'client') ){
+                let search = location.search;
+                let field = this.qureyLanguageField;
+                if(search){
+                    const params = new URLSearchParams(search);
+                    if(params.has(field)){
+                        return params.get(field);
+                    }
                 }
-            }
-            search = location.hash;
-            const index = search.indexOf('?');
-            if(index>=0){
-                const params = new URLSearchParams(search.slice(index));
-                if(params.has(field)){
-                    return params.get(field);
+                search = location.hash;
+                const index = search.indexOf('?');
+                if(index>=0){
+                    const params = new URLSearchParams(search.slice(index));
+                    if(params.has(field)){
+                        return params.get(field);
+                    }
                 }
             }
             return null;
@@ -176,7 +198,7 @@ package web{
             return target;
         }
 
-        fetch(name:string, assigned:string = null){
+        fetch(name:string, assigned:string = null):string|null{
             const segs = this.getSegs(name);
             const prop = segs.pop();
             const current = assigned || this.getLocale();
@@ -208,7 +230,7 @@ package web{
             return name;
         }
 
-        format(name:string, data:any){
+        format(name:string, data:any):string|null{
             let value = this.fetch(name) as string;
             if( value !== name ){
                 value = String(value) as string;
@@ -222,7 +244,6 @@ package web{
                     }else{
                         return String(data);
                     }
-                    return a;
                 });
             }
             return value;
