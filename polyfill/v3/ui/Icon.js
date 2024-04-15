@@ -16,7 +16,8 @@ System.registerHook('application:created', (app)=>{
 });
 
 const hasOwn = Object.prototype.hasOwnProperty;
-function resolveComponent(name){
+
+function _resolveComponent(name){
     if( ElementPlusIconsVue ){
         if( hasOwn.call(ElementPlusIconsVue, name) ){
             return ElementPlusIconsVue[name];
@@ -33,6 +34,17 @@ function resolveComponent(name){
     return Vue.resolveComponent(name);
 }
 
+
+function resolveComponent(name){
+    name = name.trim();
+    const value = _resolveComponent(name);
+    if(!value){
+        console.error(`[ES-VUE] The '${name}' icon component was not resolved`)
+        return Vue.createCommentVNode(`icon '${name}' not resolved`)
+    }
+    return Vue.h(value);
+}
+
 const Icon = Vue.defineComponent({
     name:'es-icon',
     props: {
@@ -41,31 +53,39 @@ const Icon = Vue.defineComponent({
         name:{type:String}
     },
     setup(props) {
-        const {size,color,name} = props;
+        let {size,color,name} = props;
         return (_ctx, _cache) => {
-            const slots = {};
-            if( name && !_ctx.$slots.default ){
-                return Vue.h(ElIcon, {size,color}, {
-                    default:()=>Vue.h( resolveComponent(name) ) 
-                })
-            }else {
-                slots.default = ()=>{  
-                    let children = [_ctx.$slots.default];
-                    if( typeof _ctx.$slots.default === 'function' ){
-                        children =  _ctx.$slots.default();  
-                    }else if( Array.isArray(_ctx.$slots.default) ){
-                        children = _ctx.$slots.default;
-                    }
-                    return children.map( child=>{
-                        if( typeof child.type ==="string" ){
-                            return Vue.h( resolveComponent(child.type), child.props);
+            return Vue.h(ElIcon, {size,color}, {
+                default:Vue.withCtx(()=>{
+                    if(name && !_ctx.$slots.default ){
+                        return [resolveComponent(String(Vue.unref(name)))];
+                    }else {
+                        let children = null;
+                        if( typeof _ctx.$slots.default === 'function' ){
+                            children =  _ctx.$slots.default();
+                        }else if( Array.isArray(_ctx.$slots.default) ){
+                            children = _ctx.$slots.default;
                         }else{
-                            return child;
+                            children = [_ctx.$slots.default];
                         }
-                    });
-                };
-            }
-            return Vue.h(ElIcon, {size,color}, slots);
+                        if( Array.isArray(children) && children.length>0){
+                            return children.map( child=>{
+                                if(typeof child === 'string'){
+                                    return resolveComponent(child)
+                                }else if(Vue.isVNode(child)){
+                                    if(child.type===Vue.Text && typeof child.children === 'string'){
+                                        return resolveComponent(child.children)
+                                    }else if(typeof child.type ==='string'){
+                                        return resolveComponent(child.type)
+                                    }
+                                }
+                                return child;
+                            })
+                        }
+                    }
+                    return []
+                })
+            });
         };
     }
 });

@@ -8,8 +8,14 @@ import web.components.Component;
 /** Divider Component */
 declare final class Divider extends Component {
   /** enable vertical divider */
+  @Deprecated('use direction')
   vertical: boolean
 
+  direction:'horizontal' | 'vertical' = 'horizontal'
+
+  borderStyle:"none" |'dotted' | 'dashed' | 'inset' | 'solid' | 'dashed solid' | 'dashed double none' | 'dashed groove none dotted' = 'solid'
+
   /** customize the content on the divider line */
-  posiiton: 'left' | 'center' | 'right'
+  @Alias(contentPosition, version='vue >= 3.0.0')
+  posiiton: 'left' | 'center' | 'right' = 'center';
 }
