@@ -1,15 +1,8 @@
 const Core = require("../core/Core");
-const Utils = require('../core/Utils')
 module.exports = function(ctx,stack){
-    if(!stack.parentStack.isPropertyDefinition && stack.useRefItems.size == 0){
-        if(!stack.parentStack.parentStack.isExportNamedDeclaration && !stack.useRefItems.size ){
-            if( !stack.init )return null;
-        }
-    }
-
     const Identifier = ctx.plugin.getTokenNode('VariableDeclarator', true)
     const declareNode = Identifier(ctx,stack);
-
+    if(!declareNode)return null;
     if( !stack.flag && stack.useRefItems.size > 0 && stack.init && ctx.builder.isBuildVueTemplateFormat() ){
         const desc = stack.description();
         if(desc && ctx.builder.isVueComponent(desc.module) ){

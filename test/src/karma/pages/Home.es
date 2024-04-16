@@ -170,10 +170,3 @@ class Home extends Component{
       }
 
 }
-
-
-<style scoped>
-
-
-
-</style>
