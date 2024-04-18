@@ -32,6 +32,7 @@ module.exports = {
     annotations:['Redirect','Metadata','Readfile'],
     lang:'zh-CN',
     esc:{
+        minify:false,
         resolve:{
             alias:{
               '^element-plus[\\\\\/]':path.join(process.cwd(), 'node_modules')
@@ -79,7 +80,7 @@ module.exports = {
             useAbsolutePathImport:true,
             output:'./build',
             sourceMaps:true,
-            format:"vue-template",
+           //format:"vue-template",
             version:3,
             srcCSS:false,
             optimize:true,

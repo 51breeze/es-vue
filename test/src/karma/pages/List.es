@@ -175,7 +175,7 @@ class List extends Component{
       @Override
       render(){
 
-            console.log(  this.formData.infiniteCount );
+            console.log(  this.formData.infiniteCount , '---------infiniteCount-------------');
 
             return <div xmlns:d="@directives" xmlns:dc="@directives::custom" xmlns:s="@slots" xmlns:ui="web.ui">
                   <ui:Button type="primary" ><ui:Icon><plus /></ui:Icon> button <ui:Icon name="Plus"/> </ui:Button>

@@ -209,7 +209,7 @@ package web.ui{
             </div>
         }
 
-        @Main
+        @Main(false)
         static main(){
             Multiroot.builtinPlugins=[
                 Essentials,

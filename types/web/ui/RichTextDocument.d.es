@@ -76,7 +76,7 @@ package web.ui{
             </div>
         }
 
-        @Main
+        @Main(false)
         static main(){
             Decoupled.builtinPlugins=[
                 Essentials,

@@ -15,3 +15,4 @@ declare final class Icon extends Component{
     //图标名称
     name:string;
 }
+

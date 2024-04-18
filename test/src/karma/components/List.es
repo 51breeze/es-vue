@@ -37,7 +37,6 @@ class List extends Component {
     @Injector(list)
     set homeList(value){
         this.lists = value;
-        const ss:sssT = null;
     }
 
     @Override
