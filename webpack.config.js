@@ -24,6 +24,7 @@ const plugins=[
       output:build,
       sourceMaps:true,
       version:3,
+      uiFully:false,
       mode:'development',
       srcCSS:false,
       optimize:true,

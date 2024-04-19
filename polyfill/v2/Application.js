@@ -9,7 +9,6 @@
 ///<references from='web.components.Component' />
 ///<references from='web.components.Router' />
 ///<references from='Reflect' />
-///<import from='element-ui/lib/theme-chalk/base.css' />
 ///<import from='${__filename}?callhook&action=config' name='__config'/>
 ///<import from='${__filename}?callhook&action=route' name='__routes' />
 ///<namespaces name='web' />

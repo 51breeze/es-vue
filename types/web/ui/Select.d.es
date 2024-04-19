@@ -1,15 +1,11 @@
 package web.ui
 
 import web.components.Component
+import 'element-ui/lib/theme-chalk/select.css';
 
 @Define(slot,'prefix')
 @Define(slot,'default')
 @Define(slot,'empty')
-
-@Import(Select = "element-ui/packages/select")
-@Embed('element-ui/lib/theme-chalk/select.css')
-
-//@Embed('element-ui/lib/theme-chalk/icon.css');
 
 declare final class Select extends Component{
 

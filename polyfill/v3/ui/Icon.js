@@ -1,5 +1,4 @@
 ///<import from='element-plus/lib/components/icon' name='ElIcon' />
-///<import from='element-plus/theme-chalk/el-icon.css' />
 ///<import from='vue' name='Vue' namespaced />
 ///<import from='@element-plus/icons-vue' name='ElementPlusIconsVue' namespaced />
 ///<references from='System' />

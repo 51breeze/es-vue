@@ -11,7 +11,6 @@
 ///<references from='EventDispatcher' />
 ///<references from='Reflect' />
 ///<references from='System' />
-///<import from='element-plus/theme-chalk/base.css' />
 ///<import from='${__filename}?callhook&action=config' name='__config'/>
 ///<import from='${__filename}?callhook&action=route' name='__routes' />
 ///<namespaces name='web' />

@@ -22,13 +22,16 @@ const defaultConfig ={
     crossDependenciesCheck:true,
     css:'sass', //none sass css
     resolve:{
-        imports:{},
+        imports:{
+            '#es-vue-web-application-style':'element-plus/theme-chalk/base.css'
+        },
         folders:{}
     },
     metadata:{
         version:"3.0.0"
     },
     ssr:false,
+    uiFully:false,
     vueLoader:null,
     format:'default', //vue-raw vue-jsx vue-template
     rawJsx:{},
@@ -117,20 +120,25 @@ function genMapping(options={}){
     const imports = options.resolve.imports;
     if( options.css==="none" ){
         imports['element-ui/lib/theme-chalk/***'] = false;
-        imports['element-plus/lib/components/*/style/css'] = false;
+        imports['element-plus/lib/components/*/style/***'] = false;
+        imports['element-plus/theme-chalk/***'] = false;
+    }else if(options.css==="scss"){
+        imports['element-ui/lib/theme-chalk/*.css'] = resolveComponent(options,'{filename}/style/index')
+        imports['element-ui/lib/theme-chalk/submenu.css'] = resolveComponent(options,'sub-menu/style/index')
+        imports['element-plus/lib/components/*/style/css'] = resolveComponent(options,'{0}/style/index')
     }else{
-        if(options.css==="scss"){
-            imports['element-ui/lib/theme-chalk/*.css'] = resolveComponent(options,'{filename}/style/index')
-            imports['element-ui/lib/theme-chalk/submenu.css'] = resolveComponent(options,'sub-menu/style/index')
-            imports['element-plus/lib/components/*/style/css'] = resolveComponent(options,'{0}/style/index')
-        }else{
-            imports['element-ui/lib/theme-chalk/*.css'] = resolveComponent(options,'{filename}/style/css')
-            imports['element-ui/lib/theme-chalk/submenu.css'] = resolveComponent(options,'sub-menu/style/css')
-        }
+        imports['element-ui/lib/theme-chalk/*.css'] = resolveComponent(options,'{filename}/style/css')
+        imports['element-ui/lib/theme-chalk/submenu.css'] = resolveComponent(options,'sub-menu/style/css')
     }
+    
     if(options.importModuleFlag){
         imports['element-plus/lib/components/**'] = 'element-plus/es/components/{...}/{filename}/index';
         imports['element-plus/lib/components/**/*.*'] = 'element-plus/es/components/{...}/index';
+        if(options.css==="scss"){
+            imports['element-plus/lib/components/*/style/css'] = resolveComponent(options,'{0}/style/index')
+        }else{
+            imports['element-plus/lib/components/*/style/css'] = resolveComponent(options,'{0}/style/css')
+        }
     }
 }
 
@@ -141,17 +149,40 @@ function mergeOptions(options){
         options.metadata.vue = '2.0.0';
         options.metadata.version = '2.0.0';
         const imports =  options.resolve.imports;
-        imports['element-plus/***']=null;
+        imports['element-plus/***']=false;
         if( options.css ==='none' ){
-            imports['element-ui/lib/theme-chalk/***']=null;
+            imports['element-ui/lib/theme-chalk/***']=false;
+            imports['#es-vue-web-application-style'] =false;
         }else if(options.css==="scss"){
             imports['element-ui/lib/theme-chalk/***']='element-ui/packages/theme-chalk/src/{filename}.scss';
+            imports['#es-vue-web-application-style']='element-ui/lib/theme-chalk/src/base.scss';
+        }else{
+            imports['#es-vue-web-application-style']='element-ui/lib/theme-chalk/base.css';
         }
+        if(options.uiFully){
+            delete imports['element-ui/lib/theme-chalk/***'];
+            delete imports['element-plus/***'];
+            if(options.css==="scss"){
+                imports['#es-vue-web-application-style']='element-ui/packages/theme-chalk/src/index.scss';
+            }else{
+                imports['#es-vue-web-application-style']='element-ui/lib/theme-chalk/index.css';
+            }
+        }
+        
     }else{
         options.reserved = [];
         options.metadata.vue = '3.0.0';
         options.metadata.version = '3.0.0';
-        genMapping(options);
+        if(options.uiFully){
+            const imports =  options.resolve.imports;
+            if(options.css==="scss"){
+                imports['#es-vue-web-application-style']='element-plus/theme-chalk/src/index.scss';
+            }else{
+                imports['#es-vue-web-application-style']='element-plus/theme-chalk/index.css';
+            }
+        }else{
+            genMapping(options);
+        }
     }
     
     if(options.format ==='vue-raw' || options.format ==='vue-template' || options.format ==='vue-jsx'){
@@ -194,9 +225,37 @@ class PluginEsVue extends Core.Plugin{
 
     addGlobRule(){
         super.addGlobRule();
-        if( String(this.options.version) < "3.0.0" ){
-            return;
+        if(this.options.uiFully){
+            this.addGlobUIFullyImports()
+        }else if( String(this.options.version) >= "3.0.0"){
+            this.addGlobUIImports();
         }
+    }
+
+    addGlobUIFullyImports(){
+        const isV3 =  String(this.options.version) >= "3.0.0";
+        const nameds = isV3 ? {
+            'submenu':'SubMenu'
+        } : {};
+        const library = isV3 ? 'element-plus' : 'element-ui';
+        this.glob.addRule(/^(element-ui\/packages|element-plus\/(lib|es)\/components|element-ui\/lib\/theme-chalk)\//i,(id, scheme)=>{
+            if(id.endsWith('/style/index')||id.endsWith('/style/css')||id.includes('/lib/theme-chalk/')){
+                return false;
+            }
+            let pos = id.lastIndexOf('/');
+            let basename = id.substring(pos+1);
+            let rule = scheme.rule;
+            basename = nameds[basename] || toUpper(basename);
+            if(isV3){
+                rule.setValue(id, 'imported', `El${basename}`)
+            }else{
+                rule.setValue(id, 'imported', `${basename}`)
+            }
+            return library;
+        },0,'imports');
+    }
+
+    addGlobUIImports(){
         const excludes = ['message-box', 'infinite-scroll','page-header','time-picker','date-picker','color-picker'];
         const maps={
             'element-ui/packages/option':resolveComponent(this.options,'select/index'),

@@ -3,6 +3,7 @@ package web{
     import web.components.Router;
     import web.components.RouteConfig;
     import web.components.Component;
+    import '#es-vue-web-application-style';
 
     declare class Application extends Component implements IApplication{
         constructor( options?:object );
