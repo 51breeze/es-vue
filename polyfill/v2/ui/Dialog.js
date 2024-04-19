@@ -3,7 +3,6 @@
 ///<import from='element-ui/lib/theme-chalk/dialog.css' />
 ///<namespaces name='web.ui' />
 ///<createClass value='false' />
-///<referenceAssets value='false' />
 var visible = _Dialog.watch.visible;
 var options = {
     name:'EsDialog',

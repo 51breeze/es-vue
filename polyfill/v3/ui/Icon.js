@@ -5,7 +5,6 @@
 ///<references from='System' />
 ///<namespaces name='web.ui' />
 ///<createClass value='false' />
-///<referenceAssets value='false' />
 
 // System.registerHook('application:created', (app)=>{
 //     app = app.getAttribute('vueApp');

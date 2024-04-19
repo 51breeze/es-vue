@@ -7,7 +7,6 @@
 ///<import from='element-plus/theme-chalk/el-input.css' />
 ///<namespaces name='web.ui' />
 ///<createClass value='false' />
-///<referenceAssets value='false' />
 var Select = Object.assign({}, _Select);
 const _setup = Select.setup;
 Select.setup=function(props, ctx){

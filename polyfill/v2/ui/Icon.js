@@ -2,7 +2,6 @@
 ///<import from='vue' name='Vue' />
 ///<namespaces name='web.ui' />
 ///<createClass value='false' />
-///<referenceAssets value='false' />
 const Icon = Vue.extend({
     name:'es-icon',
     props: {

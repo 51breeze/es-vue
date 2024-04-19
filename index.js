@@ -138,6 +138,12 @@ function genMapping(options={}){
     options.resolve.mapping.folder[key] = value;
     options.resolve.mapping.folder['element-ui/lib/theme-chalk/submenu.css'] = false;
     options.resolve.mapping.folder['element-ui/lib/theme-chalk/select.css'] = false;
+    options.resolve.mapping.folder['element-ui/lib/theme-chalk/cascader.css'] = false;
+    options.resolve.mapping.folder['element-ui/lib/theme-chalk/dialog.css'] = false;
+    options.resolve.mapping.folder['element-ui/lib/theme-chalk/drawer.css'] = false;
+    options.resolve.mapping.folder['element-ui/lib/theme-chalk/input-number.css'] = false;
+    options.resolve.mapping.folder['element-ui/lib/theme-chalk/time-picker.css'] = false;
+    options.resolve.mapping.folder['element-ui/lib/theme-chalk/time-select.css'] = false;
     if( options.css==="none" ){
         options.resolve.mapping.folder[key] = false;
     }else{

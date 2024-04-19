@@ -2,8 +2,10 @@ package web.ui;
 
 import web.components.Component
 
-@Import(InputNumber = "element-ui/packages/input-number")
-@Embed('element-ui/lib/theme-chalk/input-number.css')
+import InputNumber from 'element-ui/packages/input-number'
+import 'element-ui/lib/theme-chalk/input-number.css';
+import 'element-plus/theme-chalk/el-input.css';
+import 'element-plus/theme-chalk/el-input-number.css';
 
 //输入框头部内容，只对 type="text" 有效
 @define(slot, 'prefix')

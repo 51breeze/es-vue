@@ -1,9 +1,10 @@
 package web.ui;
 
 import web.components.Component;
-
-@Import(Drawer = "element-ui/packages/drawer")
-@Embed('element-ui/lib/theme-chalk/drawer.css')
+import Drawer from 'element-ui/packages/drawer'
+import 'element-ui/lib/theme-chalk/drawer.css';
+import 'element-plus/theme-chalk/el-drawer.css';
+import 'element-plus/theme-chalk/el-overlay.css';
 
 @define(slot, 'default')
 @define(slot, 'title')

@@ -2,8 +2,14 @@ package web.ui;
 
 import web.components.Component
 
-@Import(TimeSelect = "element-ui/packages/time-select")
-@Embed('element-ui/lib/theme-chalk/time-select.css')
+import TimeSelect from 'element-ui/packages/time-select'
+import 'element-ui/lib/theme-chalk/time-select.css';
+import 'element-plus/theme-chalk/el-time-select.css';
+import 'element-plus/theme-chalk/el-scrollbar.css';
+import 'element-plus/theme-chalk/el-popper.css';
+import 'element-plus/theme-chalk/el-input.css';
+import 'element-plus/theme-chalk/el-select.css';
+import 'element-plus/theme-chalk/el-option.css';
 
 declare final class TimeSelect extends Component{
     //尺寸 

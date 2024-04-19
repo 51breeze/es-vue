@@ -1,10 +1,16 @@
 package web.ui;
+
 import web.components.Component
+import Cascader from 'element-ui/packages/cascader'
+import 'element-ui/lib/theme-chalk/cascader.css';
+import 'element-plus/theme-chalk/el-cascader.css';
+import 'element-plus/theme-chalk/el-input.css';
+import 'element-plus/theme-chalk/el-popper.css';
+import 'element-plus/theme-chalk/el-tag.css';
+import 'element-plus/theme-chalk/el-tag.css';
+
 @define(slot,'default')
 @define(slot,'empty')
-
-@Import(Cascader = "element-ui/packages/cascader")
-@Embed('element-ui/lib/theme-chalk/cascader.css')
 
 declare final class Cascader extends Component{
     /**
