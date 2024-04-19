@@ -80,7 +80,7 @@ module.exports = {
             useAbsolutePathImport:true,
             output:'./build',
             sourceMaps:true,
-           //format:"vue-template",
+           format:"vue-template",
             version:3,
             srcCSS:false,
             optimize:true,

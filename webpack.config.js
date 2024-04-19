@@ -12,7 +12,6 @@ const loader = require.resolve("es-loader")
 
 const { getPostCssConfig } = require( '@ckeditor/ckeditor5-dev-utils/lib/styles' );
 
-
 const host = "localhost";
 const port = 8085;
 const plugins=[

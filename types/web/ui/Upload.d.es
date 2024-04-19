@@ -3,10 +3,11 @@ package web.ui;
 import web.components.Component
 
 @Import(Upload = "element-ui/packages/upload")
+@Embed('element-ui/lib/theme-chalk/upload.css')
+
 @Define(slot, trigger)
 @Define(slot, tip)
 @Define(slot, 'default')
-@Embed('element-ui/lib/theme-chalk/upload.css')
 
 declare final class Upload extends Component{
     //必选参数，上传的地址

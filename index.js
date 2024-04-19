@@ -109,49 +109,23 @@ function getVersion( val ){
     return [a,b,c].join('.');
 }
 
-
 function genMapping(options={}){
-    var key = 'element-ui/lib/theme-chalk/***';
-    var value = 'element-plus/theme-chalk/el-{filename}.css';
     options.resolve.imports=merge({
         'element-ui/packages/**':resolveComponent(options,'{...}/{filename}/index'),
         'element-ui/packages/**/*.*':resolveComponent(options,'{...}/index'),
     }, options.resolve.imports);
-
-    const replaces = {
-        'el-select.css':'select.scss',
-        'el-popper.css':'popper.scss',
-        'el-scrollbar.css':'scrollbar.scss',
-        'el-tag.css':'tag.scss',
-        'el-input.css':'input.scss',
-        'el-dialog.css':'dialog.scss',
-        'el-overlay.css':'overlay.scss',
-        'el-cascader.css':'cascader.scss',
-        'el-cascader-panel.css':'cascader-panel.scss',
-        'el-drawer.css':'drawer.scss',
-        'el-icon.css':'icon.scss',
-        'el-time-select.css':'time-select.scss',
-        'el-time-picker.css':'time-picker.scss',
-    };
-    
     const imports = options.resolve.imports;
-    imports[key] = value;
-    imports['element-ui/lib/theme-chalk/submenu.css'] = false;
-    imports['element-ui/lib/theme-chalk/select.css'] = false;
-    imports['element-ui/lib/theme-chalk/cascader.css'] = false;
-    imports['element-ui/lib/theme-chalk/dialog.css'] = false;
-    imports['element-ui/lib/theme-chalk/drawer.css'] = false;
-    imports['element-ui/lib/theme-chalk/input-number.css'] = false;
-    imports['element-ui/lib/theme-chalk/time-picker.css'] = false;
-    imports['element-ui/lib/theme-chalk/time-select.css'] = false;
     if( options.css==="none" ){
-        imports[key] = false;
+        imports['element-ui/lib/theme-chalk/***'] = false;
+        imports['element-plus/lib/components/*/style/css'] = false;
     }else{
         if(options.css==="scss"){
-            value = 'element-plus/theme-chalk/src/{filename}.scss';
-            Object.keys(replaces).forEach( key=>{
-                imports[`element-plus/theme-chalk/${key}`] = `element-plus/theme-chalk/src/${replaces[key]}`;
-            });
+            imports['element-ui/lib/theme-chalk/*.css'] = resolveComponent(options,'{filename}/style/index')
+            imports['element-ui/lib/theme-chalk/submenu.css'] = resolveComponent(options,'sub-menu/style/index')
+            imports['element-plus/lib/components/*/style/css'] = resolveComponent(options,'{0}/style/index')
+        }else{
+            imports['element-ui/lib/theme-chalk/*.css'] = resolveComponent(options,'{filename}/style/css')
+            imports['element-ui/lib/theme-chalk/submenu.css'] = resolveComponent(options,'sub-menu/style/css')
         }
     }
     if(options.importModuleFlag){
@@ -167,12 +141,12 @@ function mergeOptions(options){
         options.metadata.vue = '2.0.0';
         options.metadata.version = '2.0.0';
         const imports =  options.resolve.imports;
+        imports['element-plus/***']=null;
         if( options.css ==='none' ){
             imports['element-ui/lib/theme-chalk/***']=null;
         }else if(options.css==="scss"){
             imports['element-ui/lib/theme-chalk/***']='element-ui/packages/theme-chalk/src/{filename}.scss';
         }
-        imports['element-plus/***']=null;
     }else{
         options.reserved = [];
         options.metadata.vue = '3.0.0';
@@ -275,6 +249,7 @@ class PluginEsVue extends Core.Plugin{
         }else{
             source = id;
         }
+        
         return {
             source
         }

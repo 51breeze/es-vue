@@ -4,7 +4,8 @@ import web.components.Component
 
 @Import(Message = "element-ui/packages/message")
 @Embed('element-ui/lib/theme-chalk/message.css')
-@Embed('element-plus/theme-chalk/el-badge.css')
+
+// @Embed('element-plus/theme-chalk/el-badge.css')
 
 /** Message Component */
 declare final class Message extends Component {

@@ -1,8 +1,8 @@
 package web.ui
 
 import web.components.Component;
-import Affix from 'element-plus/es/components/affix'
-import 'element-plus/theme-chalk/el-affix.css'
+import Affix from 'element-plus/lib/components/affix'
+import 'element-plus/lib/components/affix/style/css'
 
 declare final class Affix extends Component{
    offset:number = 0

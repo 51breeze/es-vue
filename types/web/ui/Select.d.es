@@ -8,7 +8,8 @@ import web.components.Component
 
 @Import(Select = "element-ui/packages/select")
 @Embed('element-ui/lib/theme-chalk/select.css')
-@Embed('element-ui/lib/theme-chalk/icon.css');
+
+//@Embed('element-ui/lib/theme-chalk/icon.css');
 
 declare final class Select extends Component{
 
