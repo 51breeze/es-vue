@@ -214,6 +214,9 @@ class PluginEsVue extends Core.Plugin{
 
     addGlobRule(){
         super.addGlobRule();
+        if( String(this.options.version) < "3.0.0" ){
+            return;
+        }
         const excludes = ['message-box', 'infinite-scroll','page-header','time-picker','date-picker','color-picker'];
         const maps={
             'element-ui/packages/option':resolveComponent(this.options,'select/index'),
