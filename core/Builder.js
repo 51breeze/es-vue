@@ -203,7 +203,7 @@ class Builder extends Core.Builder{
         if( metadataAnnot ){
             const checkDep=(stack)=>{
                 if(stack.isIdentifier){
-                    const desc = stack.description();
+                    const desc = stack.descriptor();
                     if(desc && desc.isVariableDeclarator && desc.parentStack){
                         if( desc.init ){
                             checkDep(desc.init);
@@ -220,7 +220,7 @@ class Builder extends Core.Builder{
                     if( stack.object.isMemberExpression ){
                         checkDep(stack.object)
                     }else{
-                        const desc = stack.object.description();
+                        const desc = stack.object.descriptor();
                         if(desc && desc.isModule){
                             if( desc.isClass ){
                                 let curImpStack = null;
@@ -228,7 +228,7 @@ class Builder extends Core.Builder{
                                     const stacks = module.getStacks();
                                     for(let ms of stacks){
                                         if(ms.isClassDeclaration){
-                                            curImpStack = ms.imports.find( s=>s.description() === desc );
+                                            curImpStack = ms.imports.find( s=>s.descriptor() === desc );
                                         }
                                     }
                                 }
@@ -275,7 +275,7 @@ class Builder extends Core.Builder{
                 const node = this.createToken(stack);
                 if(node){
                     if(!stack.source.isLiteral){
-                        const desc = stack.description();
+                        const desc = stack.descriptor();
                         if(desc && desc.isModule && desc.isClass){
                             node.specifiers.forEach( spec=>{
                                 spec.local.value = this.getModuleReferenceName(desc);

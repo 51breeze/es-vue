@@ -4,7 +4,7 @@ module.exports = function(ctx,stack){
         const version = ctx.builder.getBuildVersion();
         if( version < 3 ){
             const parent = stack.module.inherit;
-            const desc = stack.callee.description();
+            const desc = stack.getDeclareFunctionType(stack.description());
             if( desc.isConstructor ){
                 if( stack.isModuleForWebComponent( parent ) ){
                     const node = ctx.createNode( stack );

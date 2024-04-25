@@ -114,7 +114,7 @@ function getVersion( val ){
 
 function genMapping(options={}){
     options.resolve.imports=merge({
-        'element-ui/packages/**':resolveComponent(options,'{...}/{filename}/index'),
+        'element-ui/packages/**':resolveComponent(options,'{...}/{basename}/index'),
         'element-ui/packages/**/*.*':resolveComponent(options,'{...}/index'),
     }, options.resolve.imports);
     const imports = options.resolve.imports;
@@ -123,16 +123,16 @@ function genMapping(options={}){
         imports['element-plus/lib/components/*/style/***'] = false;
         imports['element-plus/theme-chalk/***'] = false;
     }else if(options.css==="scss"){
-        imports['element-ui/lib/theme-chalk/*.css'] = resolveComponent(options,'{filename}/style/index')
+        imports['element-ui/lib/theme-chalk/*.css'] = resolveComponent(options,'{basename}/style/index')
         imports['element-ui/lib/theme-chalk/submenu.css'] = resolveComponent(options,'sub-menu/style/index')
         imports['element-plus/lib/components/*/style/css'] = resolveComponent(options,'{0}/style/index')
     }else{
-        imports['element-ui/lib/theme-chalk/*.css'] = resolveComponent(options,'{filename}/style/css')
+        imports['element-ui/lib/theme-chalk/*.css'] = resolveComponent(options,'{basename}/style/css')
         imports['element-ui/lib/theme-chalk/submenu.css'] = resolveComponent(options,'sub-menu/style/css')
     }
     
     if(options.importModuleFlag){
-        imports['element-plus/lib/components/**'] = 'element-plus/es/components/{...}/{filename}/index';
+        imports['element-plus/lib/components/**'] = 'element-plus/es/components/{...}/{basename}/index';
         imports['element-plus/lib/components/**/*.*'] = 'element-plus/es/components/{...}/index';
         if(options.css==="scss"){
             imports['element-plus/lib/components/*/style/css'] = resolveComponent(options,'{0}/style/index')
@@ -154,7 +154,7 @@ function mergeOptions(options){
             imports['element-ui/lib/theme-chalk/***']=false;
             imports['#es-vue-web-application-style'] =false;
         }else if(options.css==="scss"){
-            imports['element-ui/lib/theme-chalk/***']='element-ui/packages/theme-chalk/src/{filename}.scss';
+            imports['element-ui/lib/theme-chalk/***']='element-ui/packages/theme-chalk/src/{basename}.scss';
             imports['#es-vue-web-application-style']='element-ui/lib/theme-chalk/src/base.scss';
         }else{
             imports['#es-vue-web-application-style']='element-ui/lib/theme-chalk/base.css';
