@@ -2,6 +2,7 @@ package karma.pages;
 
 import web.components.Component
 import karma.asserts.HomeAssert;
+import karma.asserts.HomeAssertVue;
 
 import stores.UserStore;
 import web.Store;
@@ -48,9 +49,16 @@ class Home extends Component{
 
       @Override
       onMounted(){
+
             when( Env(testframework, 'karma') ){
-                  const assert = new HomeAssert(this);
+
+                  when( Env(format, 'vue-template')){
+                        new HomeAssertVue(this);
+                  }then{
+                       new HomeAssert(this)
+                  }
             }
+
             const header = this.getRefs('editor-header')
             this.layout = {
                   header:header,

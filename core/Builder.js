@@ -27,11 +27,44 @@ class Builder extends Core.Builder{
         }
     }
 
-    getModuleFile(module, uniKey, type, resolve, attrs=null, action=null){
-        if(attrs && attrs.scoped && type==='style' && this.__scopeId){
-            return this.compiler.normalizeModuleFile(module, uniKey, type, resolve, {scopeId:this.plugin.options.scopeIdPrefix+this.__scopeId});
+    getModuleResourceId(module, query={}){
+        if(query.scoped && query.type==='style' && this.__scopeId ){
+            delete query.scoped;
+            query.scopeId = this.__scopeId;
         }
-        return this.compiler.normalizeModuleFile(module, uniKey, type, resolve);
+
+        const importSourceQuery = this.plugin.options.importSourceQuery;
+        if( importSourceQuery.enabled ){
+            const isString = typeof module === 'string';
+            const test = importSourceQuery.test;
+            let result = true;
+            if(test){
+                let file = isString ? module :  path.dirname(module.file) +'.'+ module.id + path.extname(module.file);
+                let ns = !isString && module.isModule ? module.getName() : null
+                if(test instanceof RegExp){
+                    result = test.test(file);
+                    if(!result)result = test.test(ns);
+                }else{
+                    result = file === test || test === ns;
+                }
+            }
+            if(result){
+                const typeName = type==='style' ? 'styles' : this.isVueComponent(module) ? 'component' : null;
+                if(typeName){
+                    result = importSourceQuery.types.includes(typeName);
+                }
+                if(!result || !typeName){
+                    result = importSourceQuery.types.includes('*');
+                }
+            }
+            if(result){
+                this.plugin.setResourceQuery(this.compiler.normalizeModuleFile(module, uniKey, type, resolve, query), importSourceQuery.query);
+                Object.assign(query, importSourceQuery.query);
+            }
+        }
+        if(query.vue != null)query.vue = '';
+
+        return super.getModuleResourceId(module, query);
     }
 
     createThisNode(stack, ctx, flag){
@@ -153,7 +186,7 @@ class Builder extends Core.Builder{
                 name:route.name || pageModule.getName('/'),
                 meta:metakey,
                 redirect:this.getModuleRedirect(pageModule),
-                component:`()=>import('${pageModule.file}')`
+                component:`()=>import('${this.getModuleResourceId(pageModule)}')`
             }
             const parent = getParentRoute(pid);
             if( parent ){
@@ -265,9 +298,8 @@ class Builder extends Core.Builder{
         }
 
         const gen = new Generator(this.compilation.file);
-
         if(requireSelfFlag){
-            gen.make(this.createChunkNode(`import ${this.getModuleReferenceName(module)} from "${module.file}"`));
+            gen.make(this.createChunkNode(`import ${this.getModuleReferenceName(module)} from "${this.getModuleResourceId(module)}"`));
         }
 
         if(imports.size>0){

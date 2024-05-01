@@ -725,7 +725,7 @@ class JSXClassBuilder extends ClassBuilder{
             properties.push( this.createPropertyNode(this.createIdentifierNode('__hmrId'), this.createLiteralNode(this.getModuleHashId()) ) )
         }
 
-        if( opts.ssr && opts.vueOptions.ssrContext ){
+        if( opts.ssr && opts.vueOptions.__ssrContext !== false ){
             const compiler = this.compiler;
             const ws = compiler.workspace;
             const file = compiler.normalizePath(path.relative(ws, this.compilation.file));

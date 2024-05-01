@@ -41,11 +41,19 @@ const defaultConfig ={
     },
     vueOptions:{
         __file:false,
-        __ssrContext:false,
+        __ssrContext:true,
         __vccOpts:false,
         __asyncSetup:{
             mode:'none', //ssr nossr all none,
             filter:null,
+        }
+    },
+    importSourceQuery:{
+        enabled:false,
+        test:null,
+        types:['component', 'styles'],
+        query:{
+            vue:''
         }
     },
     scopeIdPrefix:'data-v-',
@@ -122,6 +130,7 @@ function genMapping(options={}){
         imports['element-ui/lib/theme-chalk/***'] = false;
         imports['element-plus/lib/components/*/style/***'] = false;
         imports['element-plus/theme-chalk/***'] = false;
+        imports['#es-vue-web-application-style'] = false;
     }else if(options.css==="scss"){
         imports['element-ui/lib/theme-chalk/*.css'] = resolveComponent(options,'{basename}/style/index')
         imports['element-ui/lib/theme-chalk/submenu.css'] = resolveComponent(options,'sub-menu/style/index')
@@ -136,7 +145,7 @@ function genMapping(options={}){
         imports['element-plus/lib/components/**/*.*'] = 'element-plus/es/components/{...}/index';
         if(options.css==="scss"){
             imports['element-plus/lib/components/*/style/css'] = resolveComponent(options,'{0}/style/index')
-        }else{
+        }else if(options.css!=="none" ){
             imports['element-plus/lib/components/*/style/css'] = resolveComponent(options,'{0}/style/css')
         }
     }
@@ -164,7 +173,7 @@ function mergeOptions(options){
             delete imports['element-plus/***'];
             if(options.css==="scss"){
                 imports['#es-vue-web-application-style']='element-ui/packages/theme-chalk/src/index.scss';
-            }else{
+            }else if(options.css!=="none" ){
                 imports['#es-vue-web-application-style']='element-ui/lib/theme-chalk/index.css';
             }
         }
@@ -175,7 +184,12 @@ function mergeOptions(options){
         options.metadata.version = '3.0.0';
         if(options.uiFully){
             const imports =  options.resolve.imports;
-            if(options.css==="scss"){
+            if(options.css==="none" ){
+                imports['element-ui/lib/theme-chalk/***'] = false;
+                imports['element-plus/lib/components/*/style/***'] = false;
+                imports['element-plus/theme-chalk/***'] = false;
+                imports['#es-vue-web-application-style'] = false;
+            }else if(options.css==="scss"){
                 imports['#es-vue-web-application-style']='element-plus/theme-chalk/src/index.scss';
             }else{
                 imports['#es-vue-web-application-style']='element-plus/theme-chalk/index.css';
@@ -220,6 +234,7 @@ class PluginEsVue extends Core.Plugin{
         this.name = pkg.name;
         this.version = pkg.version;
         this.platform = 'client';
+        this.importSourceQuery=new Map();
         registerError(complier.diagnostic.defineError, complier.diagnostic.LANG_CN, complier.diagnostic.LANG_EN );
     }
 
@@ -256,7 +271,11 @@ class PluginEsVue extends Core.Plugin{
     }
 
     addGlobUIImports(){
-        const excludes = ['message-box', 'infinite-scroll','page-header','time-picker','date-picker','color-picker'];
+        const excludes = [
+            'message-box', 'infinite-scroll','page-header','time-picker','date-picker','color-picker',
+            'input-number','cascader-panel','check-tag','collapse-transition','config-provider','focus-trap','image-viewer',
+            'roving-focus-group','select-v2','table-v2','tooltip-v2','tree-select','tree-v2','virtual-list','visual-hidden'
+        ];
         const maps={
             'element-ui/packages/option':resolveComponent(this.options,'select/index'),
             'element-ui/packages/submenu':resolveComponent(this.options,'menu/index'),
@@ -324,6 +343,14 @@ class PluginEsVue extends Core.Plugin{
             return builder.getModuleMetadata(query);
         }
         return null;
+    }
+
+    setResourceQuery(resourceId, query){
+        this.importSourceQuery.set(resourceId, query);
+    }
+
+    getResourceQuery(resourceId){
+        return this.importSourceQuery.get(resourceId);
     }
 
     getTokenNode(name, flag=false){

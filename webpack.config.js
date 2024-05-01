@@ -14,6 +14,11 @@ const { getPostCssConfig } = require( '@ckeditor/ckeditor5-dev-utils/lib/styles'
 
 const host = "localhost";
 const port = 8085;
+const format = 'default';
+
+process.env.format = format
+
+
 const plugins=[
   {
     plugin:require('../es-vue'),
@@ -29,14 +34,15 @@ const plugins=[
       srcCSS:false,
       optimize:true,
       projectConfigFile:'.env',
-      pageDir:'pages',
+      //pageDir:'pages',
+      pageDir:false,
       hmrHandler:'import.meta.webpackHot',
       metadata:{
         env:process.env,
         //platform:'server'
       },
       hot:true,
-      //format:'vue-template', //vue-template
+      format:format, //vue-template
       
       babel:false,
       // babel:{
@@ -70,6 +76,11 @@ const plugins=[
     }
   }
 ];
+
+
+
+
+
 
 const config = {
   mode:"development",

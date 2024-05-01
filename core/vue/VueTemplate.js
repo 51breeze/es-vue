@@ -888,7 +888,7 @@ class VueTemplate extends JSXTransform{
         if(stack.isSlot){
             const slotName = stack.openingElement.name.value();
             const attributes = node.openingElement.attributes;
-            const scope = attributes.length > 0 ? attributes.find( attr=>attr.name.value ==='scope' ) : null;
+            const scope = attributes.length > 0;
             if( !stack.isSlotDeclared && !scope && slotName ==='default' && node.children.length===1 ){
                 return node.children[0];
             }
@@ -902,13 +902,11 @@ class VueTemplate extends JSXTransform{
                     attr.name = node.createIdentifierNode('v-slot:'+slotName);
                     if( attributes.length > 0 ){
                         node.openingElement.attributes = [];
-                        if( scope ){
-                            attr.value = scope.value;
-                        }else{
-                            attr.value = this.createObjectNode( attributes.map( attr=>{
-                                return this.createPropertyNode( attr.name, attr.value)
-                            }));
-                        }
+                        const objectPattern = node.createNode('ObjectPattern')
+                        objectPattern.properties = attributes.map( attr=>{
+                            return objectPattern.createPropertyNode(attr.name, attr.value, attr.value)
+                        });
+                        attr.value = objectPattern;
                     }
                 }
                 node.openingElement.attributes.unshift(attr)
