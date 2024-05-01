@@ -11,3 +11,4 @@ yarn.lock
 .babelrc
 .gitattributes
 index.d.es;
+.vscode
