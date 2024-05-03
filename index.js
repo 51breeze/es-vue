@@ -345,14 +345,6 @@ class PluginEsVue extends Core.Plugin{
         return null;
     }
 
-    setResourceQuery(resourceId, query){
-        this.importSourceQuery.set(resourceId, query);
-    }
-
-    getResourceQuery(resourceId){
-        return this.importSourceQuery.get(resourceId);
-    }
-
     getTokenNode(name, flag=false){
         if( flag ){
             return super.getTokenNode(name);

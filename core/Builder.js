@@ -49,7 +49,7 @@ class Builder extends Core.Builder{
                 }
             }
             if(result){
-                const typeName = type==='style' ? 'styles' : this.isVueComponent(module) ? 'component' : null;
+                const typeName = query.type==='style' ? 'styles' : this.isVueComponent(module) ? 'component' : null;
                 if(typeName){
                     result = importSourceQuery.types.includes(typeName);
                 }
@@ -57,13 +57,15 @@ class Builder extends Core.Builder{
                     result = importSourceQuery.types.includes('*');
                 }
             }
-            if(result){
-                this.plugin.setResourceQuery(this.compiler.normalizeModuleFile(module, uniKey, type, resolve, query), importSourceQuery.query);
-                Object.assign(query, importSourceQuery.query);
+            if(result && importSourceQuery.query){
+                Object.keys(importSourceQuery.query).forEach(key=>{
+                    if(query[key] === void 0){
+                        query[key] = importSourceQuery.query[key];
+                    }
+                })
             }
         }
         if(query.vue != null)query.vue = '';
-
         return super.getModuleResourceId(module, query);
     }
 
