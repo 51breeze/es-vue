@@ -133,7 +133,8 @@ class HomeAssert extends Base {
                     expect('password:password').toEqual( from_data_password_el && from_data_password_el.textContent );
 
                     const slotOne = app.getRefs<Component>('slot-component-1');
-                    expect(`Slot component: default`).toEqual(slotOne.getAttribute<HTMLElement>('el').querySelector('.head > h3').textContent)
+                    expect(`Slot component: default`).toEqual( slotOne.getAttribute<HTMLElement>('el').querySelector('.head > h3').textContent )
+
 
                     expect(`<div>footer default children</div>`).toEqual(slotOne.getAttribute<HTMLElement>('el').querySelector('.footer').innerHTML )
 
