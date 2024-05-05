@@ -116,9 +116,8 @@ package web{
             return null;
         }
 
-        protected getLocaleFiles(){
-            type T1 = {path:string,isFile?:boolean,content:{[key:string]:string},children?:T1[]};
-            return @Readfile('@options.localeDir', load=true, relative=true) as T1[];
+        protected getLocaleFiles():annotation.ReadfileResult{
+            return @Readfile('@options.localeDir', load=true, relative=true);
         }
 
         protected getRefs(target:object, segs:string[], createFlag=false){
