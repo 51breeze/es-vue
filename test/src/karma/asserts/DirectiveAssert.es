@@ -17,14 +17,14 @@ class DirectiveAssert extends Base {
       describe('test Home page',()=>{
           it('test Directive',()=>{
                 const ifEl = this.element.querySelector('.if-condition');
-                const ifElNodes = Array.from( ifEl.childNodes ).filter( node=>!(node.nodeType==8 || node.nodeType==3) );
+                const ifElNodes = Array.from( ifEl && ifEl.childNodes ).filter( node=>!(node.nodeType==8 || node.nodeType==3) );
                 expect( 3 ).toEqual( ifElNodes.length );
                 const showEl = this.element.querySelector('.show');
-                const showElNodes = Array.from( showEl.childNodes ).filter( node=>!(node.nodeType==8 || node.nodeType==3) );
+                const showElNodes = Array.from( showEl?.childNodes ).filter( node=>!(node.nodeType==8 || node.nodeType==3) );
                 expect( 3 ).toEqual( showElNodes.length );
                 app.addEventListener( ComponentEvent.UPDATED, ()=>{
-                  const ifElNodes = Array.from( ifEl.childNodes ).filter( node=>!(node.nodeType==8 || node.nodeType==3) );
-                  const showElNodes = Array.from( showEl.childNodes ).filter( node=>!(node.nodeType==8 || node.nodeType==3) );
+                  const ifElNodes = Array.from( ifEl?.childNodes ).filter( node=>!(node.nodeType==8 || node.nodeType==3) );
+                  const showElNodes = Array.from( showEl?.childNodes ).filter( node=>!(node.nodeType==8 || node.nodeType==3) );
 
                    console.log( app.condition, '------------app.condition----------------' )
 

@@ -31,8 +31,11 @@ class Index extends Application{
         console.trace( lang.format('home.start', {start:'2002.12'}), lang.getLocale() , '---------------', Lang.format('home.start', {start:'2002.12'}), Lang.format('Begin', {}), Lang.format('start', {start:'2012'}) )
     }
 
-    async start(){
-
+    async start(arg){
+         const obj = {};
+        obj.test ??= null;
+        obj.test?.name;
+        const name = obj ?? 12
     }
 
     constructor(){

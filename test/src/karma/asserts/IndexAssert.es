@@ -22,22 +22,24 @@ class IndexAssert extends Base {
 
         describe('test main Index',()=>{
 
+            
+
             it('title',()=>{
                 expect('div').toBe( this.getElementType( this.element ) );
                 const title = this.element.querySelector<HTMLElement>('.title')
                 expect('h5').toBe( this.getElementType(title) );
-                expect( app.title ).toBe( title.textContent );
+                expect( app.title ).toBe( title?.textContent );
             });
 
             it('menus',()=>{
                 const menus = this.element.querySelector<HTMLElement>('.menus');
                 const routes = app.router.getRoutes();
-                 const childNodes = Array.from( menus.childNodes ).filter( node=>!(node.nodeType==8 || node.nodeType==3) );
+                 const childNodes = Array.from( menus?.childNodes ).filter( node=>!(node.nodeType==8 || node.nodeType==3) );
                 expect(routes.length ).toBe(childNodes.length );
                 childNodes.forEach( (child,index)=>{
                     const el = child as HTMLElement;
                     expect('a').toBe( this.getElementType( el ) );
-                    expect( routes[index].path ).toEqual( el.getAttribute('href').replace('#','') );
+                    expect( routes[index].path ).toEqual( el.getAttribute('href')?.replace('#','') );
                     expect( routes[index].name ).toEqual( el.textContent );
                 });
             });

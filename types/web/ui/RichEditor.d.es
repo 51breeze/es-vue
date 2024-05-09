@@ -137,7 +137,7 @@ class RichEditor extends Component{
             }
             
             const toolbarContainer = this.getToolbarContainer();
-            if(toolbarContainer){
+            if(toolbarContainer is HTMLElement){
                 const toolbar = editor.ui.view.toolbar as {element:HTMLElement};
                 if(toolbar){
                     toolbarContainer.appendChild( toolbar.element );

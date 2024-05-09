@@ -61,7 +61,7 @@ package web.ui{
 
                 const toolbarContainer = this.getToolbarContainer();
                 const focusTracker = editor.ui.focusTracker;
-                if(focusTracker){
+                if(focusTracker && toolbarContainer is HTMLElement){
                     focusTracker.on( 'change:isFocused', () => {
                         if ( focusTracker.isFocused ) {
                             toolbarContainer.classList.add( 'sticky' );
@@ -141,7 +141,10 @@ package web.ui{
 
         protected getChildren(){
             const child = this.getRefs('children');
-            return Array.from(child.childNodes).filter(child=>child.nodeType===1);
+            if(child is HTMLElement){
+                return Array.from(child.childNodes).filter(child=>child.nodeType===1);
+            }
+            return [];
         }
 
         protected queryElementNode(value:any):HTMLElement{

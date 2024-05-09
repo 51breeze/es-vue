@@ -8,4 +8,4 @@ console.log( Index )
 
 //Index.main()
 
-classObject.main();
+classObject?.main();
