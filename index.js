@@ -356,6 +356,27 @@ class PluginEsVue extends Core.Plugin{
        return super.getBuilder(compilation, builderFactory);
     }
 
+    getBuildModule(resourcePath, id=null, ns=''){
+        if(this.options.ssr)ns += ':ssr';
+        return super.getBuildModule(resourcePath, id, ns)
+    }
+
+    getBuildAssets(resourcePath, index=0, type=null, ns=''){
+        if(this.options.ssr)ns += ':ssr';
+        if(type==='style')type = 'styles';
+        return super.getBuildAssets(resourcePath, index, type, ns)
+    }
+
+    createBuildAsset(resourceId, content=null, isFile=null, type=null, ns=''){
+        if(this.options.ssr)ns += ':ssr';
+        return super.createBuildAsset(resourceId, content, isFile, type, ns);
+    }
+
+    createBuildModule(resourceId, content, sourceMap, ns=''){
+        if(this.options.ssr)ns += ':ssr';
+        return super.createBuildModule(resourceId, content, sourceMap, ns)
+    }
+
     toString(){
         return pkg.name;
     }
