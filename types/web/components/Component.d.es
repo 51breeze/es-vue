@@ -34,7 +34,8 @@ package web.components{
         protected render():vue.VNode | Component;
         protected receivePropValue<T>(value:T,name:string):T;
         protected beforeReceiveProp(value:any,name:string):boolean;
-        protected withAsyncContext<T=any>(handler:()=>Promise<T>):[Promise<T>, ()=>void]
+        protected withAsyncContext<T=void>(handler:()=>T):[T, ()=>void]
+        protected withContext<T=void>(handler:()=>T):T;
         protected createVNode(name:string|Component,data?:VNodeDataConfig,children?:VNode|Component[]):VNode;
         
         get parent():Component|vue.ComponentPublicInstance;
@@ -62,7 +63,8 @@ package web.components{
         getRoute():web.components.Route | null;
         getRefs<T=NodeElementType>(name:string):T;
         getRefs<T=NodeElementType[]>(name:string, toArray:boolean):T;
-        toValue<T>(value:T):T;
+        toValue<T>(value:T): T;
+        toValue<T extends vue.Ref>(value:T):T['value'];
         getAttribute<T=any>(name:string):T;
         getAttribute(name:'vueApp'):vue.App;
         on(type: string, listener:(...args)=>void):void;

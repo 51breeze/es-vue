@@ -5,6 +5,7 @@
  * @author Jun Ye <664371281@qq.com>
  */
 ///<import from='vue' name='Vue' namespaced />
+///<import from='@vue/shared' name='shared' namespaced />
 ///<references from='Class' />
 ///<references from='System' />
 ///<references from='Reflect' />
@@ -43,6 +44,14 @@ const _resolveDirective = Vue.resolveDirective;
 const nextTick = Vue.nextTick;
 const isReactive = Vue.isReactive;
 const emtyObject = Object.create(null);
+
+const globalThis = shared.getGlobalThis();
+var setCurrentInstance = null;
+if(globalThis && Array.isArray(globalThis.__VUE_INSTANCE_SETTERS__) ){
+    setCurrentInstance=(v)=>{
+        globalThis.__VUE_INSTANCE_SETTERS__.forEach(set=>set(v))
+    }
+}
 
 function Component(props){
     if( !hasOwn.call(this, privateKey) ){
@@ -429,13 +438,23 @@ Object.defineProperty( proto, 'nextTick', {value:function nextTick(callback){
 }});
 
 Object.defineProperty( proto, 'withAsyncContext', {value:function withAsyncContext(callback){
-    const setCurrentInstance = this[privateKey].setCurrentInstance;
-    if( setCurrentInstance ){
-        if( !getCurrentInstance() ){
-            setCurrentInstance();
+    if(!getCurrentInstance()){
+        if(setCurrentInstance){
+            setCurrentInstance(this[privateKey].instance)
+        }else{
+            let setInstance = this[privateKey].setCurrentInstance;
+            if( setInstance ){
+                setInstance();
+            }
         }
     }
     return Vue.withAsyncContext(callback);
+}});
+
+Object.defineProperty( proto, 'withContext', {value:function withContext(callback){
+    const [value, restore] = this.withAsyncContext(callback);
+    restore();
+    return value;
 }});
 
 Object.defineProperty( proto, 'getRoute', {value:function getRoute(){
@@ -670,11 +689,11 @@ Object.defineProperty( Component, 'createComponent', {value:function createCompo
         const parent = esInstance.getParentComponent(true);
         const provides = parent ? parent[privateKey].provides : vueInstance.provides;
         const initialized = esInstance[privateKey].initialized;
-
-        if(asyncSetup){
-            const [,setCurrentInstance] = Vue.withAsyncContext( ()=>null );
-            esInstance[privateKey].setCurrentInstance = setCurrentInstance;
-            setCurrentInstance();
+        
+        if(!setCurrentInstance){
+            const [,setInstance] = Vue.withAsyncContext(()=>null);
+            esInstance[privateKey].setCurrentInstance = setInstance;
+            setInstance();
         }
 
         if(provides){
