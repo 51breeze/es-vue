@@ -13,6 +13,7 @@
 ///<references from='Event' />
 ///<references from='web.events.ComponentEvent' name='ComponentEvent' />
 ///<namespaces name='web.components' />
+
 function copyObject(target, deep){
     if( target && typeof target ==='object' ){
         if( Object.prototype.toString.call(target) === '[object Object]' ){
@@ -44,14 +45,6 @@ const _resolveDirective = Vue.resolveDirective;
 const nextTick = Vue.nextTick;
 const isReactive = Vue.isReactive;
 const emtyObject = Object.create(null);
-
-const globalThis = shared.getGlobalThis();
-var setCurrentInstance = null;
-if(globalThis && Array.isArray(globalThis.__VUE_INSTANCE_SETTERS__) ){
-    setCurrentInstance=(v)=>{
-        globalThis.__VUE_INSTANCE_SETTERS__.forEach(set=>set(v))
-    }
-}
 
 function Component(props){
     if( !hasOwn.call(this, privateKey) ){
@@ -437,25 +430,44 @@ Object.defineProperty( proto, 'nextTick', {value:function nextTick(callback){
     return nextTick(callback);
 }});
 
-Object.defineProperty( proto, 'withAsyncContext', {value:function withAsyncContext(callback){
-    if(!getCurrentInstance()){
+Object.defineProperty( proto, 'withAsyncContext', {value:function withAsyncContext(callback, nullable=null){
+    let current = getCurrentInstance();
+    let setCurrentInstance = this[privateKey].setCurrentInstance;
+    if(!current){
         if(setCurrentInstance){
-            setCurrentInstance(this[privateKey].instance)
-        }else{
-            let setInstance = this[privateKey].setCurrentInstance;
-            if( setInstance ){
-                setInstance();
-            }
+            setCurrentInstance();
+            current = getCurrentInstance();
         }
     }
-    return Vue.withAsyncContext(callback);
+    const [data, restore] = Vue.withAsyncContext(callback);
+    const setNullInstance = restore();
+    const reset = ()=>{
+        if(reset.isCalled){
+            return [restore, setNullInstance];
+        }
+        reset.isCalled = true;
+        let now = getCurrentInstance();
+        if(!nullable && nullable !== false){
+            nullable = !!this[privateKey].initializeDone;
+        }
+        if(!now && !nullable)restore();
+        if(now !== current && nullable){
+            setNullInstance();
+        }
+        return [restore, setNullInstance];
+    }
+    if(shared.isPromise(data) && data.finally){
+        data.finally(reset);
+    }else{
+        reset();
+    }
+    return [data, reset];
 }});
 
-Object.defineProperty( proto, 'withContext', {value:function withContext(callback){
-    const [value, restore] = this.withAsyncContext(callback);
-    restore();
-    return value;
-}});
+Object.defineProperty(proto, 'withContext', {value:function withContext(callback, nullable=null){
+    const [data] = this.withAsyncContext(callback, nullable);
+    return data;
+}})
 
 Object.defineProperty( proto, 'getRoute', {value:function getRoute(){
     const target = this[privateKey].instance;
@@ -690,11 +702,9 @@ Object.defineProperty( Component, 'createComponent', {value:function createCompo
         const provides = parent ? parent[privateKey].provides : vueInstance.provides;
         const initialized = esInstance[privateKey].initialized;
         
-        if(!setCurrentInstance){
-            const [,setInstance] = Vue.withAsyncContext(()=>null);
-            esInstance[privateKey].setCurrentInstance = setInstance;
-            setInstance();
-        }
+        const [,setCurrentInstance] = Vue.withAsyncContext(()=>null);
+        esInstance[privateKey].setCurrentInstance = setCurrentInstance;
+        esInstance[privateKey].setNullInstance = setCurrentInstance();
 
         if(provides){
             const target = esInstance[privateKey].provides;
@@ -800,6 +810,7 @@ Object.defineProperty( Component, 'createComponent', {value:function createCompo
                 esInstance[privateKey].vueContext = context;
                 if( !initialized ){
                     await esInstance.onInitialized();
+                    esInstance[privateKey].initializeDone = true;
                 }
                 return expose;
             }catch(e){
@@ -815,6 +826,7 @@ Object.defineProperty( Component, 'createComponent', {value:function createCompo
                 esInstance[privateKey].vueContext = context;
                 if( !initialized ){
                     esInstance.onInitialized();
+                    esInstance[privateKey].initializeDone = true;
                 }
                 return expose;
             }catch(e){
