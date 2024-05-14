@@ -539,6 +539,17 @@ Object.defineProperty( proto, 'nextTick', {value:function nextTick(callback){
     return this.$nextTick(callback);
 }});
 
+Object.defineProperty( proto, 'withAsyncContext', {value:function withAsyncContext(callback, nullable=null){
+    const data = callback();
+    const noop = ()=>null;
+    return [data, ()=>[noop, noop]];
+}});
+
+Object.defineProperty(proto, 'withContext', {value:function withContext(callback, nullable=null){
+    const [data] = this.withAsyncContext(callback, nullable);
+    return data;
+}})
+
 Object.defineProperty( proto, 'getAttribute', {value:function getAttribute(name){
     if(name ==='states'){
         return this[key].states;
