@@ -83,7 +83,7 @@ module.exports = {
             //format:"vue-template",
             version:3,
             srcCSS:false,
-            optimize:false,
+            optimize:true,
             projectConfigFile:'.env',
             pageDir:'pages',
             hmrHandler:'import.meta.webpackHot',
