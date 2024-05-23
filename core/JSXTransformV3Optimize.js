@@ -345,13 +345,31 @@ class JSXTransformV3Optimize extends JSXTransformV3{
                 if( child.type ==="Literal" || child.isMergeStringNode || child.isNeedCreateTextNode){
                     return this.createVueTextVNodeNode( child , ELEMENT_TEXT);
                 }else if(child.isNeedUseCreateElementNode){
-                    return this.createCalleeCreateVNode(child.stack||stack, child);
+                    return this.createFragmentComponentNode(child);
+                    //return this.createCalleeCreateVNode(child.stack||stack, child);
                 }
                 return child;
             });
         }
 
         return content;
+    }
+
+    createFragmentComponentNode( value ){
+        const Fragment = this.builder.getGlobalModuleById('web.components.Fragment');
+        this.addDepend(Fragment);
+        const componentName = this.getModuleReferenceName(Fragment);
+        return this.createVueBlockVNode(true,[
+            this.createIdentifierNode(componentName),
+            this.createObjectNode([
+                this.createPropertyNode('value', value)
+            ]),
+            this.createLiteralNode(null),
+            this.createLiteralNode(8),
+            this.createArrayNode([
+                this.createLiteralNode('value')
+            ])
+        ])
     }
 
     createCalleeCreateVNode(stack, ...args){
@@ -531,6 +549,28 @@ class JSXTransformV3Optimize extends JSXTransformV3{
                 binddingModelValue = value.value;
                 if( !binddingModelValue || !(binddingModelValue.type ==='MemberExpression' || binddingModelValue.type ==='Identifier') ){
                     binddingModelValue = null
+                    if(item.value && item.value.isJSXExpressionContainer){
+                        const stack = item.value.expression;
+                        if(stack && stack.isMemberExpression && !stack.optional){
+                            const Reflect = this.builder.getGlobalModuleById('Reflect');
+                            this.addDepend( Reflect );
+                            binddingModelValue = this.createCalleeNode(
+                                this.createMemberNode([
+                                    this.checkRefsName(this.builder.getModuleReferenceName(Reflect)),
+                                    this.createIdentifierNode('set')
+                                ]),
+                                [
+                                    stack.module ? this.createIdentifierNode(stack.module.id) : this.createLiteralNode(null), 
+                                    this.createToken(stack.object), 
+                                    stack.computed ? this.createToken(stack.property) : this.createLiteralNode(stack.property.value()),
+                                    this.createIdentifierNode('value')
+                                ],
+                                stack
+                            );
+                            binddingModelValue.isReflectSetter = true;
+                        }
+                    }
+                    
                 }
             }
 
@@ -593,7 +633,7 @@ class JSXTransformV3Optimize extends JSXTransformV3{
                                 [
                                     this.createIdentifierNode('value')
                                 ], 
-                                this.createAssignmentNode(
+                                binddingModelValue.isReflectSetter ? binddingModelValue : this.createAssignmentNode(
                                     binddingModelValue,
                                     this.createIdentifierNode('value')
                                 )
@@ -637,9 +677,11 @@ class JSXTransformV3Optimize extends JSXTransformV3{
                 return;
             }
 
-            if( attrLowerName ==='ref' ){
+            if(!ns && (attrLowerName ==='ref' || attrLowerName ==='refs')){
+                propName = name = 'ref';
                 pureStaticAttributes = false;
-                if( inFor ){
+                let useArray = inFor || attrLowerName ==='refs';
+                if(useArray){
                     propValue = this.createArrowFunctionNode(
                         [this.createIdentifierNode('node')], 
                         this.createCalleeNode(
@@ -650,7 +692,7 @@ class JSXTransformV3Optimize extends JSXTransformV3{
                             [
                                 value.value,
                                 this.createIdentifierNode('node'),
-                                this.createLiteralNode( inFor )
+                                this.createLiteralNode( true )
                             ]
                         )
                     );
@@ -917,6 +959,15 @@ class JSXTransformV3Optimize extends JSXTransformV3{
             return !isShowDirective && stack.parentStack[childrenNumKey]===1;
         }else if(stack.jsxRootElement === stack.parentStack){
             return stack.parentStack[childrenNumKey]===1;
+        }else{
+            const desc = stack.description();
+            if(desc){
+                const type = desc.type();
+                if(type && type.isModule){
+                    const Fragment = this.builder.getGlobalModuleById('web.components.Fragment');
+                    return Fragment.is(type);
+                }
+            }
         }
         return false;
     }

@@ -574,6 +574,27 @@ class JSXTransformV3 extends JSXTransform{
                 binddingModelValue = propValue;
                 if( !binddingModelValue || !(binddingModelValue.type ==='MemberExpression' || binddingModelValue.type ==='Identifier') ){
                     binddingModelValue = null;
+                    if(item.value && item.value.isJSXExpressionContainer){
+                        const stack = item.value.expression;
+                        if(stack && stack.isMemberExpression && !stack.optional){
+                            const Reflect = this.builder.getGlobalModuleById('Reflect');
+                            this.addDepend( Reflect );
+                            binddingModelValue = this.createCalleeNode(
+                                this.createMemberNode([
+                                    this.checkRefsName(this.builder.getModuleReferenceName(Reflect)),
+                                    this.createIdentifierNode('set')
+                                ]),
+                                [
+                                    stack.module ? this.createIdentifierNode(stack.module.id) : this.createLiteralNode(null), 
+                                    this.createToken(stack.object), 
+                                    stack.computed ? this.createToken(stack.property) : this.createLiteralNode(stack.property.value()),
+                                    this.createIdentifierNode('value')
+                                ],
+                                stack
+                            );
+                            binddingModelValue.isReflectSetter = true;
+                        }
+                    }
                 }
             }
             
@@ -617,7 +638,7 @@ class JSXTransformV3 extends JSXTransform{
                                 [
                                     this.createIdentifierNode('value')
                                 ], 
-                                this.createAssignmentNode(
+                                binddingModelValue.isReflectSetter ? binddingModelValue : this.createAssignmentNode(
                                     binddingModelValue,
                                     this.createIdentifierNode('value')
                                 )
@@ -661,8 +682,10 @@ class JSXTransformV3 extends JSXTransform{
                 return;
             }
 
-            if( attrLowerName ==='ref'){
-                if( inFor ){
+            if( !ns && (attrLowerName ==='ref' || attrLowerName ==='refs') ){
+                name = propName = 'ref';
+                let useArray = inFor || attrLowerName ==='refs';
+                if( useArray ){
                     propValue = this.createArrowFunctionNode(
                         [this.createIdentifierNode('node')], 
                         this.createCalleeNode(
@@ -673,7 +696,7 @@ class JSXTransformV3 extends JSXTransform{
                             [
                                 value.value,
                                 this.createIdentifierNode('node'),
-                                this.createLiteralNode( inFor )
+                                this.createLiteralNode( true )
                             ]
                         )
                     );

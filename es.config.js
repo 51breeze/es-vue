@@ -39,37 +39,37 @@ module.exports = {
             },
             paths:[]
         },
-        styles:{
-          preprocess:{
-            async css(args){
-                if( /[\\\/]@ckeditor[\\\/]ckeditor5/.test(args.filename) ){
-                  args.preprocessLang = null;
-                  const postoptions = getPostCssConfig({
-                      themeImporter: {
-                        themePath:require.resolve('@ckeditor/ckeditor5-theme-lark')
-                      }
-                  });
-                  args.postcssPlugins = postoptions.plugins || [];
-                  return await transformStyle(args);
-                }
-                return {
-                  code:args.source,
-                  sourcemap:args.sourcemap
-                }
-            },
-            async scss(args){
-              args.preprocessOptions = {
-                includePaths:[path.join(process.cwd(), 'node_modules')]
-              }
-              const result = await transformStyle(args);
-              if( result.errors.length>0 ){
-                console.log( result.errors, args.filename, result.dependencies )
-              }
-              return result;
-            }
-          },
+        // styles:{
+        //   preprocess:{
+        //     async css(args){
+        //         if( /[\\\/]@ckeditor[\\\/]ckeditor5/.test(args.filename) ){
+        //           args.preprocessLang = null;
+        //           const postoptions = getPostCssConfig({
+        //               themeImporter: {
+        //                 themePath:require.resolve('@ckeditor/ckeditor5-theme-lark')
+        //               }
+        //           });
+        //           args.postcssPlugins = postoptions.plugins || [];
+        //           return await transformStyle(args);
+        //         }
+        //         return {
+        //           code:args.source,
+        //           sourcemap:args.sourcemap
+        //         }
+        //     },
+        //     async scss(args){
+        //       args.preprocessOptions = {
+        //         includePaths:[path.join(process.cwd(), 'node_modules')]
+        //       }
+        //       const result = await transformStyle(args);
+        //       if( result.errors.length>0 ){
+        //         console.log( result.errors, args.filename, result.dependencies )
+        //       }
+        //       return result;
+        //     }
+        //   },
           
-        }
+        // }
     },
     plugins:[
         {
@@ -80,10 +80,10 @@ module.exports = {
             useAbsolutePathImport:true,
             output:'./build',
             sourceMaps:true,
-           format:"vue-template",
+            //format:"vue-template",
             version:3,
             srcCSS:false,
-            optimize:true,
+            optimize:false,
             projectConfigFile:'.env',
             pageDir:'pages',
             hmrHandler:'import.meta.webpackHot',
