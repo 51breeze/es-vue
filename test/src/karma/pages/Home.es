@@ -124,8 +124,8 @@ class Home extends Component{
                              <h3>Slot component: definition</h3>
                         </s:head>
 
-                        <s:content scope="scope">
-                              <div d:for="(item,index) in scope.items" ref='slot-item'>definition: {item.label}</div>
+                        <s:content items="props">
+                              <div d:for="(item,index) in props.items" ref='slot-item'>definition: {item.label}</div>
                         </s:content>
                         
                   </local:Slot>

@@ -19,7 +19,7 @@ class Slot extends Component {
             </div>
             <div class='content'>
                 <p>Content: </p>
-                <s:content scope={{items}}>
+                <s:content items={items}>
                     <div d:for="(item,index) in items" ref='item'>default: {item.label}</div>
                 </s:content>
             </div>

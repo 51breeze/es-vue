@@ -5,7 +5,7 @@ const toUpperCaseFirst=(str)=>{
     return str.substring(0,1).toUpperCase()+str.substring(1);
 }
 class JSXTransformV3 extends JSXTransform{
-    makeConfig(data){
+    makeConfig(data, stack){
         const items = [];
         const config = this.getElementConfig();
         const isSsr = !!this.plugin.options.ssr;
@@ -71,7 +71,20 @@ class JSXTransformV3 extends JSXTransform{
                 }
             }
         });
-        return items.length > 0 ? this.createObjectNode(items) : null;
+        const props = items.length > 0 ? this.createObjectNode(items) : null;
+        if(props && stack && stack.isComponent){
+            const desc = stack.description();
+            if(desc && desc.isModule && desc.isClass){
+                const hookAnnot = this.builder.getClassMemberHook( desc.moduleStack );
+                if( hookAnnot ){
+                    let [type] = hookAnnot;
+                    if(type==='polyfills:props'){
+                        return this.createInvokePolyfillsPropsHook(props, this.createLiteralNode(desc.getName()))
+                    }
+                }
+            }
+        }
+        return props;
     }
 
     makeDirectives(child, element, prevResult){
@@ -152,14 +165,15 @@ class JSXTransformV3 extends JSXTransform{
                     if( attributeSlot ){
 
                         const name = attributeSlot.name.value();
-                        const scopeName = attributeSlot.value ? attributeSlot.value.value() : null;
+                        const scopeName = attributeSlot.value ? this.createToken(attributeSlot.parserSlotScopeParamsStack()) : null;
+
                         let childrenNodes = elem.content;
                         if( childrenNodes.length ===1 && childrenNodes[0].type ==="ArrayExpression" ){
                             childrenNodes = childrenNodes[0];
                         }else{
                             childrenNodes = this.createArrayNode(childrenNodes);
                         }
-                        const params = scopeName ? [ this.createAssignmentNode(this.createIdentifierNode(scopeName),this.createObjectNode()) ] : [];
+                        const params = scopeName ? [ this.createAssignmentNode(scopeName,this.createObjectNode()) ] : [];
                         const renderSlots= this.createSlotCalleeNode(
                             child, 
                             //this.createLiteralNode(name), 
@@ -169,7 +183,7 @@ class JSXTransformV3 extends JSXTransform{
                         if( scopeName ){
                             data.defineSlots[name] = {
                                 node:renderSlots,
-                                scope:scopeName,
+                                scope:null,
                                 child
                             }
                         }else{
@@ -186,7 +200,7 @@ class JSXTransformV3 extends JSXTransform{
                     if( child.attributes.length > 0 && child.attributes[0].value ){
                         data.defineSlots[name] = {
                             node:elem.content[0],
-                            scope:child.attributes[0].value.value(),
+                            scope:null,
                             child
                         }
                     }else{
@@ -831,9 +845,13 @@ class JSXTransformV3 extends JSXTransform{
         if( stack.isSlotDeclared ){
             args.push(openingElement.name)
             if( openingElement.attributes.length > 0 ){
-                props = openingElement.attributes[0].value;
-                const attribute = stack.openingElement.attributes[0];
-                params.push( this.createAssignmentNode(this.createIdentifierNode(attribute.name.value()),this.createObjectNode()) );
+                const properties = openingElement.attributes.map(attr=>{
+                    return this.createPropertyNode(
+                        attr.name,
+                        attr.value
+                    )
+                });
+                props = this.createObjectNode(properties);
             }else{
                 props = this.createObjectNode();
             }
@@ -841,7 +859,8 @@ class JSXTransformV3 extends JSXTransform{
         }else if( stack.openingElement.attributes.length > 0 ){
             const attribute = stack.openingElement.attributes[0];
             if( attribute.value ){
-                params.push( this.createAssignmentNode(this.createIdentifierNode(attribute.value.value()),this.createObjectNode()) );
+                const stack = attribute.parserSlotScopeParamsStack();
+                params.push( this.createAssignmentNode(this.createToken(stack),this.createObjectNode()) );
             }
         }
         if( children ){

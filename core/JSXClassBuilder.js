@@ -26,40 +26,21 @@ class JSXClassBuilder extends ClassBuilder{
                     this.createObjectNode([
                         this.createPropertyNode( 
                             this.createIdentifierNode('get'), 
-                            this.createCalleeNode(
-                                this.createMemberNode([
-                                    this.createParenthesNode(
-                                        this.createGetterNode(node.key.value, node.init, false, true)
-                                    ),
-                                    this.createIdentifierNode('bind')
-                                ]),
-                                [
-                                    this.createThisNode()
-                                ]
-                            ),
+                            this.createReactiveWrapNode(node.key.value, node.init, false),
                             node.key.stack
                         ),
                         this.createPropertyNode( 
                             this.createIdentifierNode('set'), 
-                            this.createCalleeNode(
-                                this.createMemberNode([
-                                    this.createParenthesNode(
-                                        this.createSetterNode(node.key.value, false, true), 
-                                    ),
-                                    this.createIdentifierNode('bind')
-                                ]),
-                                [
-                                    this.createThisNode()
-                                ]
-                            ),
-                            node.key.stack 
+                            this.createReactiveWrapNode(node.key.value, null, true),
+                            node.key.stack
                         )
                     ]),
                 ]
             );
+            this.createPrivateRefsName();
+            return true;
         }
-        super.createPrivatePropertyNode(stack,node,isStatic);
-        
+        return super.createPrivatePropertyNode(stack,node,isStatic);
     }
 
     createConstructInitPrivateNode(block, appendAt=NaN){
@@ -95,7 +76,7 @@ class JSXClassBuilder extends ClassBuilder{
                 const reactiveAnnotation = child.injector ? (memeberStack.annotations || []).find( item=>item.name.toLowerCase() ==='reactive' ) : true;
                 if( child.type==="PropertyDefinition" ){
                     const target ={
-                        get:this.createGetterNode(child.key.value, child.init, false, reactiveAnnotation),
+                        get:this.createGetterNode(child.key.value, /*child.init*/ false, false, reactiveAnnotation),
                         set:this.createSetterNode(child.key.value, false, reactiveAnnotation),
                         modifier:child.modifier,
                         isAccessor:true
@@ -271,15 +252,39 @@ class JSXClassBuilder extends ClassBuilder{
         );
     }
 
+    createReactiveWrapNode(name, init, isset=false){
+        const node = this.createArrowFunctionNode()
+        const args = [
+            node.createLiteralNode(name)
+        ];
+        if(isset){
+            node.params.push( node.createIdentifierNode('value') )
+            args.push( node.createIdentifierNode('value') );
+        }else if( init ){
+            if(init.type==='ObjectExpression'){
+                init = node.createParenthesNode(init);
+            }
+            args.push(node.createChunkNode('void 0', false) )
+            args.push(node.createArrowFunctionNode([], init));
+        }
+        const reactive = node.createCalleeNode( 
+            node.createMemberNode([
+                node.createThisNode(),
+                node.createIdentifierNode('reactive')
+            ]),
+            args
+        );
+        node.body = reactive;
+        return node;
+    }
+
     createGetterNode(name, value, required, reactive){
         const args = [
             this.createLiteralNode(name)
         ];
         if( value ){
             args.push( this.createChunkNode('void 0', false) )
-            args.push( this.createFunctionNode(ctx=>{
-                ctx.body=[ctx.createReturnNode(value)]
-            }));
+            args.push( this.createArrowFunctionNode([], value.type==='ObjectExpression' ? this.createParenthesNode(value) : value));
         }
         const node = this.createMethodNode(name,ctx=>{
             if( reactive ){

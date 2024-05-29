@@ -435,6 +435,25 @@ Object.defineProperty( proto, 'slot', {value:function slot(name,scoped,args,fall
     return [];
 }});
 
+Object.defineProperty( proto, 'renderSlot', {value:function renderSlot(name,props={},fallback=null){
+    const slot = this.$slots[name] || this.$scopedSlots[name];
+    if(slot){
+        const isFun = typeof slot === "function";
+        if(isFun){
+            return makeChildren(name, slot(props), this );
+        }
+        return makeChildren(name, slot, this );
+    }
+    if( typeof fallback === "function" ){
+        return makeChildren(name, fallback(), this );
+    }
+    return context.createVNode('text');
+}});
+
+Object.defineProperty(proto, 'hasSlot', {value:function hasSlot(name){
+    return hasOwn.call(this.$slots, name) ||  hasOwn.call(this.$scopedSlots, name)
+}});
+
 Object.defineProperty( proto, 'element', {get:function element(){
     return this.$el;
 }});
@@ -471,8 +490,31 @@ Object.defineProperty( proto, 'createVNode', {value:function createVNode(name,co
     return this.$createElement(name, config, children);
 }});
 
-Object.defineProperty( proto, 'getRefs', {value:function getRefs(name){
-    return this.$refs[name];
+Object.defineProperty( proto, 'setRefNode', {value:function setRefNode(name, node, isArray){
+    const target = this[privateKey].refs || (this[privateKey].refs=Object.create(null));
+    if( isArray ){
+        if( !hasOwn.call(target,name) ){
+            target[name]=[ node ];
+        }else if( target[name].indexOf(node) < 0 ){
+            target[name].push( node );
+        }
+    }else{
+        target[name] = node;
+    }
+}});
+
+Object.defineProperty( proto, 'getRefs', {value:function getRefs(name, toArray=false){
+    const refs = this[privateKey].refs;
+    let vnode = null;
+    if( refs && hasOwn.call(refs,name)){
+        vnode = refs[name];
+    }else{
+        vnode = this.$refs[name];
+    }
+    if( toArray && !Array.isArray(vnode) ){
+        return vnode ? [vnode] : [];
+    }
+    return vnode;
 }});
 
 Object.defineProperty( proto, 'addEventListener', {value:function addEventListener(type, listener,useCapture,priority,reference){
@@ -562,6 +604,7 @@ Object.defineProperty( proto, 'getAttribute', {value:function getAttribute(name)
     }
     return this['$'+name] || this[name];
 }});
+
 
 Object.defineProperty( proto, 'invokeHook', {value:function invokeHook(...args){
     if(args[0] ==='component:beforeRender'){

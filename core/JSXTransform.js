@@ -6,9 +6,9 @@ class JSXTransform extends Core.JSXTransform{
         super(stack,ctx);
     }
     createClassNode(stack, renderMethod, initProperties){
-        if( stack.jsxRootElement.isSkinComponent ){
+        if( stack.jsxRootElement.parentStack.isJSXProgram ){
             const obj = new SkinClass(stack,this,'ClassDeclaration');
-            return obj.create();
+            return obj.create(renderMethod, initProperties);
         }else{
             const obj = new JSXClassBuilder(stack, this, 'ClassDeclaration');
             if(renderMethod){
@@ -237,6 +237,20 @@ class JSXTransform extends Core.JSXTransform{
                     data.attrs.push( property );
             }
         });
+    }
+
+    createInvokePolyfillsPropsHook(props, className){
+        return this.createCalleeNode(
+            this.createMemberNode([
+                this.createThisNode(),
+                this.createIdentifierNode('invokeHook')
+            ]),
+            [
+                this.createLiteralNode('polyfills:props'),
+                props,
+                className
+            ]
+        );
     }
 }
 module.exports = JSXTransform;

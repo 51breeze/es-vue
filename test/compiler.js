@@ -25,7 +25,7 @@ class Creator {
                 hot:true,
                 webpack:false,
                 babel:false,
-                version:2,
+                version:3,
                // format:'vue-template',//vue-jsx vue-template
                 srcCSS:false,
                 optimize:true,

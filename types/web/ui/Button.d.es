@@ -3,6 +3,9 @@ import web.components.Component
 @Import(Button = "element-ui/packages/button")
 @Embed('element-ui/lib/theme-chalk/button.css')
 
+@Define(slot, loading)
+@Define(slot, icon)
+
 declare final class Button extends Component{
 
     //尺寸 
@@ -11,6 +14,11 @@ declare final class Button extends Component{
 
     //类型
     type:'primary' | 'success' | 'warning' | 'danger' | 'info' | 'text'
+
+    link:boolean=false;
+    bg:boolean = false;
+    text:boolean = false;
+    tag:string | Component
 
     //是否朴素按钮
     plain:boolean=false

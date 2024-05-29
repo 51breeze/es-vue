@@ -195,14 +195,14 @@ class JSXTransformV3Optimize extends JSXTransformV3{
                     const attributeSlot = child.openingElement.attributes.find(attr=>attr.isAttributeSlot);
                     if( attributeSlot ){
                         const name = attributeSlot.name.value();
-                        const scopeName = attributeSlot.value ? attributeSlot.value.value() : null;
+                        const scopeName = attributeSlot.value ? this.createToken(attributeSlot.parserSlotScopeParamsStack()) : null;
                         let childrenNodes = elem.content;
                         if( childrenNodes.length ===1 && childrenNodes[0].type ==="ArrayExpression" ){
                             childrenNodes = childrenNodes[0];
                         }else{
                             childrenNodes = this.createArrayNode(childrenNodes);
                         }
-                        const params = scopeName ? [ this.createAssignmentNode(this.createIdentifierNode('_slotCtx'),this.createObjectNode()) ] : [];
+                        const params = scopeName ? [ this.createAssignmentNode(scopeName,this.createObjectNode()) ] : [];
                         const renderSlots= this.createSlotCalleeNode(
                             child, 
                             //this.createLiteralNode(name), 
@@ -210,7 +210,7 @@ class JSXTransformV3Optimize extends JSXTransformV3{
                         );
                         data.defineSlots[name] = {
                             node:renderSlots,
-                            scope:scopeName,
+                            scope:null,
                             child
                         }
                         return next();
@@ -221,7 +221,7 @@ class JSXTransformV3Optimize extends JSXTransformV3{
                     if( child.attributes.length > 0 && child.attributes[0].value ){
                         data.defineSlots[name] = {
                             node:elem.content[0],
-                            scope:child.attributes[0].value.value(),
+                            scope:null,
                             child
                         }
                     }else{
@@ -890,14 +890,7 @@ class JSXTransformV3Optimize extends JSXTransformV3{
             );
             return this.createFragmentNode(node, null, flags);
         }else{
-            const node = this.createCalleeNode(
-                this.createParenthesNode( 
-                    this.createForInNode(refName, element, item, key, index) 
-                ),
-                [
-                    refs
-                ]
-            );
+            const node = this.createForMapNode(refs, element, item, key, index)
             return this.createFragmentNode( node, null, flags);
         }
     }
@@ -1020,8 +1013,9 @@ class JSXTransformV3Optimize extends JSXTransformV3{
             return childNodes.elements[0];
         }
       
+        let desc = null;
         if( isComponent ){
-            const desc = stack.description();
+            desc = stack.description();
             if( desc.isModule && desc.isClass ){
                 name = this.createIdentifierNode( this.getModuleReferenceName( desc ) );
             }else{
@@ -1032,7 +1026,7 @@ class JSXTransformV3Optimize extends JSXTransformV3{
             name = this.createLiteralNode(stack.openingElement.name.value(), void 0, stack.openingElement.name);
         }
         
-        const dataObject = this.makeConfig(data);
+        let dataObject = this.makeConfig(data, stack);
         const items = [name, null, null, null, null];
 
         let pos = 1;
@@ -1319,6 +1313,18 @@ class JSXTransformV3Optimize extends JSXTransformV3{
         }
 
         return nodeElement;
+    }
+
+    createRenderNode(stack, child){
+        const node = this.createMethodNode('render', (ctx)=>{
+            ctx.body = [
+                ctx.createReturnNode( child )
+            ]
+        });
+        node.static = false;
+        node.modifier = 'public';
+        node.kind = 'method';
+        return node;
     }
 
 

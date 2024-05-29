@@ -25,7 +25,8 @@ const defaultConfig ={
         imports:{
             '#es-vue-web-application-style':'element-plus/theme-chalk/base.css'
         },
-        folders:{}
+        folders:{},
+        polyfills:{}
     },
     metadata:{
         version:"3.0.0"
@@ -230,11 +231,13 @@ function toUpper(str){
 class PluginEsVue extends Core.Plugin{
 
     constructor(complier,options={}){
-        super(complier, mergeOptions(options));
+        options = mergeOptions(options);
+        super(complier, options);
         this.name = pkg.name;
         this.version = pkg.version;
         this.platform = 'client';
         this.importSourceQuery=new Map();
+        this.options.metadata.version = options.version;
         registerError(complier.diagnostic.defineError, complier.diagnostic.LANG_CN, complier.diagnostic.LANG_EN );
     }
 

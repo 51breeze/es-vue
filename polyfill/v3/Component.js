@@ -212,20 +212,28 @@ Object.defineProperty( proto, 'slot', {value:function slot(name,fallback){
     if( target ){
         const slots = target.proxy.$slots;
         if( hasOwn.call(slots,name) ){
-           let result = slots[name];
-           if( result ){
+            let result = slots[name];
+            if( result ){
                 if( typeof result !== "function" ){
                     return Vue.withCtx(()=>result)
                 }else{
-                    return Vue.withCtx(result)
+                    return result
                 }
-           }
+            }
         }
     }
     if( fallback && typeof fallback === "function" ){
         return Vue.withCtx(fallback);
     }
     return ()=>[];
+}});
+
+Object.defineProperty( proto, 'renderSlot', {value:function renderSlot(name,props={},fallback=null){
+    const target = this[privateKey].instance;
+    if( target ){
+        return Vue.renderSlot(target.proxy.$slots, name, props, fallback)
+    }
+    return Vue.renderSlot({}, name, props, fallback);
 }});
 
 Object.defineProperty(proto, 'hasSlot', {value:function hasSlot(name){
@@ -322,10 +330,12 @@ Object.defineProperty( proto, 'setRefNode', {value:function setRefNode(name, nod
     const target = this[privateKey].refs || (this[privateKey].refs=Object.create(null));
     node = getCompnentInstanceByVNode(node);
     if( isArray ){
-        if( !hasOwn.call(target,name) ){
-            target[name]=[ node ];
-        }else if( target[name].indexOf(node) < 0 ){
-            target[name].push( node );
+        if(node){
+            if( !hasOwn.call(target,name) ){
+                target[name]=[ node ];
+            }else if( target[name].indexOf(node) < 0 ){
+                target[name].push( node );
+            }
         }
     }else{
         target[name] = node;
@@ -508,6 +518,9 @@ Object.defineProperty( proto, 'getBindEventValue', {value:function getBindEventV
 }});
 
 Object.defineProperty( proto, 'invokeHook', {value:function invokeHook(...args){
+    if(args[0]==='polyfills:props'){
+        return System.dispatchHook(...args) || args[1];
+    }
     if(args[0] ==='component:beforeRender'){
         if( !this[privateKey].componentBeforeRenderHookFlag ){
             this[privateKey].componentBeforeRenderHookFlag = true;
@@ -563,6 +576,18 @@ function setupLifecycleHooks(comInstance){
         if( registerHook ){
             registerHook((function(name, comInstance){
                 return function(){
+
+                    if('onBeforeUpdate' === name){
+                        const refs = comInstance[privateKey].refs;
+                        if(refs){
+                            Object.keys(refs).forEach(key=>{
+                                if(Array.isArray(refs[key])){
+                                    refs[key].splice(0, refs[key].length);
+                                }
+                            })
+                        }
+                    }
+
                     if( comInstance.hasEventListener(HookMaps[name]) ){
                         comInstance.dispatchEvent( new ComponentEvent(HookMaps[name]) );
                     }
@@ -879,4 +904,14 @@ System.registerHook('polyfills:value',function(value, property, className){
         if(value==='medium')return 'default';
     }
     return value;
+},-500);
+
+System.registerHook('polyfills:props',function(props, className){
+    if( className ==="web.ui.Button" ){
+        if(props.type === 'text'){
+            props.type = '';
+            props.text = true;
+        }
+    }
+    return props;
 },-500);
