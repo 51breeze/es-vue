@@ -1,6 +1,6 @@
 const JSXTransform = require('./JSXTransform');
 const Core = require('./Core');
-const UseVueContext = new Map();
+const useVueContextKey = Symbol('useVueContextKey');
 const toUpperCaseFirst=(str)=>{
     return str.substring(0,1).toUpperCase()+str.substring(1);
 }
@@ -352,9 +352,10 @@ class JSXTransformV3 extends JSXTransform{
 
     getVueImportContext(name){
         const target = this.module || this.compilation;
-        let context = UseVueContext.get(target);
+        const dataset = this.builder[useVueContextKey] || (this.builder[useVueContextKey] = new Map());
+        let context = dataset.get(target);
         if( !context ){
-            UseVueContext.set( target, context = new Map());
+            dataset.set(target, context = new Map());
         }
         if( context.has(name) ){
             return context.get(name);
@@ -464,10 +465,12 @@ class JSXTransformV3 extends JSXTransform{
 
     createImportVueContextReferenceNode(){
         const target = this.module || this.compilation;
-        let context = UseVueContext.get(target);
+        const dataset = this.builder[useVueContextKey];
+        if(!dataset)return;
+        let context = dataset.get(target);
         if( !context || !(context.size > 0) )return;
         const source = 'vue';
-        this.builder.addImportReference( 
+        this.builder.addImportReference(
             this.module, 
             source,
             this.createImportDeclaration( 
