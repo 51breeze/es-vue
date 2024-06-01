@@ -228,7 +228,7 @@ Object.defineProperty( proto, 'slot', {value:function slot(name,fallback){
     return ()=>[];
 }});
 
-Object.defineProperty( proto, 'renderSlot', {value:function renderSlot(name,props={},fallback=null){
+Object.defineProperty( proto, 'renderSlot', {value:function renderSlot(name='default',props={},fallback=null){
     const target = this[privateKey].instance;
     if( target ){
         return Vue.renderSlot(target.proxy.$slots, name, props, fallback)
@@ -236,7 +236,7 @@ Object.defineProperty( proto, 'renderSlot', {value:function renderSlot(name,prop
     return Vue.renderSlot({}, name, props, fallback);
 }});
 
-Object.defineProperty(proto, 'hasSlot', {value:function hasSlot(name){
+Object.defineProperty(proto, 'hasSlot', {value:function hasSlot(name='default'){
     const target = this[privateKey].instance;
     return target ? hasOwn.call(target.proxy.$slots, name) : false;
 }});

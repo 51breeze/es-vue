@@ -51,7 +51,12 @@ package web.components{
         */
         final get app():IApplication
 
-        slot( name:string , scope?:boolean, called?:boolean, params?:object ):VNode|Component[];
+        @Deprecated
+        slot( name:string , scope?:boolean, called?:boolean, params?:object ):(vue.VNode|Component)[];
+
+        hasSlot(name?:string):boolean;
+        renderSlot(name?:string,props?:Record,fallback?:(...args)=>(vue.VNode | Component)[]):vue.VNode;
+
         reactive<T>(name:string, value?:T, initValue?:any):T;
         reference<T>(value:T,shallowFlag?:boolean):vue.Ref<T>;
         observable<T extends object>(target:T):T;
