@@ -104,6 +104,12 @@ class JSXClassBuilder extends ClassBuilder{
                 target.kind = 'accessor';
                 return target;
             }
+            if(child.type==='MethodGetterDefinition' || child.type==='MethodDefinition'){
+                const opts = this.plugin.options;
+                if(opts.hot && opts.mode !== 'production'){
+                    child.isConfigurable = true;
+                }
+            }
         }
         return child;
     }

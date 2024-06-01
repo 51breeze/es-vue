@@ -104,7 +104,7 @@ class JSXTransformV3Optimize extends JSXTransformV3{
         const node = this.createCalleeNode(
             this.createMemberNode([
                 this.getModuleReferenceName(Component), 
-                this.createIdentifierNode('normalChildrenVNode')
+                this.createIdentifierNode('normalVNode')
             ]),
             [
                 elementNode
@@ -254,7 +254,6 @@ class JSXTransformV3Optimize extends JSXTransformV3{
         let hasDynnmicText = false;
         let hasStaticText = false;
         let hasDynamicChild = false;
-        let hasUnexplicitExpressionChild = false;
         const isLiteralNode = (target)=>{
             if(target.isLiteral || target.isJSXText){
                 hasStaticText = true;
@@ -273,7 +272,6 @@ class JSXTransformV3Optimize extends JSXTransformV3{
                     hasDynnmicText = true;
                     return true;
                 }
-                //hasUnexplicitExpressionChild = this.isUnexplicitExpressionChild(type)
                 hasDynamicChild = true;
             }
             pureStaticChildren = false;
@@ -338,15 +336,14 @@ class JSXTransformV3Optimize extends JSXTransformV3{
         }
 
         data.hasDynamicChild = hasDynamicChild;
-        data.hasUnexplicitExpressionChild = hasUnexplicitExpressionChild;
         if( normalizeChildren ){
             return content.map( child=>{
                 if( child.isElementVNode )return child;
                 if( child.type ==="Literal" || child.isMergeStringNode || child.isNeedCreateTextNode){
                     return this.createVueTextVNodeNode( child , ELEMENT_TEXT);
-                }else if(child.isNeedUseCreateElementNode){
-                    return this.createFragmentComponentNode(child);
-                    //return this.createCalleeCreateVNode(child.stack||stack, child);
+                }else if(child.hasUnexplicitExpressionChild){
+                    data.hasUnexplicitExpressionChild = true;
+                    return this.createComponentNormalChildrenNode(child);
                 }
                 return child;
             });
@@ -563,7 +560,7 @@ class JSXTransformV3Optimize extends JSXTransformV3{
                                     stack.module ? this.createIdentifierNode(stack.module.id) : this.createLiteralNode(null), 
                                     this.createToken(stack.object), 
                                     stack.computed ? this.createToken(stack.property) : this.createLiteralNode(stack.property.value()),
-                                    this.createIdentifierNode('value')
+                                    this.createIdentifierNode('e')
                                 ],
                                 stack
                             );
@@ -615,13 +612,22 @@ class JSXTransformV3Optimize extends JSXTransformV3{
             }
 
             if( ns ==="@binding" ){
+
+                const createBinddingParams = (getEvent=false)=>{
+                    return [
+                        [
+                            this.createIdentifierNode('e')
+                        ], 
+                        binddingModelValue.isReflectSetter ? binddingModelValue : this.createAssignmentNode(
+                            binddingModelValue,
+                            getEvent ? createGetEventValueNode() : this.createIdentifierNode('e')
+                        )
+                    ]
+                }
+
                 if( custom && binddingModelValue){
                     pushEvent(custom , this.createArrowFunctionNode(
-                        [this.createIdentifierNode('e')], 
-                        this.createAssignmentNode(
-                            binddingModelValue, 
-                            createGetEventValueNode()
-                        )
+                        ...createBinddingParams(true)
                     ), 'on');
                     return;
                 }else if( (stack.isWebComponent || afterDirective) && binddingModelValue ){
@@ -630,13 +636,7 @@ class JSXTransformV3Optimize extends JSXTransformV3{
                         pushEvent(
                             this.createLiteralNode('onUpdate:modelValue', void 0, value.name.stack),
                             this.createArrowFunctionNode(
-                                [
-                                    this.createIdentifierNode('value')
-                                ], 
-                                binddingModelValue.isReflectSetter ? binddingModelValue : this.createAssignmentNode(
-                                    binddingModelValue,
-                                    this.createIdentifierNode('value')
-                                )
+                                ...createBinddingParams()
                             ),
                             'props'
                         );
@@ -645,13 +645,7 @@ class JSXTransformV3Optimize extends JSXTransformV3{
                         pushEvent(
                             this.createIdentifierNode(type, void 0, value.name.stack),
                             this.createArrowFunctionNode(
-                                [
-                                    this.createIdentifierNode('e')
-                                ], 
-                                this.createAssignmentNode(
-                                    binddingModelValue,
-                                    createGetEventValueNode()
-                                )
+                                ...createBinddingParams(true)
                             ),
                             'on'
                         );
@@ -660,11 +654,7 @@ class JSXTransformV3Optimize extends JSXTransformV3{
                    
                 }else if( binddingModelValue ){
                     pushEvent(this.createIdentifierNode('input') , this.createArrowFunctionNode(
-                        [this.createIdentifierNode('e')], 
-                        this.createAssignmentNode(
-                            binddingModelValue, 
-                            createGetEventValueNode()
-                        )
+                        ...createBinddingParams(true)
                     ), 'on');
                 }
 
@@ -997,8 +987,6 @@ class JSXTransformV3Optimize extends JSXTransformV3{
         if( !isComponent && Array.isArray(children) && children.length > 0 ){
             if(children.length === 1 && data.hasTextChild){
                 childNodes = children[0];
-            }else if(data.hasUnexplicitExpressionChild){
-                childNodes = this.createComponentNormalChildrenNode(children.length===1 ? children[0] : this.createArrayNode(children));
             }
             else{
                 if(isRoot && children.length >1)isFragment = true;
@@ -1236,7 +1224,6 @@ class JSXTransformV3Optimize extends JSXTransformV3{
             } 
 
             if( properties.length > 0 ){
-
                 if( (data.patchFlag & ELEMENT_DYNAMIC_SLOTS) === ELEMENT_DYNAMIC_SLOTS){
                     properties.push( this.createPropertyNode(
                         this.createIdentifierNode('_'), 

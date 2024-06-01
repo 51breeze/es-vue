@@ -883,19 +883,23 @@ Object.defineProperty( Component, 'createHoistedVnode', {value:function createHo
     return vnode;
 }});
 
-Object.defineProperty( Component, 'normalChildrenVNode', {value:function normalChildrenVNode(value, flag=false){
+
+function _normalVNode(value){
     if( Array.isArray(value) ){
-        value = value.map( val=>{
-            return Component.normalChildrenVNode(val, true);
-        }).flat();
+        return Vue.h(Vue.Fragment, value.map(child=>_normalVNode(child)));
+    }else if( Vue.isVNode(value) ){
         return value;
+    }else if( typeof value === 'function' && '__vccOpts' in value){
+        return Vue.h(value)
+    }else if(value){
+        return Vue.h(Vue.Text, Vue.toDisplayString(value))
+    }else{
+        return Vue.h(Vue.Comment,'value is empty.');
     }
-    if( !Vue.isVNode(value) ){
-        if( !flag )return value;
-        value = Vue.createTextVNode( Vue.toDisplayString(value) );
-    }
-    if(flag)return value;
-    return [value];
+}
+
+Object.defineProperty( Component, 'normalVNode', {value:function normalVNode(value){
+    return _normalVNode(value)
 }});
 
 System.registerHook('polyfills:value',function(value, property, className){

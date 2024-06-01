@@ -19,27 +19,25 @@ function createAttrNode(ctx, name, value){
     return node;
 }
 
-function checkNeedFragmentWrap( type ){
+function checkNeedFragmentWrap(type, stack){
     if(!type || type.isAnyType)return true;
-    if(type.isAliasType){
-        return checkNeedFragmentWrap( type.inherit.type() )
-    }
     if(type.isUnionType){
-        return type.elements.some( el=>checkNeedFragmentWrap(el.type()) )
+        return type.elements.some( el=>checkNeedFragmentWrap(el.type(), stack) )
     }
-    if( type.isLiteralType || type.isNullableType || type.isEnumType)return false;
-    if( type.isModule && (type.id==='String' || type.id==="Number" || type.id==="Boolean" || type.id==="RegExp") )return false;
+    if( type.isLiteralType || type.isNullableType || type.isEnumType || stack.compiler.callUtils('isScalar', type))return false;
+    type = stack.compiler.callUtils('getOriginType', type);
+    if(type.isModule && (type.id==='String' || type.id==="Number" || type.id==="Boolean" || type.id==="RegExp") )return false;
     return true;
 }
 
 module.exports = function(ctx, stack){
 
-    let isWrap = stack.parentStack && stack.parentStack.isJSXElement && checkNeedFragmentWrap(stack.type());
+    let isWrap = stack.parentStack && stack.parentStack.isJSXElement && checkNeedFragmentWrap(stack.type(), stack);
     if( !ctx.builder.isRawJsx() ){
         const node = ctx.createToken( stack.expression );
         if( node ){
             if( isWrap ){
-                node.isNeedUseCreateElementNode = true;
+                node.hasUnexplicitExpressionChild = true;
             }else{
                 node.isNeedCreateTextNode = true;
             }

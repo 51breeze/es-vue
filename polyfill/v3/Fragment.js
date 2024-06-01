@@ -25,9 +25,12 @@ function makeChild(value){
 const Fragment = Vue.defineComponent({
     name:'es-Fragment',
     props: ['value'],
-    setup() {
-        return (_ctx, _cache) => {
-            return makeChild(Vue.unref(_ctx.value));
+    setup(props, context) {
+        return () => {
+            if(context.slots && context.slots.default){
+                return Vue.renderSlot(context.slots, 'default')
+            }
+            return makeChild(Vue.unref(props.value));
         };
     }
 });

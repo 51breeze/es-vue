@@ -1,6 +1,6 @@
 {
   "name": "es-vue",
-  "version": "0.5.7",
+  "version": "0.5.8",
   "description": "test",
   "main": "index.js",
   "typings": "types/typings.json",
@@ -64,7 +64,8 @@
     "css-loader": "^6.5.1",
     "dotenv": "^16.3.1",
     "dotenv-expand": "^10.0.0",
-    "easescript-cli": "^0.0.4",
+    "easescript": "latest",
+    "easescript-cli": "latest",
     "element-plus": "^2.4.1",
     "es-loader": "latest",
     "file-loader": "^6.2.0",
