@@ -139,9 +139,9 @@ class JSXTransformV3Optimize extends JSXTransformV3{
                 let key = valueArgument.declare.key || 'key';
                 let index = valueArgument.declare.index;
                 if( name ==="each"){
-                    content[0] = this.createIterationNode(name, refs , this.checkRefsName('_refs'), content[0], item, key, void 0, content[0].hasKey );
+                    content[0] = this.createIterationNode(name, refs , this.checkRefsName('_refs'), content[0], item, key, void 0, 0 );
                 }else{
-                    content[0] = this.createIterationNode(name, refs , this.checkRefsName('_refs'), content[0], item, key, index, content[0].hasKey );
+                    content[0] = this.createIterationNode(name, refs , this.checkRefsName('_refs'), content[0], item, key, index, 0 );
                 }
                 cmd.push(name);
 
@@ -816,14 +816,18 @@ class JSXTransformV3Optimize extends JSXTransformV3{
             this.createLiteralNode(true)
         ] : []
         const openBlock = this.createCalleeNode( this.createCalleeVueApiNode('openBlock'),args);
+        const nodeFlags = flags>0 ? this.createLiteralNode(flags) : null;
+        const items = [
+            this.createCalleeVueApiNode('Fragment'),
+            props ? props : this.createLiteralNode( null),
+            children
+        ]
+        if(nodeFlags){
+            items.push(nodeFlags);
+        }
         const callee =  this.createCalleeNode(
             this.createCalleeVueApiNode('createElementBlock'),
-            [
-                this.createCalleeVueApiNode('Fragment'),
-                props ? props : this.createLiteralNode( null),
-                children,
-                this.createLiteralNode(flags||ELEMENT_UNKEYED_FRAGMENT)
-            ]
+            items
         );
         const node = this.createParenthesNode(this.createSequenceNode([openBlock,callee]));
         node.isElementVNode = true;
@@ -859,11 +863,6 @@ class JSXTransformV3Optimize extends JSXTransformV3{
     }
 
     createIterationNode(name, refs, refName, element, item, key, index, flags){
-
-        if(flags===true){
-            flags = ELEMENT_KEYED_FRAGMENT;
-        }
-        
         if( name ==="each"){
             const args = [ this.createIdentifierNode(item) ];
             if(key){
@@ -1053,15 +1052,15 @@ class JSXTransformV3Optimize extends JSXTransformV3{
             if(children.length === 1){
                 children = children[0];
             }else{
-                const isFor = name ==='each' || name==='for';
-                const hasKey = isFor && children.every( item=>!!item.hasKey );
+                // const isFor = name ==='each' || name==='for';
+                // const hasKey = isFor && children.every( item=>!!item.hasKey );
                 children = this.createArrayNode(children);
                 children.newLine=true;
-                if( isFor ){
-                    children = this.createFragmentNode(children, null, hasKey ? ELEMENT_KEYED_FRAGMENT : ELEMENT_UNKEYED_FRAGMENT, false);
-                }else{
+                // if( isFor ){
+                //     children = this.createFragmentNode(children, null, hasKey ? ELEMENT_KEYED_FRAGMENT : ELEMENT_UNKEYED_FRAGMENT, false);
+                // }else{
                     children = this.createFragmentNode(children, this.createObjectNode([this.createKeyPropertyNode( stack )]), ELEMENT_STABLE_FRAGMENT, false);
-                }
+                //}
             }
         }
 

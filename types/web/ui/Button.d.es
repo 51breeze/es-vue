@@ -18,7 +18,9 @@ declare final class Button extends Component{
     link:boolean=false;
     bg:boolean = false;
     text:boolean = false;
+    dark:boolean = false;
     tag:string | Component
+    color:string;
 
     //是否朴素按钮
     plain:boolean=false

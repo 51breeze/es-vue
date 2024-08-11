@@ -892,9 +892,9 @@ function _normalVNode(value){
     }else if( typeof value === 'function' && '__vccOpts' in value){
         return Vue.h(value)
     }else if(value){
-        return Vue.h(Vue.Text, Vue.toDisplayString(value))
+        return Vue.createTextVNode(Vue.toDisplayString(value), 1)
     }else{
-        return Vue.h(Vue.Comment,'value is empty.');
+        return Vue.createCommentVNode(String(value), true)
     }
 }
 
