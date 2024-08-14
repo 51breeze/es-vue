@@ -203,7 +203,7 @@ class List extends Component{
                     <ui:Option label = "US" value = "US"></ui:Option>
                 </ui:Select>
 
-                
+                <ui:InputNumber></ui:InputNumber>
 
                 <div class="container">
                     <ui:Checkbox bind:value={this.formData.checkAll} indeterminate={this.formData.isIndeterminate} on:change={handleCheckAllChange.bind(this)} />

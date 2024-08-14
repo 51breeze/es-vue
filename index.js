@@ -275,20 +275,41 @@ class PluginEsVue extends Core.Plugin{
 
     addGlobUIImports(){
         const excludes = [
-            'message-box', 'infinite-scroll','page-header','time-picker','date-picker','color-picker',
-            'input-number','cascader-panel','check-tag','collapse-transition','config-provider','focus-trap','image-viewer',
-            'roving-focus-group','select-v2','table-v2','tooltip-v2','tree-select','tree-v2','virtual-list','visual-hidden'
+            'input-number',
+            'cascader-panel',
+            'check-tag',
+            'collapse-transition',
+            'config-provider',
+            'focus-trap',
+            'image-viewer',
+            'roving-focus-group',
+            'select-v2',
+            'table-v2',
+            'tooltip-v2',
+            'tree-select',
+            'tree-v2',
+            'virtual-list',
+            'visual-hidden'
         ];
         const maps={
             'element-ui/packages/option':resolveComponent(this.options,'select/index'),
             'element-ui/packages/submenu':resolveComponent(this.options,'menu/index'),
             'element-ui/packages/step':resolveComponent(this.options,'steps/index'),
             'element-ui/packages/tab-pane':resolveComponent(this.options,'tabs/index'),
+            'element-ui/packages/table-column':resolveComponent(this.options,'table/index'),
+            'element-ui/packages/dropdown-item':resolveComponent(this.options,'dropdown/index'),
+            'element-ui/packages/dropdown-menu':resolveComponent(this.options,'dropdown/index'),
+            'element-ui/packages/checkbox-group':resolveComponent(this.options,'checkbox/index'),
+            'element-ui/packages/timeline-item':resolveComponent(this.options,'timeline/index'),
+            'element-ui/packages/descriptions-item':resolveComponent(this.options,'descriptions/index'),
+            'element-ui/packages/collapse-item':resolveComponent(this.options,'collapse/index'),
+            'element-ui/packages/skeleton-item':resolveComponent(this.options,'skeleton/index'),
+            'element-ui/packages/breadcrumb-item':resolveComponent(this.options,'breadcrumb/index'),
+            'element-ui/packages/menu-item':resolveComponent(this.options,'menu/index'),
+            'element-ui/packages/carousel-item':resolveComponent(this.options,'carousel/index'),
+            'element-ui/packages/form-item':resolveComponent(this.options,'form/index'),
         }
-        const nameds = {
-            'submenu':'SubMenu'
-        }
-        const sourceRE = /^element-ui\/packages\/(([\w]+(-[\w]+)+)|option|submenu|step)$/i;
+        const sourceRE = /^element-ui\/packages\/([\w]+([-]+)?)+$/i;
         this.glob.addRule((id)=>{
             if(sourceRE.test(id)){
                 return !excludes.some(name=>id.endsWith(name));
@@ -300,10 +321,9 @@ class PluginEsVue extends Core.Plugin{
             let basename = id.substring(pos+1);
             let rule = scheme.rule;
             if(!source){
-                const component = basename.substring(0, basename.indexOf('-'))
-                source = resolveComponent(this.options,component+'/index')
+                source = resolveComponent(this.options,basename+'/index')
             }
-            basename = nameds[basename] || toUpper(basename);
+            basename = toUpper(basename);
             rule.setValue(id, 'imported', `El${basename}`)
             return source;
         }, 0, 'imports');

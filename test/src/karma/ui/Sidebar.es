@@ -54,19 +54,19 @@ class Sidebar extends Component{
             borderRight:"solid 1px #ebebeb"
         };
 
-        const logoStyle = {
-            width:"100%",
-            height:`${logoHeight}px`,
-            display:"flex",
-            justifyContent:"center",
-            alignItems:"center",
-            color:"#000",
-        };
+        // const logoStyle = {
+        //     width:"100%",
+        //     height:`${logoHeight}px`,
+        //     display:"flex",
+        //     justifyContent:"center",
+        //     alignItems:"center",
+        //     color:"#000",
+        // };
 
-        const imgStyle = {
-            maxHeight:`${logoHeight-logoHeight*0.3}px`,
-            marginRight:"8px"
-        };
+        // const imgStyle = {
+        //     maxHeight:`${logoHeight-logoHeight*0.3}px`,
+        //     marginRight:"8px"
+        // };
 
         const wrapStyle = [{
             overflowX:"hidden",

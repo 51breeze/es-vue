@@ -1004,6 +1004,7 @@ class JSXTransformV3Optimize extends JSXTransformV3{
         if( isComponent ){
             desc = stack.description();
             if( desc.isModule && desc.isClass ){
+                this.addDepend(desc)
                 name = this.createIdentifierNode( this.getModuleReferenceName( desc ) );
             }else{
                 name = this.createIdentifierNode(stack.openingElement.name.value(), stack.openingElement.name);

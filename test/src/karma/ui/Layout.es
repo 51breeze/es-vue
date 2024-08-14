@@ -12,7 +12,7 @@ class Layout extends Component{
     @Override
     render(){
         const routes = Manger.getInstance().get<RouteConfig[]>("routes");
-        const route = this.getAttribute<RouteConfig>('route');
+        //const route = this.getAttribute<RouteConfig>('route');
         // if( route && route.path=== "/login" ){
         //     return <Viewport />
         // }

@@ -35,7 +35,7 @@ class Index extends Application{
          const obj = {};
         obj.test ??= null;
         obj.test?.name;
-        const name = obj ?? 12
+        //const name = obj ?? 12
     }
 
     constructor(){

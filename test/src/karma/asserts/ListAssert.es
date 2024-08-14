@@ -16,7 +16,7 @@ class ListAssert extends Base {
     }
 
     start( ){
-        const app= this.component as AppHome;
+        //const app= this.component as AppHome;
         describe('test List page',()=>{
 
             it('title',()=>{

@@ -48,8 +48,9 @@ class JSXTransform extends Core.JSXTransform{
                 return [...result, false, hasStaticGetDirectiveMethod];
             }
         }
-        const type = stack.type();
+        let type = stack.description();
         if( this.isDirectiveInterface(type) ){
+            this.addDepend(type)
             const descMethod = type.getMethod('directive','get');
             let hasStaticGetDirectiveMethod = false
             if( descMethod && descMethod.isMethodGetterDefinition && this.isDirectiveInterface(descMethod.type()) ){
