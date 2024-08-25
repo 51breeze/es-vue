@@ -309,6 +309,9 @@ class PluginEsVue extends Core.Plugin{
             'element-ui/packages/carousel-item':resolveComponent(this.options,'carousel/index'),
             'element-ui/packages/form-item':resolveComponent(this.options,'form/index'),
         }
+        const nameds = {
+            'submenu':'SubMenu'
+        }
         const sourceRE = /^element-ui\/packages\/([\w]+([-]+)?)+$/i;
         this.glob.addRule((id)=>{
             if(sourceRE.test(id)){
@@ -323,7 +326,7 @@ class PluginEsVue extends Core.Plugin{
             if(!source){
                 source = resolveComponent(this.options,basename+'/index')
             }
-            basename = toUpper(basename);
+            basename = nameds[basename] || toUpper(basename);
             rule.setValue(id, 'imported', `El${basename}`)
             return source;
         }, 0, 'imports');

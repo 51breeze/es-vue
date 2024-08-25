@@ -891,7 +891,7 @@ function _normalVNode(value){
         return value;
     }else if( typeof value === 'function' && '__vccOpts' in value){
         return Vue.h(value)
-    }else if(value){
+    }else if(value != null || typeof value==='boolean'){
         return Vue.createTextVNode(Vue.toDisplayString(value), 1)
     }else{
         return Vue.createCommentVNode(String(value), true)

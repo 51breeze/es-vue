@@ -29,8 +29,7 @@ class FullScreen extends Plugin{
             'Full Screen default':'默认'
         })
     }
-
-    @Override
+	
     init() {
 		const editor = this.editor;
 		editor.ui.componentFactory.add( 'fullScreen', locale => {
