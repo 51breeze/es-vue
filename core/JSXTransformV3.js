@@ -1097,10 +1097,12 @@ class JSXTransformV3 extends JSXTransform{
             }else if(stack.isDirective){
                 nodeElement = this.makeDirectiveElement(stack, childNodes);
             }else{
-                if(stack.isJSXFragment){
-                    nodeElement = this.createFragmentNode(childNodes)
-                }else if(isRoot && stack.openingElement.name.value()==='root'){
-                    nodeElement = this.createFragmentNode(childNodes)
+                if(stack.isJSXFragment || (isRoot && !isWebComponent && stack.openingElement.name.value()==='root')){
+                    if(Array.isArray(childNodes) && childNodes.length===1){
+                        nodeElement = childNodes[0]
+                    }else{
+                        nodeElement = this.createFragmentNode(childNodes)
+                    }
                 }else{
                     nodeElement = this.makeHTMLElement(stack, data, childNodes);
                 }

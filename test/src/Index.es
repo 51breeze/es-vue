@@ -25,7 +25,6 @@ class Index extends Application{
         return <Test />;
     }
 
-    @Override
     get router(){
         return new Router({
                 mode:'hash',

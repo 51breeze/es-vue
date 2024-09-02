@@ -976,7 +976,6 @@ class JSXTransformV3Optimize extends JSXTransformV3{
         let childNodes = null;
         let props = data.keyProps;
         let patchFlag = data.patchFlag;
-
         if( !isComponent && Array.isArray(children) && children.length > 0 ){
             if(children.length === 1 && data.hasTextChild){
                 childNodes = children[0];
@@ -988,14 +987,6 @@ class JSXTransformV3Optimize extends JSXTransformV3{
             }
         }else if(children && (children.type==="ObjectExpression" || children.type==="ArrayExpression") ){
             childNodes = children;
-        }
-
-        if(stack.isJSXFragment){
-            return this.createFragmentNode(childNodes, null, ELEMENT_STABLE_FRAGMENT, !isRoot)
-        }
-
-        if(isRoot && stack.openingElement.name.value()==='root'){
-            return this.createFragmentNode(childNodes, null, ELEMENT_STABLE_FRAGMENT, false)
         }
 
         if( isRoot && isJsxProgram && !isFragment && childNodes && childNodes.type==="ArrayExpression" && childNodes.elements.length ===1 ){
@@ -1265,7 +1256,17 @@ class JSXTransformV3Optimize extends JSXTransformV3{
             }else if( stack.isDirective ){
                 nodeElement = this.makeDirectiveElement(stack, childNodes);
             }else{
-                nodeElement = this.makeHTMLElement(stack, data, childNodes, isBlockNode);
+                if(stack.isJSXFragment || (isRoot && !isWebComponent && stack.openingElement.name.value()==='root')){
+                    if(Array.isArray(childNodes) && childNodes.length === 1){
+                        nodeElement = childNodes[0];
+                    }else{
+                        childNodes = this.createArrayNode(childNodes);
+                        childNodes.newLine=true;
+                        nodeElement = this.createFragmentNode(childNodes, null, ELEMENT_STABLE_FRAGMENT, !isRoot)
+                    }
+                }else{
+                    nodeElement = this.makeHTMLElement(stack, data, childNodes, isBlockNode);
+                }
             }
 
             if(nodeElement){

@@ -8,10 +8,10 @@ class Foreach extends Component {
 
     @Override
     render(){
-        return <root>
-                <div>1</div>
-                <div>2</div>
-        
+        return <root xmlns:ui='web.ui'>
+            <div>1</div>
+            <div>2</div>
+            <ui:Button>sssss</ui:Button>
         </root>
     }
 
