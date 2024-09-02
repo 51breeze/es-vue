@@ -300,6 +300,7 @@ class PluginEsVue extends Core.Plugin{
             'element-ui/packages/dropdown-item':resolveComponent(this.options,'dropdown/index'),
             'element-ui/packages/dropdown-menu':resolveComponent(this.options,'dropdown/index'),
             'element-ui/packages/checkbox-group':resolveComponent(this.options,'checkbox/index'),
+            'element-ui/packages/radio-group':resolveComponent(this.options,'radio/index'),
             'element-ui/packages/timeline-item':resolveComponent(this.options,'timeline/index'),
             'element-ui/packages/descriptions-item':resolveComponent(this.options,'descriptions/index'),
             'element-ui/packages/collapse-item':resolveComponent(this.options,'collapse/index'),

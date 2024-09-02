@@ -46,7 +46,7 @@ class Index extends Application{
         });
     }
 
-    @Override
+    
     get globals(){
         return {
             Lang
@@ -66,7 +66,7 @@ class Index extends Application{
 
     private _router:Router;
 
-    @Override
+    
     get router(){
         if(_router)return _router;
         return _router = new Router({
@@ -75,7 +75,7 @@ class Index extends Application{
         });
     }
 
-    @Override
+    
     get routes(){
 
         const ro = super.routes;
@@ -102,7 +102,6 @@ class Index extends Application{
         ]
     }
 
-    @Override
     get locale(){
         return Lang.use();
     }

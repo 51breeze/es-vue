@@ -9,6 +9,8 @@ import web.ui.Notification;
 import web.ui.Tree as TreeCom;
 import web.ui.Loading;
 import karma.components.MyDirective;
+import karma.components.DirectiveTop;
+import karma.components.Foreach
 
 class List extends Component{
 
@@ -434,6 +436,12 @@ class List extends Component{
                             <li d:for="i in this.formData.infiniteCount"  key={i} class="infinite-list-item">infinite-scroll {i}</li>
                     </ul>
                 </ui:InfiniteScroll>
+
+                <DirectiveTop />
+
+                <Foreach>
+                    
+                </Foreach>
 
                 <div d:custom={{name:Loading.directive,value:true}}>
                     loadding...

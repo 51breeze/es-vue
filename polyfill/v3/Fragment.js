@@ -15,7 +15,7 @@ function makeChild(value){
         return value;
     }else if( typeof value === 'function' && '__vccOpts' in value){
         return Vue.h(value)
-    }else if(value){
+    }else if(value != null){
         return Vue.h(Vue.Text,Vue.toDisplayString(value))
     }else{
         return Vue.h(Vue.Comment,'value is empty.');

@@ -867,7 +867,14 @@ class JSXTransformV3 extends JSXTransform{
             }
         }
         if( children ){
-            args.push( this.createArrowFunctionNode(params,children) );
+            if(Array.isArray(children) && children.length===0){
+                children = null
+            }else if( children.type ==='ArrayExpression' && children.elements.length === 0){
+                children = null
+            }
+            if(children){
+                args.push( this.createArrowFunctionNode(params,children) );
+            }
         }
         return this.createSlotCalleeNode(...args);
     }
@@ -875,6 +882,18 @@ class JSXTransformV3 extends JSXTransform{
     createCalleeVueApiNode( name ){
         return this.createIdentifierNode( 
             this.getVueImportContext(name)
+        );
+    }
+
+    createFragmentNode(children, props=null){
+        const items = [
+            this.createCalleeVueApiNode('Fragment'),
+            props ? props : this.createLiteralNode( null),
+            children
+        ]
+        return this.createCalleeNode(
+            this.createCalleeVueApiNode('createVNode'),
+            items
         );
     }
 
@@ -998,71 +1017,98 @@ class JSXTransformV3 extends JSXTransform{
     create(stack){
         const isRoot = stack.jsxRootElement === stack;
         const data = this.getElementConfig();
-        const children = stack.children.filter(child=>!( (child.isJSXScript && child.isScriptProgram) || child.isJSXStyle) );
+       
+        let hasText = false;
+        let hasJSXText = false;
+        let children = stack.children.filter(child=>{
+            if(child.isJSXText){
+                if(!hasJSXText)hasJSXText = true;
+                if(!hasText){
+                    hasText = child.value().trim().length > 0;
+                }
+            }
+            return !((child.isJSXScript && child.isScriptProgram) || child.isJSXStyle)
+        })
+
+        if(hasJSXText && !hasText){
+            children = stack.children.filter(child=>!child.isJSXText)
+        }
+
         let componentDirective = this.getComponentDirectiveForDefine( stack );
         let childNodes =this.makeChildren(children, data);
-
+        let nodeElement = null;
         if( stack.isDirective && stack.openingElement.name.value().toLowerCase() ==="custom" ){
             componentDirective = true;
         }
 
         if( componentDirective ){
-            return childNodes;
-        }
-
-        if(stack.parentStack && stack.parentStack.isDirective ){
-            let dName = stack.parentStack.openingElement.name.value().toLowerCase();
-            if( dName === 'show' ){
-                const condition= stack.parentStack.openingElement.attributes[0];
-                data.directives.push(
-                    this.createDirectiveNode('vShow', this.createToken( condition.parserAttributeValueStack() ) )
-                );
-            }else if( dName ==="custom" ){
-                this.createCustomDirective(stack.parentStack, data);
-            }
-        }
-       
-        //const spreadAttributes = [];
-        this.makeDirectiveComponentProperties(stack, data);
-        this.makeAttributes(stack, childNodes, data, /*spreadAttributes*/);
-        this.makeProperties(children, data);
-        //this.makeSpreadAttributes(spreadAttributes, data);
-        
-        const isWebComponent = stack.isWebComponent && !(stack.compilation.JSX && stack.parentStack.isProgram)
-        if( isWebComponent ){
-            const properties = []
-            if( childNodes ){
-                properties.push( this.createPropertyNode(
-                    this.createIdentifierNode('default'), 
-                    this.createWithCtxNode(this.createArrowFunctionNode([],childNodes))
-                ));
-                childNodes = null;
-            }
-            if( data.defineSlots ){
-                for(let key in data.defineSlots){
-                   const {node,scope} =  data.defineSlots[key];
-                   properties.push( this.createPropertyNode(
-                        this.createIdentifierNode(key), 
-                        node, 
-                    ));
-                }
-            } 
-            if( properties.length > 0 ){
-                childNodes = this.createObjectNode( properties );
-            }
-        }
-
-        var nodeElement = null;
-        if(stack.isSlot ){
-            nodeElement = this.makeSlotElement(stack, childNodes);
-        }else if(stack.isDirective){
-            nodeElement = this.makeDirectiveElement(stack, childNodes);
+            nodeElement = childNodes;
         }else{
-            nodeElement = this.makeHTMLElement(stack, data, childNodes);
-        }
 
-        if( data.directives && data.directives.length > 0 ){
-            nodeElement = this.createWithDirectivesNode(nodeElement,data.directives);
+            if(stack.parentStack && stack.parentStack.isDirective ){
+                let dName = stack.parentStack.openingElement.name.value().toLowerCase();
+                if( dName === 'show' ){
+                    const condition= stack.parentStack.openingElement.attributes[0];
+                    data.directives.push(
+                        this.createDirectiveNode('vShow', this.createToken( condition.parserAttributeValueStack() ) )
+                    );
+                }else if( dName ==="custom" ){
+                    this.createCustomDirective(stack.parentStack, data);
+                }
+            }
+        
+            //const spreadAttributes = [];
+            this.makeDirectiveComponentProperties(stack, data);
+            if(!stack.isJSXFragment){
+                if(!(isRoot && stack.openingElement.name.value()==='root') ){
+                    this.makeAttributes(stack, childNodes, data, /*spreadAttributes*/);
+                    this.makeProperties(children, data);
+                }
+            }
+            //this.makeSpreadAttributes(spreadAttributes, data);
+            
+            const isWebComponent = stack.isWebComponent && !(stack.compilation.JSX && stack.parentStack.isProgram)
+            if( isWebComponent ){
+                const properties = []
+                if( childNodes ){
+                    properties.push( this.createPropertyNode(
+                        this.createIdentifierNode('default'), 
+                        this.createWithCtxNode(this.createArrowFunctionNode([],childNodes))
+                    ));
+                    childNodes = null;
+                }
+                if( data.defineSlots ){
+                    for(let key in data.defineSlots){
+                    const {node,scope} =  data.defineSlots[key];
+                    properties.push( this.createPropertyNode(
+                            this.createIdentifierNode(key), 
+                            node, 
+                        ));
+                    }
+                } 
+                if( properties.length > 0 ){
+                    childNodes = this.createObjectNode( properties );
+                }
+            }
+
+           
+            if(stack.isSlot ){
+                nodeElement = this.makeSlotElement(stack, childNodes);
+            }else if(stack.isDirective){
+                nodeElement = this.makeDirectiveElement(stack, childNodes);
+            }else{
+                if(stack.isJSXFragment){
+                    nodeElement = this.createFragmentNode(childNodes)
+                }else if(isRoot && stack.openingElement.name.value()==='root'){
+                    nodeElement = this.createFragmentNode(childNodes)
+                }else{
+                    nodeElement = this.makeHTMLElement(stack, data, childNodes);
+                }
+            }
+
+            if( nodeElement && data.directives && data.directives.length > 0 ){
+                nodeElement = this.createWithDirectivesNode(nodeElement,data.directives);
+            }
         }
 
         if( isRoot ){
@@ -1079,7 +1125,7 @@ class JSXTransformV3 extends JSXTransform{
                         )
                     )
                 });
-                const renderMethod = this.createRenderNode(stack, nodeElement );
+                const renderMethod = this.createRenderNode(stack, nodeElement || this.createLiteralNode(null));
                 nodeElement = this.createClassNode(stack, renderMethod, initProperties);
             }else {
                 this.insertCreateElementHandleNode(stack)
