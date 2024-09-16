@@ -720,23 +720,36 @@ class JSXTransformV3 extends JSXTransform{
                 }
             }
 
+            
+            if(name==='class' || name==='staticClass'){
+                if(propValue && propValue.type !== 'Literal'){
+                    propValue = this.createCalleeNode(
+                        this.createCalleeVueApiNode('normalizeClass'),
+                        [propValue]
+                    );
+                }
+            }else if(name==='style' || name==='staticStyle'){
+                if(propValue && !(propValue.type === 'Literal' || propValue.type === 'ObjectExpression')){
+                    propValue = this.createCalleeNode(
+                        this.createCalleeVueApiNode('normalizeStyle'),
+                        [propValue]
+                    );
+                }
+            }else if(attrLowerName==='key' || attrLowerName==='tag'){
+                name = attrLowerName
+            }
+
             const property = this.createPropertyNode( this.createPropertyKeyNode(propName, value.name.stack), propValue );
             switch(name){
                 case "class" :
                 case "style" :
                 case "key" :
                 case "tag" :
+                case "ref" :
                 case "staticStyle" :
                 case "staticClass" :
                     data[name] = property
                     break;
-                case "innerHTML" :
-                    data.attrs.push( property );
-                    break;
-                case "ref" :
-                    data[name] = property
-                break;
-                case "value" :
                 default:
                     data.attrs.push( property );
             }

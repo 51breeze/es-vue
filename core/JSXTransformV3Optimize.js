@@ -514,12 +514,11 @@ class JSXTransformV3Optimize extends JSXTransformV3{
                 const moduleType = stack.getModuleById(className);
                 const moduleClass = this.getModuleReferenceName( moduleType );
                 this.addDepend( moduleType );
-                name = this.createMemberNode([
+                custom = this.createMemberNode([
                     this.createIdentifierNode( moduleClass ),
                     name
                 ], name);
-                name.computed = true;
-                custom = name;
+                custom.computed = true;
             }
 
             let isDOMAttribute = false;
@@ -688,6 +687,26 @@ class JSXTransformV3Optimize extends JSXTransformV3{
                     );
                 }
             }
+            
+            if(attrLowerName==='class'){
+                name = 'class';
+                if(propValue && propValue.type !== 'Literal'){
+                    propValue = this.createCalleeNode(
+                        this.createCalleeVueApiNode('normalizeClass'),
+                        [propValue]
+                    );
+                }
+            }else if(attrLowerName==='style'){
+                name = 'style';
+                if(propValue && !(propValue.type === 'Literal' || propValue.type === 'ObjectExpression')){
+                    propValue = this.createCalleeNode(
+                        this.createCalleeVueApiNode('normalizeStyle'),
+                        [propValue]
+                    );
+                }
+            }else if(attrLowerName==='key' || attrLowerName==='tag'){
+                name = attrLowerName
+            }
 
             const property = this.createPropertyNode( this.createPropertyKeyNode(propName, value.name.stack), propValue );
             switch(name){
@@ -709,16 +728,12 @@ class JSXTransformV3Optimize extends JSXTransformV3{
                 case "staticClass" :
                     data[name] = property
                     break;
-                case "innerHTML" :
-                    data.attrs.push( property );
-                    break;
                 case "ref" :
                     if(!isComponent && childNodes.length>1){
                         this.addPatchFlag(data,ELEMENT_NEED_PATCH,true);
                     }
                     data[name] = property
                     break;
-                case "value" :
                 default:
                     data.attrs.push( property );
             }

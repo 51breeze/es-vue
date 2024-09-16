@@ -5,6 +5,8 @@ import ckeditor.core.Editor;
 import {debounce} from 'lodash-es';
 import {h, markRaw} from 'vue';
 
+import "../styles/rich-text-style.css"
+
 @Runtime(client)
 class RichEditor extends Component{
 
@@ -13,6 +15,7 @@ class RichEditor extends Component{
 
     tagName:string = 'div';
     value:string = '';
+    modelValue = null;
     disableTwoWayDataBinding:boolean=false;
     readonly:boolean = false;
     config:ckeditor.core.EditorConfig = {};
@@ -149,6 +152,7 @@ class RichEditor extends Component{
             });
 
             this.emit('ready', editor );
+
         })
         .catch( error => {
             console.error( error );
@@ -161,12 +165,19 @@ class RichEditor extends Component{
     }
 
     protected getContainer(){
-        return this.element;
+        return this.getRefs('container')
+    }
+
+    protected getEditorName(){
+        return 'classic'
     }
 
     @Override
     protected render(){
-        const style = `width:${this.width};height:${this.height};`;
-        return h( this.tagName, {style, class:this.className} );
+        return <div class={"rich-text-editor "+this.className}
+                    data-type={this.getEditorName()}
+                    data-width={this.width} data-height={this.height}>
+                <div ref="container"></div>
+        </div>
     }
 }

@@ -46,14 +46,18 @@ package web.ui{
     import ckeditor.plugins.TableCellProperties
     import ckeditor.plugins.TableProperties
     import ckeditor.plugins.TodoList
-
-    import "../styles/rich-text-style.css"
+    import ckeditor.plugins.FullScreen
 
     class RichTextDocument extends RichEditor{
 
         @Override
         protected get editor(){
             return Decoupled;
+        }
+
+        @Override
+        protected getEditorName(){
+            return 'decoupled'
         }
 
         @Override
@@ -68,7 +72,9 @@ package web.ui{
 
         @Override
         protected render(){
-            return <div class="rich-text-document" style={`width:${this.width};`}>
+            return <div class="rich-text-document rich-text-editor" style={`width:${this.width};`}
+                data-type={this.getEditorName()}
+                data-width={this.width} data-height={this.height}>
                 <div class="rich-text-toolbar" ref="rich-text-toolbar"></div>
                 <div class="rich-text-container" style={`height:${this.height};`}>
                     <div ref="rich-text-container" style={`height:${this.height};`}></div>
@@ -121,7 +127,8 @@ package web.ui{
                 Paragraph,
                 TableCellProperties,
                 TableProperties,
-                TodoList
+                TodoList,
+                FullScreen,
             ];
             Decoupled.defaultConfig = {
                 toolbar: {
@@ -129,7 +136,7 @@ package web.ui{
                         'undo', 'redo',
                         '|', 'heading','fontSize','fontFamily','fontColor','fontBackgroundColor',
                         '|', 'bold', 'italic','underline','outdent', 'indent','strikethrough','alignment','bulletedList', 'numberedList', 'todoList','blockQuote',
-                        '|', 'link', 'insertImage','mediaEmbed','insertTable'
+                        '|', 'link', 'insertImage','mediaEmbed','insertTable', '|', 'FullScreen'
                     ]
                 },
                 language: 'zh-cn',

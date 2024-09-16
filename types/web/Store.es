@@ -2,9 +2,10 @@ package web{
 
     import {defineStore, createPinia,getActivePinia,setActivePinia} from 'pinia'; 
     import {watch as _watch} from 'vue';
+    import {computed, ref, toRefs, markRaw} from '@vue/reactivity';
     class Store{
 
-        static protected getInstances():Map<class<Store>,Store>{
+        static private getInstances():Map<class<Store>,Store>{
             let dataset = System.getConfig('globals.webStoreInstances');
             if(!dataset){
                 System.setConfig('globals.webStoreInstances', dataset=new Map());
@@ -12,18 +13,44 @@ package web{
             return dataset;
         }
 
+        static private _plugins = []
+        static setPlugins(plugins:any[]){
+            _plugins.push(...plugins)
+        }
+
+        static private _getActivePinia():PiniaInstance{
+            return System.getConfig('globals.store.pinia.active.instance') || getActivePinia();
+        }
+
+        @Main(false)
+        static main(){
+            when(Syntax('es-nuxt')){
+                System.registerOnceHook('application:created', (app)=>{
+                    const nuxt = app.getAttribute('nuxtApp') as Record;
+                    const pinia = nuxt.$pinia as PiniaInstance
+                    System.setConfig('globals.store.pinia.active.instance', pinia)
+                    _plugins.forEach(plugin=>{
+                        pinia.use(plugin)
+                    })
+                })
+            }then{
+                System.registerOnceHook('application:created', (app)=>{
+                    const pinia =createPinia() as PiniaInstance
+                    setActivePinia(pinia);
+                    System.setConfig('globals.store.pinia.active.instance', pinia)
+                    _plugins.forEach(plugin=>{
+                        pinia.use(plugin)
+                    })
+                    const vue = app.getAttribute('vueApp');
+                    vue.use(pinia);
+                });
+            }
+        }
+
         static use<T extends class<Store>>(storeClass:T){
             let dataset = Store.getInstances();
             let instance = dataset.get(storeClass) as Store;
             if(!instance){
-                if(dataset.size===0){
-                    System.registerOnceHook('application:created', (app)=>{
-                        const vue = (app as web.Application).getAttribute('vueApp');
-                        const pinia =createPinia();
-                        setActivePinia(pinia);
-                        vue.use(pinia);
-                    });
-                }
                 instance = new storeClass() as Store;
                 instance.create();
                 dataset.set(storeClass, instance);
@@ -33,14 +60,19 @@ package web{
 
         protected key = 'store';
 
+        protected get options(){
+            return {}
+        }
+
+        protected get storage(){
+            return {}
+        }
+
         protected create(){
             const descriptor = Reflect.getDescriptor(this) || {};
-            const states = {};
-            const opts = {
-                state:()=>states,
-                getters:{},
-                actions:{}
-            };
+            const states = this.storage;
+            const getters = {};
+            const actions = {};
 
             type DT = {[key:string]:any, value:Function, get:Function, set:Function};
             const members:{[key:string]:DT} = descriptor.members || {};
@@ -56,7 +88,7 @@ package web{
                     const desc = members[key];
                     if(desc){
                         if(desc.label==='property'){
-                            if(store.$state.hasOwnProperty(key)){
+                            if(desc.permission==='public'){
                                 return store.$state[key];
                             }
                             return this[key];
@@ -108,11 +140,11 @@ package web{
                         }
                         throw new ReferenceError(`Store property the "${key}" is not writable.`)
                     }else{
-                        throw new ReferenceError(`Store property the "${key}" is not exist.`)
+                        throw new ReferenceError(`Store properties the "${key}" is not exist.`)
                     }
                 }
             });
-            
+
             for(let name in members){
                 const desc = members[name];
                 if(desc.permission!=='public')continue;
@@ -120,27 +152,62 @@ package web{
                     states[name] = desc.value;
                 }else if(desc.label==='accessor'){
                     if(desc.get){
-                        opts.getters[name] = desc.get.bind(_proxy);
+                        getters[name] = desc.get.bind(_proxy);
                     }
                 }else if(desc.label==='method'){
-                    opts.actions[name] = desc.value.bind(_proxy);
+                    actions[name] = desc.value.bind(_proxy);
                 }
             }
 
+            let isProd = false
+            when(Env(NODE_ENV, 'production')){
+                isProd = true;
+            }
+
+            const pinia = _getActivePinia();
             const id = this.key+':'+(descriptor.namespace ? descriptor.namespace +'.'+ descriptor.className : descriptor.className);
+            const initialState = pinia.state.value[id];
+            const setup = ()=>{
+                const hot = pinia._s.get(id);
+                if (!initialState && (isProd || !hot)) {
+                    pinia.state.value[id] = states;
+                }
+                const localState = !isProd && hot ? toRefs((ref(states) as Record).value) : toRefs(pinia.state.value[id]);
+                return Object.assign(localState, actions, Object.keys(getters || {}).reduce((computedGetters, name) => {
+                    when(Env(NODE_ENV, 'production', expect=false)){
+                        if(name in localState) {
+                            console.warn(`[🍍]: A getter cannot have the same name as another state property. Rename one of them. Found with "${name}" in store "${id}".`);
+                        }
+                    }
+                    when(Env(platform, 'server')){
+                        computedGetters[name] = markRaw(computed(() => {
+                            setActivePinia(pinia);
+                            return getters[name].call(this);
+                        }, null, true));
+                    }then{
+                        computedGetters[name] = markRaw(computed(() => {
+                            setActivePinia(pinia);
+                            return getters[name].call(this);
+                        }));
+                    }
+                    return computedGetters;
+                }, {}));
+            }
+
             let store:StoreInstance = null;
+            let options = this.options;
+
             when( Env(mode, 'production', expect=false) ){
-                const pinia = getActivePinia() as {_s:Map<string,any>}
-                const oldFactory = pinia._s.get(id);
-                const newFactory = defineStore(id, opts) as (...args)=>any;
-                if(oldFactory){
-                    store = newFactory(pinia, oldFactory);
+                const oldStore = pinia._s.get(id);
+                const newStore = defineStore(id, setup, options) as (...args)=>any;
+                if(oldStore){
+                    store = newStore(pinia, oldStore);
                 }else{
-                    store = newFactory();
+                    store = newStore();
                 }
             }then{
-                const newFactory = defineStore(id, opts) as Function;
-                store = newFactory();
+                const newStore = defineStore(id, setup, options) as Function;
+                store = newStore();
             }
 
             this.storeInstance = store;
@@ -208,7 +275,7 @@ package web{
             throw new ReferenceError(`Store property the "${key}" is not exist.`)
         }
 
-        patch(data:vue.Record|(state:vue.Record)=>void){
+        patch(data:Record|(states:Record)=>void){
             this.storeInstance.$patch(data);
         }
 
@@ -222,11 +289,11 @@ package web{
            return this.storeInstance.$onAction(callback, always);
         }
 
-        subscribe(callback:(mutation:vue.Record, state:vue.Record)=>void, options?:{detached: boolean}&vue.Record){
+        subscribe(callback:(mutation:Record, state:Record)=>void, options?:{detached: boolean}&Record){
             this.storeInstance.$subscribe(callback);
         }
 
-        watch(callback:vue.WatchCallback<vue.Record>, options?:vue.WatchOptions):()=>void{
+        watch(callback:vue.WatchCallback<Record>, options?:vue.WatchOptions):()=>void{
             return _watch(this.storeInstance.$state, callback, options)
         }
 
@@ -240,7 +307,7 @@ package web{
     }
 
     declare interface StoreInstance{
-        $state:vue.Record
+        $state:Record
         $onAction:(...args)=>(()=>void)
         $reset:(...args)=>void
         $patch:(...args)=>void
@@ -256,7 +323,8 @@ package web{
         _a:any
         _e:any
         _s:Map<string,any>
-        state:{[key:string]:any}
+        state:{value:Record<Record<any>>}
     }
-    
 }
+
+

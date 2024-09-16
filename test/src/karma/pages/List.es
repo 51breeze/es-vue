@@ -465,6 +465,9 @@ class List extends Component{
                     <d:else>
                             确定要删除“{this.selectedData.row.name}”吗？
                     </d:else>
+
+                    <ui:RichText></ui:RichText>
+
                     <div s:footer>
                             <ui:Button on:click={showDialog = false}>取 消</ui:Button>
                             <ui:Button type="primary" on:click={saveEdit.bind(this)}>确 定</ui:Button>

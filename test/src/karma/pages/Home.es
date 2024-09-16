@@ -11,7 +11,9 @@ import web.Lang;
 import VList from '../vue/list.es';
 
 
-
+@Define(emits, close, start, end=ending)
+@Define(options, emits, open)
+@Define(options, file, true, type='--literal')
 class Home extends Component{
 
       @Provider
@@ -106,7 +108,7 @@ class Home extends Component{
 
             console.log('------Home page render-----------', this.title, this.list, this.fromData)
 
-            return <div data-title="home" xmlns:local="karma.components" xmlns:ui="web.ui"  xmlns:d="@directives" xmlns:s="@slots">
+            return <div data-title="home" xmlns:local="karma.components" xmlns:ui="web.ui"  xmlns:d="@directives" xmlns:s="@slots"  class={{'roo-con':true}} style={[{width:'auto'}]} >
                        66666666666666 2222--33388866667777
 
                   <ui:Button on:click={this.showEditor=true}>fdfdfdsf</ui:Button>
@@ -131,6 +133,21 @@ class Home extends Component{
                   </local:Slot>
                   <local:Directive></local:Directive>
 
+                   <div>
+                         <ui:RichText bind:value={text} height="200px"></ui:RichText>
+                   </div>
+
+                   <div>
+                        <ui:RichTextBalloonBlock bind:value={text2} height="100px"></ui:RichTextBalloonBlock>
+                  </div>
+
+
+                   <div>
+                         <ui:RichTextInline bind:value={text2}></ui:RichTextInline>
+                   </div>
+
+                  -------------------------
+
                   {
 
                   // <div>
@@ -141,9 +158,7 @@ class Home extends Component{
                   //       <ui:RichTextInline bind:value={text2}></ui:RichTextInline>
                   // </div>
 
-                  // <div>
-                  //       <ui:RichTextBalloonBlock bind:value={text2}></ui:RichTextBalloonBlock>
-                  // </div>
+                  
 
 
                   //  <div>
@@ -151,6 +166,12 @@ class Home extends Component{
                   // </div>
 
                   }
+
+                   <div>
+                        <ui:RichTextDocument bind:value={text2}></ui:RichTextDocument>
+                   </div>
+
+
 
                   <div ref="editor-main">
                         editor-main

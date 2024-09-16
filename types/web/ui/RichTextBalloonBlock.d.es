@@ -37,6 +37,7 @@ package web.ui{
     import ckeditor.plugins.FontColor
     import ckeditor.plugins.FontFamily
     import ckeditor.plugins.FontSize
+    import ckeditor.plugins.FullScreen
     
     import { BlockToolbar } from '@ckeditor/ckeditor5-ui';
     
@@ -47,7 +48,12 @@ package web.ui{
             return Balloon;
         }
 
-        @Main
+        @Override
+        protected getEditorName(){
+            return 'balloon-block'
+        }
+
+        @Main(false)
         static main(){
             Balloon.builtinPlugins=[
                 Essentials,
@@ -83,6 +89,7 @@ package web.ui{
                 FontColor,
                 FontFamily,
                 FontSize,
+                FullScreen
             ];
             Balloon.defaultConfig = {
                
@@ -90,7 +97,7 @@ package web.ui{
                     'undo', 'redo',
                     '|', 'heading','bold', 'italic','Underline','alignment','indent','outdent','fontSize','fontFamily','fontColor','fontBackgroundColor',
                     '|', 'insertImage', 'insertTable', 'blockQuote', 'mediaEmbed',
-                    '|', 'bulletedList', 'numberedList' 
+                    '|', 'bulletedList', 'numberedList','|','FullScreen'
                 ],
                 toolbar: {
                     items: [

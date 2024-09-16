@@ -13,7 +13,7 @@
     "build": "webpack --mode production",
     "dev-test-run": "npm run dev-test & npm run dev-run",
     "karma": "karma start",
-    "manifest": "node ./scripts/manifest.js"
+    "manifest": "esc -o types -f types/index.d.es --manifest --scope es-vue --inherit es-javascript"
   },
   "repository": {
     "type": "git",

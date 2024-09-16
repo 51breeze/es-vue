@@ -42,6 +42,8 @@ package web.ui{
     import ckeditor.plugins.FontFamily
     import ckeditor.plugins.FontSize
 
+    import ckeditor.plugins.FullScreen
+
     class RichTextMultiroot extends RichEditor{
 
         layout:{
@@ -92,6 +94,11 @@ package web.ui{
         @Override
         protected get editor(){
             return Multiroot;
+        }
+
+        @Override
+        protected getEditorName(){
+            return 'multiroot'
         }
 
         @Override
@@ -202,9 +209,11 @@ package web.ui{
 
         @Override
         protected render(){
-            return <div class="rich-text-multi-root" style={`width:${this.width};`}>
+            return <div class="rich-text-multi-root rich-text-editor" style={`width:${this.width};`}
+                data-type={this.getEditorName()}
+                data-width={this.width} data-height={this.height}>
                 <div d:if={!this.toolbar} class="rich-text-toolbar" ref="rich-text-toolbar"></div>
-                <div ref="children">
+                <div class="ck-editor__main" ref="children">
                     <s:default>
                         <div></div>
                     </s:default>
@@ -249,6 +258,7 @@ package web.ui{
                 FontColor,
                 FontFamily,
                 FontSize,
+                FullScreen
             ];
             Multiroot.defaultConfig = {
                 toolbar: {
@@ -257,7 +267,7 @@ package web.ui{
                         '|', 'heading','fontSize','fontFamily','fontColor','fontBackgroundColor',
                         '|', 'bold', 'italic','Underline','outdent', 'indent','alignment',
                         '|','bulletedList', 'numberedList','blockQuote',
-                        '|', 'link', 'insertImage', 'insertTable','mediaEmbed',
+                        '|', 'link', 'insertImage', 'insertTable','mediaEmbed','|','FullScreen'
                     ]
                 },
                 image: {

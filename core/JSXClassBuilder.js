@@ -742,11 +742,112 @@ class JSXClassBuilder extends ClassBuilder{
             const file = compiler.normalizePath(path.relative(ws, this.compilation.file));
             properties.push( this.createPropertyNode(this.createIdentifierNode('__ssrContext'), this.createLiteralNode(file) ) )
         }
+
+        properties.push(...this.getModuleDefineOptions(this.module))
         
         if( this.props.length > 0 ){
             properties.push( this.createPropertyNode('props',this.createObjectNode( this.props )) )
         }
         return this.createObjectNode( properties );
+    }
+
+    getModuleDefineOptions(module){
+        let has = false;
+        const results = Object.create(null)
+        module.getAnnotations(annot=>{
+            if(annot.getLowerCaseName() === 'define'){
+                const args = annot.getArguments()
+                if(args[0]){
+                    let value = String(args[0].value).toLowerCase()
+                    if(value ==='emits' || value==='options'){
+                        const _args = value ==='emits' ? args.slice(1) : args.slice(2)
+                        const key = value ==='emits' ? 'emits' : args[1].value;
+                        if(String(key) ==='props'){
+                            console.error(`Options 'props' should declared as properties in the component class`)
+                        }else{
+                            let obj = Object.create(null);
+                            let arr = [];
+                            let literal = null
+                            has = true;
+
+                            let maybeLiteralType = _args.length > 1 ? _args[_args.length-1] : null;
+                            if(maybeLiteralType && String(maybeLiteralType.key).toLowerCase()==='type'){
+                                literal = maybeLiteralType.value === '--literal'
+                                if(!literal){
+                                    maybeLiteralType = null
+                                }
+                            }else{
+                                maybeLiteralType = null
+                            }
+
+                            _args.forEach(arg=>{
+                                if(arg===maybeLiteralType)return;
+                                if(arg.assigned){
+                                    obj[arg.key] = arg.value
+                                }else{
+                                    arr.push(arg.value)
+                                }
+                            });
+
+                            if(results[key]){
+                                if(!results[key].literal){
+                                    const oldO = results[key].obj
+                                    const oldA = results[key].arr;
+                                    Object.keys(obj).forEach(key=>{
+                                        if(!oldO.hasOwnProperty(key)){
+                                            oldO[key] = obj[key];
+                                        }
+                                    })
+                                    arr.forEach(val=>{
+                                        if(!oldA.includes(val)){
+                                            oldA.push(val)
+                                        }
+                                    })
+                                }
+                            }else{
+                                results[key] = {obj, arr, literal}
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
+        });
+
+        if(has){
+            return Object.keys(results).map(key=>{
+                const target = results[key];
+                let literal = target.literal;
+                let arrayNode = null;
+                let objectNode = null;
+                let keys = Object.keys(target.obj);
+                if(keys.length>0){
+                    objectNode =this.createObjectNode(keys.map(key=>{
+                        return this.createPropertyNode(key, target.obj[key])
+                    }))
+                }
+
+                if(target.arr.length > 0){
+                    arrayNode = this.createArrayNode(target.arr.map(val=>{
+                        return this.createLiteralNode(val)
+                    }))
+                }
+
+                let propertyNode = arrayNode || objectNode;
+                if(arrayNode && objectNode){
+                    propertyNode = this.createCalleeNode(this.createMemberNode([
+                        this.createIdentifierNode('Object'),
+                        this.createIdentifierNode('assign'),
+                    ]), [arrayNode, objectNode])
+                }else if(literal && arrayNode){
+                    if(arrayNode.elements.length===1){
+                        propertyNode = arrayNode.elements[0]
+                    }
+                }
+                return this.createPropertyNode(key, propertyNode)
+            })
+        }
+        return []
     }
 
     createExportDeclaration(id){

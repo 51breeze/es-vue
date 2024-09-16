@@ -91,8 +91,6 @@ package vue{
         value: T;
     }
 
-    declare type Record<T=any> = {[key:string]:T};
-
     declare interface VNode extends global.VNode{
         type: any;
         props: Record | null;

@@ -5,7 +5,7 @@
 ///<namespaces name='web.ui' />
 ///<createClass value='false' />
 
-System.registerHook('application:created', (app)=>{
+System.registerOnceHook('application:created', (app)=>{
     app = app.getAttribute('vueApp');
     Object.keys(ElementPlusIconsVue).forEach( key=>{
         const com = ElementPlusIconsVue[key];

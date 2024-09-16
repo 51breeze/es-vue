@@ -39,6 +39,7 @@ package web.ui{
     import ckeditor.plugins.FontColor
     import ckeditor.plugins.FontFamily
     import ckeditor.plugins.FontSize
+    import ckeditor.plugins.FullScreen
     
     class RichTextInline extends RichEditor{
 
@@ -46,8 +47,13 @@ package web.ui{
         protected get editor(){
             return Inline;
         }
+
+        @Override
+        protected getEditorName(){
+            return 'inline'
+        }
        
-        @Main
+        @Main(false)
         static main(){
             Inline.builtinPlugins=[
                 Essentials,
@@ -85,6 +91,7 @@ package web.ui{
                 FontColor,
                 FontFamily,
                 FontSize,
+                FullScreen,
                 
             ];
             Inline.defaultConfig = {
@@ -94,7 +101,7 @@ package web.ui{
                         '|', 'heading','fontSize','fontFamily','fontColor','fontBackgroundColor',
                         '|', 'bold', 'italic','Underline','outdent', 'indent','alignment',
                         '|','bulletedList', 'numberedList','blockQuote',
-                        '|', 'link', 'insertImage', 'insertTable',  'mediaEmbed',
+                        '|', 'link', 'insertImage', 'insertTable',  'mediaEmbed','|','FullScreen'
                     ]
                 },
                 image: {

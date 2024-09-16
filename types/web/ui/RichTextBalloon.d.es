@@ -39,6 +39,8 @@ package web.ui{
     import ckeditor.plugins.FontColor
     import ckeditor.plugins.FontFamily
     import ckeditor.plugins.FontSize
+
+    import ckeditor.plugins.FullScreen
     
     class RichTextBalloon extends RichEditor{
 
@@ -46,8 +48,13 @@ package web.ui{
         protected get editor(){
             return Balloon;
         }
+
+        @Override
+        protected getEditorName(){
+            return 'balloon'
+        }
     
-        @Main
+        @Main(false)
         static main(){
             Balloon.builtinPlugins=[
                 Essentials,
@@ -85,6 +92,7 @@ package web.ui{
                 FontColor,
                 FontFamily,
                 FontSize,
+                FullScreen
             ];
             Balloon.defaultConfig = {
                 toolbar: {
@@ -93,7 +101,8 @@ package web.ui{
                         '|', 'heading',
                         '|', 'bold', 'italic','Underline','fontSize','fontFamily','fontColor','fontBackgroundColor',
                         '|', 'link', 'insertImage', 'insertTable', 'blockQuote', 'mediaEmbed',
-                        '|', 'bulletedList', 'numberedList', 'outdent', 'indent','alignment'
+                        '|', 'bulletedList', 'numberedList', 'outdent', 'indent','alignment',
+                        '|', 'FullScreen'
                     ]
                 },
                 image: {

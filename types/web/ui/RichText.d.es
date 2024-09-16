@@ -45,8 +45,6 @@ package web.ui{
     import ckeditor.plugins.FontSize
     import ckeditor.plugins.FullScreen
     import ckeditor.plugins.SourceEditing
-
-    import "../styles/rich-text-style.css"
     
     class RichText extends RichEditor{
 
@@ -54,7 +52,6 @@ package web.ui{
         protected onInitialized():void{
             super.onInitialized();
             this.on('ready', (type, editor:Classic)=>{
-
                 editor.editing.view.change( writer => {
                     const root = editor.editing.view.document.getRoot();
                     if(!editor.ui.view.element){
@@ -75,38 +72,44 @@ package web.ui{
                 
                 const element = editor.ui.view.element as HTMLElement;
                 if(element){
-                    const list = [this.className, 'rich-text-editor'].filter( val=>!!val );
-                    element.classList.add( ...list );
                     element.style.width=this.width;
                 }
 
-                editor.on('fullscreen', (event, status)=>{
-                    editor.editing.view.change( writer => {
-                        const root = editor.editing.view.document.getRoot();
-                        const stickyPanel = editor.ui.view.stickyPanel;
-                        const editable = editor.ui.view.editable;
-                        if(root && stickyPanel && editable){
-                            const editableElement = editable.element as HTMLElement;
-                            const topElement = stickyPanel.element as HTMLElement;
-                            if(editableElement && topElement){
-                                const parentNode = editableElement.parentNode as HTMLElement
-                                if( status === 1 ){
-                                    let offsetHeight = topElement.offsetHeight || 39;
-                                    let height = `calc( 100vh - ${offsetHeight}px )`;
-                                    if(parentNode){
-                                        parentNode.style.height=height;
+                if(this.height !=='auto' && editor.plugins.has('SourceEditing')) {
+                    const sourceEditingPlugin = editor.plugins.get('SourceEditing') as {on:(...args)=>void};
+                    if(sourceEditingPlugin){
+                        sourceEditingPlugin.on('change:isSourceEditingMode', (evt, name, isSourceEditingMode) => {
+                            if(isSourceEditingMode){
+                                const nameds = Array.from(editor.ui.getEditableElementsNames());
+                                const name = nameds.find(name=>name.includes('sourceEditing'));
+                                if(name){
+                                    const el = editor.ui.getEditableElement(name)
+                                    if(el is HTMLElement){
+                                        el.style.height = this.height;
+                                        el.style.overflow = 'auto';
+                                        if(el.parentNode is HTMLElement){
+                                            el.parentNode.style.height = this.height;
+                                        }
                                     }
-                                    writer.setStyle('height', height, root);
-                                }else{
-                                    if(parentNode){
-                                        parentNode.style.height=this.height;
-                                    }
-                                    writer.setStyle('height', this.height, root);
                                 }
                             }
-                        }
-                    })
-                });
+                        })
+                    }
+                }
+
+                // editor.on('fullscreen', (event, status)=>{
+                //     editor.editing.view.change( writer => {
+                //         const root = editor.editing.view.document.getRoot();
+                //         const stickyPanel = editor.ui.view.stickyPanel;
+                //         const editable = editor.ui.view.editable;
+                //         if(root && stickyPanel && editable){
+                //             if(stickyPanel.contentPanelElement is HTMLElement){
+                //                stickyPanel.contentPanelElement.classList.remove('ck-sticky-panel__content_sticky')
+                //                stickyPanel.contentPanelElement.removeAttribute('style');
+                //             }
+                //         }
+                //     })
+                // });
                 
             });
         }
@@ -116,7 +119,12 @@ package web.ui{
             return Classic;
         }
 
-        @Main
+        @Override
+        protected getEditorName(){
+            return 'classic'
+        }
+
+        @Main(false)
         static main(){
             Classic.builtinPlugins=[
                 Essentials,

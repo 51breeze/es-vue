@@ -57,3 +57,10 @@ package web{
         unmount():void;
     }
 }
+
+package {
+    declare System{
+        static registerOnceHook(type:'application:created',processer:(app?:web.Application)=>void, priority:number=0):void;
+        static registerHook(type:'application:created',processer:(app?:web.Application)=>void, priority:number=0):void;
+    }
+}
