@@ -41,6 +41,7 @@ class List extends Component{
         infiniteCount:0,
         infiniteCount2:0,
         drawer:false,
+        page:3,
         transferOptions:[],
         collapseValue:'1',
         datePickerValue:"",
@@ -450,6 +451,9 @@ class List extends Component{
                 <d:custom name={MyDirective} value={true}>
                     <div>MyDirective...</div>
                 </d:custom>
+
+                <ui:Pagination total={50} pageSize={10} b:currentPage={this.formData.page} ></ui:Pagination>
+                <div>=====currentPage ======={this.formData.page} =========</div>
 
                 <ui:Dialog bind:value={this.showDialog} title={this.selectedData.flag?"编辑":'删除'} lockScroll = {false}>
                     <d:if condition={this.selectedData.flag}>

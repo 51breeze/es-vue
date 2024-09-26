@@ -7,6 +7,10 @@ import web.components.Component
 
 /** Rate Component */
 declare final class Rate extends Component{
+
+  //绑定值
+  @Alias('modelValue')
+  value:number=0
   
   /** Max rating score */
   max: number

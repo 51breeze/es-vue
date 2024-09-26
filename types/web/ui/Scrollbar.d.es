@@ -5,6 +5,12 @@ package web.ui{
     @Import(Scrollbar = "element-ui/packages/scrollbar")
     @Embed('element-ui/lib/theme-chalk/scrollbar.css')
 
+    @Define(
+        emits,
+        //当触发滚动事件时，返回滚动的距离
+        scroll,
+    )
+
     declare final class Scrollbar extends Component{
         native: boolean;
         wrapStyle:string | ({[key:string]:string})[];

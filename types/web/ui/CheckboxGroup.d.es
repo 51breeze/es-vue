@@ -5,8 +5,16 @@ import web.components.Component
 @Import(CheckboxGroup = "element-ui/packages/checkbox-group")
 @Embed('element-ui/lib/theme-chalk/checkbox-group.css')
 
+@Define(
+    emits, 
+    //当绑定值变化时触发的事件
+    change
+)
+
+
 declare final class CheckboxGroup extends Component{
     //绑定值
+    @Alias('modelValue')
     value:array
     //是否禁用
     disabled:boolean=false

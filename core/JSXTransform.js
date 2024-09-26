@@ -114,6 +114,18 @@ class JSXTransform extends Core.JSXTransform{
         },true);
         const inFor = forStack && forStack.scope && forStack.scope.isForContext ? true : false;
 
+        const descModule = stack.isWebComponent ? stack.description() : null;
+        const definedEmits = stack.compiler.callUtils('isModule',descModule) ? this.getModuleDefinedEmits(descModule) : null;
+        const getDefinedEmitName = (name)=>{
+            if(definedEmits && Object.prototype.hasOwnProperty.call(definedEmits, name)){
+                name = definedEmits[name];
+            }
+            if(name.includes('-')){
+                name = name.replace(/-([a-z])/g, (a,b)=>b.toUpperCase());
+            }
+            return name;
+        }
+
         stack.openingElement.attributes.forEach(item=>{
             if( item.isAttributeXmlns || item.isAttributeDirective ){
                 if( item.isAttributeDirective ){
@@ -167,9 +179,11 @@ class JSXTransform extends Core.JSXTransform{
             }
 
             if( ns ==="@events" ){
+                name = getDefinedEmitName(name)
                 pushEvent( name, this.makeAttributeBindEventFunctionNode(item,value.value), 'on')
                 return;
             }else if( ns ==="@natives" ){
+                name = getDefinedEmitName(name)
                 pushEvent( name, this.makeAttributeBindEventFunctionNode(item,value.value), 'nativeOn')
                 return;
             }else if( ns ==="@binding" ){
@@ -252,6 +266,64 @@ class JSXTransform extends Core.JSXTransform{
                 className
             ]
         );
+    }
+
+    getModuleDefinedEmits(module){
+        const dataset = Object.create(null)
+        if(!module || !module.isModule)return dataset;
+        module.getAnnotations(annot=>{
+            if(annot.getLowerCaseName() === 'define'){
+                const args = annot.getArguments()
+                if(args.length>1){
+                    let value = String(args[0].value).toLowerCase()
+                    let _args = args;
+                    let _key = null;
+                    if(value ==='emits' || value==='options'){
+                        _args = value ==='emits' ? args.slice(1) : args.slice(2)
+                        _key = value ==='emits' ? 'emits' : args[1].value;
+                    }
+                    _key = String(_key).toLowerCase();
+                    if(_key ==='emits'){
+                        let skip = _args.length > 1 ? _args[_args.length-1] : null;
+                        if(skip && skip.assigned && String(skip.key).toLowerCase()==='type'){
+                            if(skip.value !== '--literal'){
+                                skip = null
+                            }
+                        }else{
+                            skip = null
+                        }
+                        _args.forEach(arg=>{
+                            if(arg===skip)return;
+                            if(arg.assigned){
+                                dataset[arg.key] = arg.value
+                            }else{
+                                dataset[arg.value] = arg.value
+                            }
+                        });
+                    }
+                }
+            }
+            return false;
+        });
+        return dataset;
+    }
+
+    getBinddingEventName(desc){
+        if(!desc || !desc.isStack)return null;
+        const bindding = desc.findAnnotation(annot=>{
+            if(annot.getLowerCaseName() === 'bindding'){
+                return annot;
+            }
+            return false;
+        });
+        if(bindding && Array.isArray(bindding)){
+            const [annot] = bindding;
+            const args = annot.getArguments();
+            if(args[0]){
+                return args[0].value
+            }
+        }
+        return null;
     }
 }
 module.exports = JSXTransform;

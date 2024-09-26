@@ -5,6 +5,8 @@ import web.components.Component
 @Import(Autocomplete = "element-ui/packages/autocomplete")
 @Embed('element-ui/lib/theme-chalk/autocomplete.css')
 
+@Define(emits, blur, focus, input, clear, select, change)
+
 //自定义输入建议，参数为 { item }
 @Define(slot, 'default', scope = 'item' )
 

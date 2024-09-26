@@ -51,6 +51,15 @@ class JSXTransformV3 extends JSXTransform{
                                             item.key = template;
                                         }else{
                                             item.key.value = 'on'+toUpperCaseFirst(item.key.value);
+                                            if(item.key.type ==="Literal"){
+                                                item.key.raw = '"'+item.key.value+'"';
+                                            }else{
+                                                let str = String(item.key.value)
+                                                if(str.includes(':') || str.includes('-')){
+                                                    item.key.raw = '"'+item.key.value+'"';
+                                                    item.key.type = "Literal";
+                                                }
+                                            }
                                         }
                                         items.push( item );
                                     }
@@ -522,6 +531,19 @@ class JSXTransformV3 extends JSXTransform{
             return stack.scope.isForContext || !(stack.isJSXElement || stack.isJSXExpressionContainer)
         },true);
         const inFor = forStack && forStack.scope && forStack.scope.isForContext ? true : false;
+
+        const descModule = stack.isWebComponent ? stack.description() : null;
+        const definedEmits = stack.compiler.callUtils('isModule',descModule) ? this.getModuleDefinedEmits(descModule) : null;
+        const getDefinedEmitName = (name)=>{
+            if(definedEmits && Object.prototype.hasOwnProperty.call(definedEmits, name)){
+                name = definedEmits[name];
+            }
+            if(name.includes('-')){
+                name = name.replace(/-([a-z])/g, (a,b)=>b.toUpperCase());
+            }
+            return name;
+        }
+
         stack.openingElement.attributes.forEach(item=>{
             if( item.isAttributeXmlns || item.isAttributeDirective ){
                 if( item.isAttributeDirective ){
@@ -555,8 +577,8 @@ class JSXTransformV3 extends JSXTransform{
             let propValue = value.value;
             let attrLowerName = name.toLowerCase();
 
-            if( (ns ==="@events" || ns ==="@natives") && name.includes('-') ){
-                name = name.replace(/-([a-z])/g, (a,b)=>b.toUpperCase());
+            if( (ns ==="@events" || ns ==="@natives") ){
+                name = getDefinedEmitName(name);
             }
 
             if( ns && ns.includes('::') ){
@@ -638,56 +660,59 @@ class JSXTransformV3 extends JSXTransform{
             }
 
             if( ns ==="@binding" ){
-                if( custom && binddingModelValue ){
-                    pushEvent(custom , this.createArrowFunctionNode(
-                        [this.createIdentifierNode('e')], 
-                        this.createAssignmentNode(
-                            binddingModelValue, 
-                            createGetEventValueNode()
+
+                const createBinddingParams = (getEvent=false)=>{
+                    return [
+                        [
+                            this.createIdentifierNode('e')
+                        ], 
+                        binddingModelValue.isReflectSetter ? binddingModelValue : this.createAssignmentNode(
+                            binddingModelValue,
+                            getEvent ? createGetEventValueNode() : this.createIdentifierNode('e')
                         )
+                    ]
+                }
+
+                if( custom && binddingModelValue ){
+
+                    pushEvent(custom , this.createArrowFunctionNode(
+                        ...createBinddingParams(!stack.isWebComponent)
                     ), 'on');
-                    return;
+                    
                 }else if( (stack.isWebComponent || afterDirective) && binddingModelValue ){
-                    if( propName ==='modelValue' ){
-                        pushEvent(
-                            this.createLiteralNode('onUpdate:modelValue', void 0, value.name.stack),
-                            this.createArrowFunctionNode(
-                                [
-                                    this.createIdentifierNode('value')
-                                ], 
-                                binddingModelValue.isReflectSetter ? binddingModelValue : this.createAssignmentNode(
-                                    binddingModelValue,
-                                    this.createIdentifierNode('value')
-                                )
-                            ),
-                            'props'
-                        );
-                    }else{
-                        const type = propName.replace(/-(a-zA-Z)/g,(a,b)=>b.toUpperCase());
-                        pushEvent(
-                            this.createIdentifierNode(type, void 0, value.name.stack),
-                            this.createArrowFunctionNode(
-                                [
-                                    this.createIdentifierNode('e')
-                                ], 
-                                this.createAssignmentNode(
-                                    binddingModelValue,
-                                    createGetEventValueNode()
-                                )
-                            ),
-                            'on'
-                        );
-                        return;
+
+                    let eventName = propName;
+                    if(propName ==='modelValue'){
+                        eventName = 'update:modelValue';
                     }
+
+                    if(item.isMemberProperty){
+                        let desc = item.description();
+                        if(desc){
+                            let _name = this.getBinddingEventName(desc)
+                            if(_name){
+                                eventName = _name;
+                            }
+                        }
+                    }
+
+                    const type = getDefinedEmitName(eventName);
+                    pushEvent(
+                        type.includes(':') || type.includes('-') ? this.createLiteralNode(type) : this.createIdentifierNode(type),
+                        this.createArrowFunctionNode(
+                            ...createBinddingParams()
+                        ),
+                    'on');
         
                 }else if( binddingModelValue ){
-                    pushEvent(this.createIdentifierNode('input') , this.createArrowFunctionNode(
-                        [this.createIdentifierNode('e')], 
-                        this.createAssignmentNode(
-                            binddingModelValue, 
-                            createGetEventValueNode()
-                        )
-                    ), 'on');
+
+                    pushEvent(
+                        this.createIdentifierNode('input'),
+                        this.createArrowFunctionNode(
+                            ...createBinddingParams(true)
+                        ),
+                    'on');
+
                 }
         
                 if( afterDirective && binddingModelValue ){
@@ -1026,6 +1051,34 @@ class JSXTransformV3 extends JSXTransform{
     //     }
     //     return false;
     // }
+
+    makeHTMLElement(stack,data,children){
+        var name = null;
+        if( stack.isComponent ){
+            if( stack.jsxRootElement === stack && stack.parentStack.isProgram ){
+                name = this.createLiteralNode("div");
+            }else{
+                const desc = stack.description();
+                if( desc.isModule && desc.isClass ){
+                    this.addDepend(desc)
+                    name = this.createIdentifierNode( this.getModuleReferenceName( desc ) );
+                }else{
+                    name = this.createIdentifierNode(stack.openingElement.name.value(), stack.openingElement.name);
+                }
+            }
+        }else{
+            name = this.createLiteralNode(stack.openingElement.name.value(), void 0, stack.openingElement.name);
+        }
+
+        data = this.makeConfig(data, stack);
+        if( children ){
+            return this.createElementNode(stack, name, data || this.createLiteralNode(null), children);
+        }else if(data){
+            return this.createElementNode(stack, name, data);
+        }else{
+            return this.createElementNode(stack, name);
+        }
+    }
 
     create(stack){
         const isRoot = stack.jsxRootElement === stack;

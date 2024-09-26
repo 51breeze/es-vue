@@ -440,13 +440,12 @@ Object.defineProperty( proto, 'nextTick', {value:function nextTick(callback){
     return nextTick(callback);
 }});
 
-Object.defineProperty( proto, 'withAsyncContext', {value:function withAsyncContext(callback, nullable=null){
+Object.defineProperty( proto, 'withAsyncContext', {value:function withAsyncContext(callback){
     let current = getCurrentInstance();
     let setCurrentInstance = this[privateKey].setCurrentInstance;
     if(!current){
         if(setCurrentInstance){
             setCurrentInstance();
-            current = getCurrentInstance();
         }
     }
     const [data, restore] = Vue.withAsyncContext(callback);
@@ -456,13 +455,10 @@ Object.defineProperty( proto, 'withAsyncContext', {value:function withAsyncConte
             return [restore, setNullInstance];
         }
         reset.isCalled = true;
-        let now = getCurrentInstance();
-        if(!nullable && nullable !== false){
-            nullable = !!this[privateKey].initializeDone;
-        }
-        if(!now && !nullable)restore();
-        if(now !== current && nullable){
+        if((!current || current !== getCurrentInstance()) && this[privateKey].initializeDone){
             setNullInstance();
+        }else{
+            restore();
         }
         return [restore, setNullInstance];
     }
@@ -474,8 +470,8 @@ Object.defineProperty( proto, 'withAsyncContext', {value:function withAsyncConte
     return [data, reset];
 }});
 
-Object.defineProperty(proto, 'withContext', {value:function withContext(callback, nullable=null){
-    const [data] = this.withAsyncContext(callback, nullable);
+Object.defineProperty(proto, 'withContext', {value:function withContext(callback){
+    const [data] = this.withAsyncContext(callback);
     return data;
 }})
 

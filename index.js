@@ -22,11 +22,8 @@ const defaultConfig ={
     crossDependenciesCheck:true,
     css:'sass', //none sass css
     resolve:{
-        imports:{
-            '#es-vue-web-application-style':'element-plus/theme-chalk/base.css'
-        },
-        folders:{},
-        polyfills:{}
+        imports:{},
+        folders:{}
     },
     metadata:{
         version:"3.0.0"
@@ -115,10 +112,17 @@ function registerError(define, cn, en){
 }
 
 const pkg = require("./package.json");
+const EXCLUDE_STYLE_RE = /[\\\/]style[\\\/](css|index)$/i;
 
 function getVersion( val ){
     const [a="0",b="0",c="0"] = Array.from( String(val).matchAll( /\d+/g ) ).map( item=>item ? item[0].substring(0,2) : "0" );
     return [a,b,c].join('.');
+}
+
+function setImports(imports, name, value, force=false){
+    if(force || !Object.prototype.hasOwnProperty.call(imports, name) || imports[name] === void 0){
+        imports[name] = value;
+    }
 }
 
 function genMapping(options={}){
@@ -128,26 +132,30 @@ function genMapping(options={}){
     }, options.resolve.imports);
     const imports = options.resolve.imports;
     if( options.css==="none" ){
-        imports['element-ui/lib/theme-chalk/***'] = false;
-        imports['element-plus/lib/components/*/style/***'] = false;
-        imports['element-plus/theme-chalk/***'] = false;
-        imports['#es-vue-web-application-style'] = false;
+        setImports(imports, 'element-ui/lib/theme-chalk/***', false)
+        setImports(imports, 'element-plus/*/components/*/style/***', false)
+        setImports(imports, 'element-plus/theme-chalk/***', false)
+        setImports(imports, '#es-vue-web-application-style', false, true)
     }else if(options.css==="scss"){
-        imports['element-ui/lib/theme-chalk/*.css'] = resolveComponent(options,'{basename}/style/index')
-        imports['element-ui/lib/theme-chalk/submenu.css'] = resolveComponent(options,'sub-menu/style/index')
-        imports['element-plus/lib/components/*/style/css'] = resolveComponent(options,'{0}/style/index')
+        setImports(imports, 'element-ui/lib/theme-chalk/*.css', resolveComponent(options,'{basename}/style/index'))
+        setImports(imports,'element-ui/lib/theme-chalk/submenu.css',resolveComponent(options,'sub-menu/style/index'))
+        setImports(imports,'element-plus/lib/components/*/style/css', resolveComponent(options,'{0}/style/index'))
+        setImports(imports,'#es-vue-web-application-style','element-plus/theme-chalk/src/index.scss');
     }else{
-        imports['element-ui/lib/theme-chalk/*.css'] = resolveComponent(options,'{basename}/style/css')
-        imports['element-ui/lib/theme-chalk/submenu.css'] = resolveComponent(options,'sub-menu/style/css')
+        setImports(imports,'element-ui/lib/theme-chalk/*.css', resolveComponent(options,'{basename}/style/css'))
+        setImports(imports,'element-ui/lib/theme-chalk/submenu.css', resolveComponent(options,'sub-menu/style/css'))
+        setImports(imports,'#es-vue-web-application-style','element-plus/theme-chalk/index.css');
     }
     
     if(options.importModuleFlag){
-        imports['element-plus/lib/components/**'] = 'element-plus/es/components/{...}/{basename}/index';
-        imports['element-plus/lib/components/**/*.*'] = 'element-plus/es/components/{...}/index';
+        setImports(imports,'element-plus/lib/components/**', 'element-plus/es/components/{...}/{basename}/index');
+        setImports(imports,'element-plus/lib/components/**/*.*', 'element-plus/es/components/{...}/index');
         if(options.css==="scss"){
-            imports['element-plus/lib/components/*/style/css'] = resolveComponent(options,'{0}/style/index')
-        }else if(options.css!=="none" ){
-            imports['element-plus/lib/components/*/style/css'] = resolveComponent(options,'{0}/style/css')
+            setImports(imports,'element-plus/lib/components/*/style/css', resolveComponent(options,'{0}/style/index'))
+        }else if(options.css==="none" ){
+            setImports(imports,'element-plus/lib/components/*/style/*', false, true)
+        }else{
+            setImports(imports,'element-plus/lib/components/*/style/css', resolveComponent(options,'{0}/style/css'))
         }
     }
 }
@@ -159,23 +167,23 @@ function mergeOptions(options){
         options.metadata.vue = '2.0.0';
         options.metadata.version = '2.0.0';
         const imports =  options.resolve.imports;
-        imports['element-plus/***']=false;
+        setImports(imports,'element-plus/***',false);
         if( options.css ==='none' ){
-            imports['element-ui/lib/theme-chalk/***']=false;
-            imports['#es-vue-web-application-style'] =false;
+            setImports(imports,'element-ui/lib/theme-chalk/***',false, true);
+            setImports(imports,'#es-vue-web-application-style',false, true);
         }else if(options.css==="scss"){
-            imports['element-ui/lib/theme-chalk/***']='element-ui/packages/theme-chalk/src/{basename}.scss';
-            imports['#es-vue-web-application-style']='element-ui/lib/theme-chalk/src/base.scss';
+            setImports(imports,'element-ui/lib/theme-chalk/***','element-ui/packages/theme-chalk/src/{basename}.scss');
+            setImports(imports,'#es-vue-web-application-style','element-ui/lib/theme-chalk/src/base.scss');
         }else{
-            imports['#es-vue-web-application-style']='element-ui/lib/theme-chalk/base.css';
+            setImports(imports,'#es-vue-web-application-style','element-ui/lib/theme-chalk/base.css');
         }
         if(options.uiFully){
             delete imports['element-ui/lib/theme-chalk/***'];
             delete imports['element-plus/***'];
             if(options.css==="scss"){
-                imports['#es-vue-web-application-style']='element-ui/packages/theme-chalk/src/index.scss';
+                setImports(imports,'#es-vue-web-application-style','element-ui/packages/theme-chalk/src/index.scss');
             }else if(options.css!=="none" ){
-                imports['#es-vue-web-application-style']='element-ui/lib/theme-chalk/index.css';
+                setImports(imports,'#es-vue-web-application-style','element-ui/lib/theme-chalk/index.css');
             }
         }
         
@@ -186,14 +194,14 @@ function mergeOptions(options){
         if(options.uiFully){
             const imports =  options.resolve.imports;
             if(options.css==="none" ){
-                imports['element-ui/lib/theme-chalk/***'] = false;
-                imports['element-plus/lib/components/*/style/***'] = false;
-                imports['element-plus/theme-chalk/***'] = false;
-                imports['#es-vue-web-application-style'] = false;
+                setImports(imports,'element-ui/lib/theme-chalk/***', false, true);
+                setImports(imports,'element-plus/*/components/*/style/***', false, true);
+                setImports(imports,'element-plus/theme-chalk/***', false, true);
+                setImports(imports,'#es-vue-web-application-style', false, true);
             }else if(options.css==="scss"){
-                imports['#es-vue-web-application-style']='element-plus/theme-chalk/src/index.scss';
+                setImports(imports,'#es-vue-web-application-style','element-plus/theme-chalk/src/index.scss');
             }else{
-                imports['#es-vue-web-application-style']='element-plus/theme-chalk/index.css';
+                setImports(imports,'#es-vue-web-application-style','element-plus/theme-chalk/index.css');
             }
         }else{
             genMapping(options);
@@ -334,6 +342,11 @@ class PluginEsVue extends Core.Plugin{
     }
 
     resolveImportSource(id, ctx={}){
+        if(this.options.css==="none"){
+            if(EXCLUDE_STYLE_RE.test(id)){
+                return {source:false}
+            }
+        }
         const scheme = this.glob.scheme(id,ctx);
         let source = this.glob.parse(scheme, ctx);
         let rule = scheme.rule;

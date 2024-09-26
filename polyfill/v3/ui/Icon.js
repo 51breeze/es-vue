@@ -50,13 +50,13 @@ const Icon = Vue.defineComponent({
         color:{type:String},
         name:{type:String}
     },
-    setup(props) {
-        let {size,color,name} = props;
+    setup(props, context) {
+        let {size,color,name} = Vue.toRefs(props);
         return (_ctx, _cache) => {
-            return Vue.h(ElIcon, {size,color}, {
+            return Vue.h(ElIcon, {...context.attrs,size:Vue.unref(size),color:Vue.unref(color)}, {
                 default:Vue.withCtx(()=>{
                     if(name && !_ctx.$slots.default ){
-                        return [resolveComponent(String(Vue.unref(name)))];
+                        return [resolveComponent(Vue.unref(name))];
                     }else {
                         let children = null;
                         if( typeof _ctx.$slots.default === 'function' ){

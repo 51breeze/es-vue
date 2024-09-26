@@ -5,11 +5,30 @@ import web.components.Component
 @Import(DatePicker = "element-ui/packages/date-picker")
 @Embed('element-ui/lib/theme-chalk/date-picker.css')
 
+@Define(
+    emits,
+    //用户确认选定的值时触发
+    change,	
+    //在组件 Input 失去焦点时触发	
+    blur,
+    //在组件 Input 获得焦点时触发	
+    focus,
+    //2.7.7	可清空的模式下用户点击清空按钮时触发
+    clear,
+    //在日历所选日期更改时触发
+    'calendar-change',	
+    //当日期面板改变时触发。
+    'panel-change',		
+    //当 DatePicker 的下拉列表出现/消失时触发
+    'visible-change'
+)
+
 declare final class DatePicker extends Component{
     //尺寸 
     @Hook('polyfills:value')
     size:'large' | 'medium' | 'small' | 'mini';
     //绑定值
+    @Alias('modelValue')
     value: TimePickerValueType | TimePickerValueType[]
     //完全只读
     readonly:boolean=false

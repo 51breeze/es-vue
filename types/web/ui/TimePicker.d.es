@@ -15,6 +15,7 @@ declare final class TimePicker extends Component{
     @Hook('polyfills:value')
     size:'large' | 'medium' | 'small' | 'mini'
     //绑定值
+    @Alias('modelValue')
     value: TimePickerValueType | TimePickerValueType[]
     //完全只读
     readonly:boolean=false

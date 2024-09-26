@@ -8,6 +8,7 @@ import web.components.Component
 declare final class Switch extends Component{
 
     //绑定值
+    @Alias('modelValue')
     value:boolean | string | number
 
     //是否禁用

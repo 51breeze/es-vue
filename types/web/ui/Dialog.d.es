@@ -11,11 +11,30 @@ import 'element-ui/lib/theme-chalk/dialog.css';
 @define(slot, 'default')
 @define(slot, 'title')
 @define(slot, 'footer')
+@define(slot, 'header')
+
+@Define(
+    emits,
+    //Dialog 打开的回调
+    open,	
+    //Dialog 打开动画结束时的回调
+    opened,
+    //Dialog 关闭的回调
+    close,
+    //Dialog 关闭动画结束时的回调
+    closed,
+    //输入焦点聚焦在 Dialog 内容时的回调
+    'open-auto-focus',
+    //输入焦点从 Dialog 内容失焦时的回调
+    'close-auto-focus'
+
+)
 
 /** Informs users while preserving the current page state */
 declare final class Dialog extends Component {
 
   //是否显示 Dialog
+  @Alias('modelValue')
   value:boolean;
 
   /** Title of Dialog */

@@ -7,6 +7,7 @@ import web.components.Component
 
 declare final class RadioGroup extends Component{
     //绑定值
+    @Alias('modelValue')
     value:string | number | boolean
     //是否禁用
     disabled:boolean=false

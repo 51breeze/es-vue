@@ -12,7 +12,8 @@ import web.components.Component
 /** Transfer Component */
 declare final class Transfer extends Component{
 
-  value:[];
+  @Alias('modelValue')
+  value:string|number[];
 
   /** Data source */
   data: TransferData[]

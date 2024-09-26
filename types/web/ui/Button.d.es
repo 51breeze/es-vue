@@ -43,7 +43,16 @@ declare final class Button extends Component{
     //是否默认聚焦
     autofocus:boolean=false
 
+    //自定义加载中状态图标组件
+    @Alias('loading-icon')
+    loadingIcon:string | Component = 'Loading'
+
+    //自动在两个中文字符之间插入空格
+    @Alias('auto-insert-space')
+    autoInsertSpace:boolean
+
     //原生 type 属性
     @DOMAttribute
+    @Alias('native-type')
     nativeType:'button' | 'submit' | 'reset' = 'button'
 }

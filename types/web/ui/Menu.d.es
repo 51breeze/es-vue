@@ -5,6 +5,16 @@ import web.components.Component
 @Import(Menu = "element-ui/packages/menu")
 @Embed('element-ui/lib/theme-chalk/menu.css')
 
+@Define(
+    emits,
+    //菜单激活回调
+    select,	
+    //sub-menu 展开的回调	
+    open,
+    //sub-menu 收起的回调
+    close,
+)
+
 // @Embed('element-ui/lib/theme-chalk/icon.css')
 
 /** Menu that provides navigation for your website */

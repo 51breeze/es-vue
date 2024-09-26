@@ -8,6 +8,16 @@ import web.components.Component;
 @Define('slot', 'dropdown');
 @Define('slot', 'default');
 
+@Define(
+    emits,
+    //split-button 为 true 时，点击左侧按钮的回调
+    click,	
+    //当下拉项被点击时触发，参数是从下拉菜单中发送的命令	
+    command,
+    //当下拉菜单出现/消失时触发器, 当它出现时, 参数将是 true, 否则将是 false
+    'visible-change',
+)
+
 /** Toggleable menu for displaying lists of links and actions */
 declare final class Dropdown extends Component {
   /** Menu button type. only works when split-button is true */

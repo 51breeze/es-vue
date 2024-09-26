@@ -8,7 +8,7 @@ import web.components.Component;
 /** Divider Component */
 declare final class Divider extends Component {
   /** enable vertical divider */
-  @Deprecated('use direction')
+  @Deprecated('use direction props')
   vertical: boolean
 
   direction:'horizontal' | 'vertical' = 'horizontal'

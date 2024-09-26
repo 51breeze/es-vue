@@ -4,6 +4,8 @@ import web.components.Component;
 
 @Import(Carousel = "element-ui/packages/carousel")
 @Embed('element-ui/lib/theme-chalk/carousel.css')
+@Define(emits, change)
+@Define(slot, default)
 
 /** Loop a series of images or texts in a limited space */
 declare final class Carousel extends Component {

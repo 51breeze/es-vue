@@ -15,10 +15,29 @@ import 'element-plus/theme-chalk/el-tag.css';
 @define(slot,'default')
 @define(slot,'empty')
 
+@Define(
+    emits, 
+    //当绑定值变化时触发的事件
+    change, 
+    //当展开节点发生变化时触发
+    'expand-change', 
+    //当失去焦点时触发
+    blur, 
+    //当获得焦点时触发
+    focus, 
+    //可清空的单选模式下用户点击清空按钮时触发
+    clear, 
+    //下拉框出现/隐藏时触发
+    'visible-change', 
+    //在多选模式下，移除Tag时触发
+    'remove-tag'
+)
+
 declare final class Cascader extends Component{
     /**
     * 绑定值
     */
+    @Alias('modelValue')
     value:any;
 
     //可选项数据源，键名可通过 Props 属性配置
@@ -101,6 +120,10 @@ declare final class Cascader extends Component{
     showAllLevels:boolean=true
     //多选模式下是否折叠Tag
     collapseTags:boolean=false
+
+    //当鼠标悬停于折叠标签的文本时，是否显示所有选中的标签。 要使用此属性，collapse-tags属性必须设定为 true
+    collapseTagsTooltip = false;
+
     //选项分隔符
     separator:string = ' / '
     //是否可搜索选项
@@ -113,10 +136,30 @@ declare final class Cascader extends Component{
     beforeFilter:(value)=>boolean | Promise<any>
     //自定义浮层类名
     popperClass:string
+    //弹层是否使用 teleport
+    teleported:boolean = true
     /**
     * 获取选中的节点
     * @param leafOnly
     */
     getCheckedNodes(leafOnly:boolean = false):object[]
+    //标签类型
+    tagType:'success' | 'info' | 'warning' | 'danger' = 'info'
+    //tag effect
+    tagEffect:'light' | 'dark' | 'plain' = 'light'
+    //输入时是否触发表单的校验
+    validateEvent:boolean=true
+    //需要显示的 Tag 的最大数量 只有当 collapse-tags 设置为 true 时才会生效。
+    maxCollapseTags:number = 1
+    //组件的空值配置 参考config-provider
+    emptyValues:any[]
+    //清空选项的值 参考 config-provider
+    valueOnClear:string|number|boolean|Function
+    //当下拉框未被激活并且persistent设置为false，下拉框容器会被删除。
+    persistent:boolean = true
+    //Tooltip 可用的 positions 请查看popper.js 文档
+    fallbackPlacements:any[]
+    //下拉框出现的位置
+    placement:'top' | 'top-start' | 'top-end' | 'bottom' | 'bottom-start' | 'bottom-end' | 'left' | 'left-start' | 'left-end' | 'right' | 'right-start' | 'right-end' = 'bottom-start'
 
 }

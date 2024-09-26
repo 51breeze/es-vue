@@ -20,8 +20,20 @@ import 'element-ui/lib/theme-chalk/input-number.css';
 //append	输入框后置内容，只对 type="text" 有效
 @define(slot, 'append')
 
+
+@Define(
+    emits,
+    //当 input 失去焦点时触发
+    blur,
+    //当 input 获得焦点时触发
+    focus,
+    //绑定值被改变时触发
+    change,
+)
+
 declare final class InputNumber extends Component{
     //绑定值
+    @Alias('modelValue')
     value:number=0
     //设置计数器允许的最小值
     min:number

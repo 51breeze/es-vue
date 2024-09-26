@@ -7,11 +7,28 @@ import 'element-ui/lib/theme-chalk/select.css';
 @Define(slot,'default')
 @Define(slot,'empty')
 
+@Define(
+    emits,
+    //当触发滚动事件时，返回滚动的距离
+    change,
+    //下拉框出现/隐藏时触发
+    'visible-change',
+    //多选模式下移除tag时触发
+    'remove-tag',
+    //可清空的单选模式下用户点击清空按钮时触发
+    clear,
+    //当 input 失去焦点时触发
+    blur,
+    //当 input 获得焦点时触发
+    focus,
+)
+
 declare final class Select extends Component{
 
     /**
     * 绑定值
     */
+    @Alias('modelValue')
     value:any;
     /**
     * select input 的 name 属性

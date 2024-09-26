@@ -2,12 +2,24 @@ package web.ui;
 import web.components.Component
 //自定义备选项的节点内容，参数为 { node, data }，分别为当前节点的 Node 对象和数据
 @Define(slot,'default', scope)
+@Define(slot,'empty')
 @Import(CascaderPanel = "element-ui/packages/cascader-panel")
 @Embed('element-ui/lib/theme-chalk/cascader-panel.css')
+
+@Define(
+    emits, 
+    //当选中节点变化时触发
+    change, 
+    //当展开节点发生变化时触发
+    'expand-change', 
+    //面板的关闭事件，提供给 Cascader 以便做更好的判断
+    close
+)
 
 declare final class CascaderPanel extends Component{
     
     //选中项绑定值
+    @Alias('modelValue')
     value:any
     //可选项数据源，键名可通过 Props 属性配置
     options:object[]

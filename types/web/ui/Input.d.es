@@ -17,10 +17,25 @@ import web.components.Component
 //append	输入框后置内容，只对 type="text" 有效
 @define(slot, 'append')
 
+@Define(
+    emits,
+    //当 input 失去焦点时触发
+    blur,
+    //当 input 获得焦点时触发
+    focus,
+    //仅当 modelValue 改变时，当输入框失去焦点或用户按Enter时触发
+    change,
+    //在 Input 值改变时触发
+    input,
+    //在点击由 clearable 属性生成的清空按钮时触发
+    clear,
+)
+
 declare final class Input extends Component{
     //类型
     type:'text'|'textarea'|'submit'|'checkbox'|'file'|'password'|'hidden'|'image'|'radio'|'reset'|'color'|'date'|'datetime'|'datetime-local'|'month'|'week'|'time'|'email'|'number'|'range'|'search'|'tel'|'url' = 'text'
     //绑定值
+    @Alias('modelValue')
     value:string | number
     //原生属性，最大输入长度
     @DOMAttribute

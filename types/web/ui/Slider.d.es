@@ -7,6 +7,7 @@ import web.components.Component
 
 declare final class Slider extends Component{
     //绑定值
+    @Alias('modelValue')
     value:number=0
     //最小值
     min:number=0
@@ -42,5 +43,5 @@ declare final class Slider extends Component{
     //tooltip 的自定义类名
     tooltipClass:string
     //标记， key 的类型必须为 number 且取值在闭区间 [min, max] 内，每个标记可以单独设置样式	
-    marks:{number:any}
+    marks:{[key:number]:any}
 }

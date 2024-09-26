@@ -4,8 +4,15 @@ import web.components.Component
 @Import(Checkbox = "element-ui/packages/checkbox")
 @Embed('element-ui/lib/theme-chalk/checkbox.css')
 
+@Define(
+    emits, 
+    //当绑定值变化时触发的事件
+    change
+)
+
 declare final class Checkbox extends Component{
     //绑定值
+    @Alias('modelValue')
     value:string | number | boolean
     //选中状态的值（只有在checkbox-group或者绑定对象类型为array时有效）
     label:string | number | boolean

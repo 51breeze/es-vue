@@ -463,6 +463,18 @@ class JSXTransformV3Optimize extends JSXTransformV3{
             return stack.scope.isForContext || !(stack.isJSXElement || stack.isJSXExpressionContainer)
         },true);
         const inFor = forStack && forStack.scope && forStack.scope.isForContext ? true : false;
+
+        const descModule = stack.isWebComponent ? stack.description() : null;
+        const definedEmits = stack.compiler.callUtils('isModule',descModule) ? this.getModuleDefinedEmits(descModule) : null;
+        const getDefinedEmitName = (name)=>{
+            if(definedEmits && Object.prototype.hasOwnProperty.call(definedEmits, name)){
+                name = definedEmits[name];
+            }
+            if(name.includes('-')){
+                name = name.replace(/-([a-z])/g, (a,b)=>b.toUpperCase());
+            }
+            return name;
+        }
         
         stack.openingElement.attributes.forEach(item=>{
             if( item.isAttributeXmlns || item.isAttributeDirective ){
@@ -504,8 +516,8 @@ class JSXTransformV3Optimize extends JSXTransformV3{
             let propValue = value.value;
             let attrLowerName = name.toLowerCase();
 
-            if( (ns ==="@events" || ns ==="@natives") && name.includes('-') ){
-                name = name.replace(/-([a-z])/g, (a,b)=>b.toUpperCase());
+            if( (ns ==="@events" || ns ==="@natives") ){
+                name = getDefinedEmitName(name)
             }
 
             if( ns && ns.includes('::') ){
@@ -625,36 +637,45 @@ class JSXTransformV3Optimize extends JSXTransformV3{
                 }
 
                 if( custom && binddingModelValue){
+
                     pushEvent(custom , this.createArrowFunctionNode(
-                        ...createBinddingParams(true)
+                        ...createBinddingParams(!stack.isWebComponent)
                     ), 'on');
-                    return;
+                    
                 }else if( (stack.isWebComponent || afterDirective) && binddingModelValue ){
 
-                    if( propName ==='modelValue' ){
-                        pushEvent(
-                            this.createLiteralNode('onUpdate:modelValue', void 0, value.name.stack),
-                            this.createArrowFunctionNode(
-                                ...createBinddingParams()
-                            ),
-                            'props'
-                        );
-                    }else{
-                        const type = propName.replace(/-(a-zA-Z)/g,(a,b)=>b.toUpperCase());
-                        pushEvent(
-                            this.createIdentifierNode(type, void 0, value.name.stack),
-                            this.createArrowFunctionNode(
-                                ...createBinddingParams(true)
-                            ),
-                            'on'
-                        );
-                        return;
+                    let eventName = propName;
+                    if(propName ==='modelValue'){
+                        eventName = 'update:modelValue';
                     }
-                   
+
+                    if(item.isMemberProperty){
+                        let desc = item.description();
+                        if(desc){
+                            let _name = this.getBinddingEventName(desc)
+                            if(_name){
+                                eventName = _name;
+                            }
+                        }
+                    }
+
+                    const type = getDefinedEmitName(eventName);
+                    pushEvent(
+                        type.includes(':') || type.includes('-') ? this.createLiteralNode(type) : this.createIdentifierNode(type),
+                        this.createArrowFunctionNode(
+                            ...createBinddingParams()
+                        ),
+                    'on');
+
                 }else if( binddingModelValue ){
-                    pushEvent(this.createIdentifierNode('input') , this.createArrowFunctionNode(
-                        ...createBinddingParams(true)
-                    ), 'on');
+
+                    pushEvent(
+                        this.createIdentifierNode('input'),
+                        this.createArrowFunctionNode(
+                            ...createBinddingParams(true)
+                        ),
+                    'on');
+
                 }
 
                 if( afterDirective && binddingModelValue ){
@@ -1024,7 +1045,7 @@ class JSXTransformV3Optimize extends JSXTransformV3{
         
         let dataObject = this.makeConfig(data, stack);
         const items = [name, null, null, null, null];
-
+        
         let pos = 1;
         if( dataObject ){
             pos = 2;

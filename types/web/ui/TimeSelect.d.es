@@ -17,6 +17,7 @@ declare final class TimeSelect extends Component{
     @Hook('polyfills:value')
     size:'large' | 'medium' | 'small' | 'mini'
     //绑定值
+    @Alias('modelValue')
     value:string | string[]
     //完全只读
     readonly:boolean=false

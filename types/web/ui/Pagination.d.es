@@ -4,15 +4,21 @@ import web.components.Component
 
 @Import(Pagination = "element-ui/packages/pagination")
 @Embed('element-ui/lib/theme-chalk/pagination.css')
-@Define('slot', 'default');
+@Define(slot, 'default');
+@Define(emits, 'update:current-page', 'update:page-size', 'size-change', 'change', 'current-change', 'prev-click', 'next-click')
+
 /** Pagination Component */
 declare final class Pagination extends Component {
   /** Whether to use small pagination */
+  @Deprecated
   small: boolean
+
+  size:'large' | 'default' | 'small';
 
   background:boolean
 
   /** Item count of each page */
+  @Bindding('update:page-size')
   pageSize: number
 
   /** Total item count */
@@ -25,6 +31,7 @@ declare final class Pagination extends Component {
   pagerCount: number
 
   /** Current page number */
+  @Bindding('update:current-page')
   currentPage: number
 
   /**

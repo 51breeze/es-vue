@@ -7,6 +7,13 @@ import web.components.Component;
 
 @Define('slot', 'title');
 
+@Define(
+    emits,
+    //点击菜单项时回调函数, 参数为菜单项实例
+    click
+)
+
+
 /** Menu Item Component */
 declare final class MenuItem extends Component {
   /** Unique identification */

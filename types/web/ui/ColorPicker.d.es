@@ -5,9 +5,22 @@ import web.components.Component
 @Import(ColorPicker = "element-ui/packages/color-picker")
 @Embed('element-ui/lib/theme-chalk/color-picker.css')
 
+@Define(
+    emits, 
+    //当绑定值变化时触发的事件
+    change,
+    //面板中当前显示的颜色发生改变时触发
+    'active-change',
+    //当获得焦点时触发
+    focus,
+    //当失去焦点时触发
+    blur
+)
+
 /** ColorPicker Component */
 declare final class ColorPicker  extends Component{
   /** 绑定值 */
+  @Alias('modelValue')
   value:string
   /** Whether to display the alpha slider */
   showAlpha: boolean

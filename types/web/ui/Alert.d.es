@@ -5,6 +5,7 @@ import web.components.Component;
 @Import(Alert = "element-ui/packages/alert")
 @Embed('element-ui/lib/theme-chalk/alert.css')
 
+@Define(emits, close)
 @Define(slot, 'default');
 @Define(slot, 'title');
 

@@ -6,6 +6,14 @@ import web.components.Component
 @Embed('element-ui/lib/theme-chalk/popconfirm.css')
 @Define('slot', 'reference');
 
+@Define(
+    emits,
+    //点击确认按钮时触发
+    confirm,	
+    //点击取消按钮时触发
+    cancel
+)
+
 /** Popconfirm Component */
 declare final class Popconfirm extends Component {
   /** Popconfirm title */

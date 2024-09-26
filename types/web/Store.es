@@ -60,31 +60,40 @@ package web{
 
         protected key = 'store';
 
-        protected get options(){
+        protected getOptions(){
             return {}
         }
 
-        protected get storage(){
+        protected getStorage(){
             return {}
         }
 
         protected create(){
             const descriptor = Reflect.getDescriptor(this) || {};
-            const states = this.storage;
+            const states = this.getStorage();
             const getters = {};
             const actions = {};
 
             type DT = {[key:string]:any, value:Function, get:Function, set:Function};
             const members:{[key:string]:DT} = descriptor.members || {};
             const bindMethods = {};
-            const selfMethods = ['setState','getState'];
-            const selfProperties = ['store','key','instance'];
+            const selfMethods = ['setState','getState','whenPropertyNotExists','getOptions','getStorage'];
+            const selfProperties = ['storeInstance','key','storeProxy'];
             const publicMethods = ['patch','onAction','reset','subscribe','watch','dispose']
             const _proxy = new Proxy(this, {
                 get:(target,key,receiver)=>{
                     if(descriptor.privateKey === key){
                         return this[descriptor.privateKey];
                     }
+                    if(selfMethods.includes(key)){
+                        if( bindMethods.hasOwnProperty(key) ){
+                            return bindMethods[key];
+                        }
+                        return bindMethods[key] = (this[key] as Function).bind(this);
+                    }else if(selfProperties.includes(key)){
+                        return this[key];
+                    }
+
                     const desc = members[key];
                     if(desc){
                         if(desc.label==='property'){
@@ -105,20 +114,11 @@ package web{
                             return bindMethods[key] = desc.value.bind(this);
                         }
                     }else{
-                        if(selfMethods.includes(key)){
-                            if( bindMethods.hasOwnProperty(key) ){
-                                return bindMethods[key];
-                            }
-                            return bindMethods[key] = (this[key] as Function).bind(this);
-                        }else if(selfProperties.includes(key)){
-                            return this[key];
+                        key = String(key);
+                        if(key==='Symbol(Symbol.toStringTag)'){
+                            return this.toString()
                         }else{
-                            key = String(key);
-                            if(key==='Symbol(Symbol.toStringTag)'){
-                                return this.toString()
-                            }else{
-                                return this.whenPropertyNotExists(key);
-                            }
+                            return this.whenPropertyNotExists(key);
                         }
                     }
                 },
@@ -149,7 +149,9 @@ package web{
                 const desc = members[name];
                 if(desc.permission!=='public')continue;
                 if(desc.label==='property'){
-                    states[name] = desc.value;
+                    if(!states.hasOwnProperty(name)){
+                        states[name] = desc.value;
+                    }
                 }else if(desc.label==='accessor'){
                     if(desc.get){
                         getters[name] = desc.get.bind(_proxy);
@@ -159,54 +161,28 @@ package web{
                 }
             }
 
-            let isProd = false
-            when(Env(NODE_ENV, 'production')){
-                isProd = true;
-            }
-
             const pinia = _getActivePinia();
             const id = this.key+':'+(descriptor.namespace ? descriptor.namespace +'.'+ descriptor.className : descriptor.className);
-            const initialState = pinia.state.value[id];
-            const setup = ()=>{
-                const hot = pinia._s.get(id);
-                if (!initialState && (isProd || !hot)) {
-                    pinia.state.value[id] = states;
-                }
-                const localState = !isProd && hot ? toRefs((ref(states) as Record).value) : toRefs(pinia.state.value[id]);
-                return Object.assign(localState, actions, Object.keys(getters || {}).reduce((computedGetters, name) => {
-                    when(Env(NODE_ENV, 'production', expect=false)){
-                        if(name in localState) {
-                            console.warn(`[🍍]: A getter cannot have the same name as another state property. Rename one of them. Found with "${name}" in store "${id}".`);
-                        }
-                    }
-                    when(Env(platform, 'server')){
-                        computedGetters[name] = markRaw(computed(() => {
-                            setActivePinia(pinia);
-                            return getters[name].call(this);
-                        }, null, true));
-                    }then{
-                        computedGetters[name] = markRaw(computed(() => {
-                            setActivePinia(pinia);
-                            return getters[name].call(this);
-                        }));
-                    }
-                    return computedGetters;
-                }, {}));
+            
+            let setupOptions = {
+                state:()=>states,
+                getters,
+                actions
             }
 
             let store:StoreInstance = null;
-            let options = this.options;
+            let options = this.getOptions();
 
             when( Env(mode, 'production', expect=false) ){
                 const oldStore = pinia._s.get(id);
-                const newStore = defineStore(id, setup, options) as (...args)=>any;
+                const newStore = defineStore(id, setupOptions, options) as Function;
                 if(oldStore){
                     store = newStore(pinia, oldStore);
                 }else{
                     store = newStore();
                 }
             }then{
-                const newStore = defineStore(id, setup, options) as Function;
+                const newStore = defineStore(id, setupOptions, options) as Function;
                 store = newStore();
             }
 
@@ -255,6 +231,14 @@ package web{
                     if(desc.permission!=='public'){
                         throw new ReferenceError(`Store ${desc.label} the "${key}" is not accessible`)
                     }
+                    //getters computed 在服务端使用了缓存导致与客户端状态不同步
+                    when(Env(platform, server)){
+                        when(Env(mode, development)){
+                            if(desc.get){
+                                return desc.get.call(this)
+                            }
+                        }
+                    }
                     return store[key];
                 }
             });
@@ -264,11 +248,11 @@ package web{
         protected storeInstance:StoreInstance= null
 
         protected setState(name:string, value:any){
-            this.storeInstance.$state[name] = value;
+            this.storeInstance.$state[':'+name] = value;
         }
 
         protected getState<T=any>(name:string){
-            return this.storeInstance.$state[name] as T;
+            return this.storeInstance.$state[':'+name] as T;
         }
 
         protected whenPropertyNotExists(key){
