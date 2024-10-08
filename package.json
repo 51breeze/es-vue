@@ -1,6 +1,6 @@
 {
   "name": "es-vue",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "test",
   "main": "index.js",
   "typings": "types/typings.json",
@@ -31,7 +31,6 @@
   },
   "homepage": "https://github.com/51breeze/es-javascript#readme",
   "dependencies": {
-    "es-javascript": "^0.5.2",
     "glob-path": "latest",
     "lodash": "^4.17.21"
   },
