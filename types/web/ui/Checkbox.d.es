@@ -12,7 +12,6 @@ import web.components.Component
 
 declare final class Checkbox extends Component{
     //绑定值
-    @Alias('modelValue')
     value:string | number | boolean
     //选中状态的值（只有在checkbox-group或者绑定对象类型为array时有效）
     label:string | number | boolean

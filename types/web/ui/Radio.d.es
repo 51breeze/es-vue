@@ -7,7 +7,6 @@ import web.components.Component
 
 declare final class Radio extends Component{
     //绑定值
-    @Alias('modelValue')
     value:string | number | boolean
     //Radio 的 value
     label:string | number | boolean

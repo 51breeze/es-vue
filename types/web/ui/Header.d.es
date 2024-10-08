@@ -2,8 +2,8 @@ package web.ui
 
 import web.components.Component
 
-@Import(Header = "element-ui/packages/header")
-@Embed('element-ui/lib/theme-chalk/header.css')
+import {ElHeader as Header} from 'element-plus/lib/components/container'
+import 'element-plus/theme-chalk/el-header.css';
 
 declare  final class Header extends Component{
     /**

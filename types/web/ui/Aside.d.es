@@ -2,8 +2,8 @@ package web.ui
 
 import web.components.Component;
 
-@Import(Aside = "element-ui/packages/Aside")
-@Embed('element-ui/lib/theme-chalk/footer.css')
+import {ElAside as Aside} from 'element-plus/lib/components/container'
+import 'element-plus/theme-chalk/el-aside.css';
 
 declare final class Aside extends Component{
     /**

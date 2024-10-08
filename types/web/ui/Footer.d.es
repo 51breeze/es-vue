@@ -2,8 +2,8 @@ package web.ui
 
 import web.components.Component
 
-@Import(Footer = "element-ui/packages/footer")
-@Embed('element-ui/lib/theme-chalk/footer.css')
+import {ElFooter as Footer} from 'element-plus/lib/components/container'
+import 'element-plus/theme-chalk/el-footer.css';
 
 declare final class Footer extends Component{
     /**

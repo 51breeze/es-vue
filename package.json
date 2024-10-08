@@ -1,6 +1,6 @@
 {
   "name": "es-vue",
-  "version": "0.5.8",
+  "version": "0.6.0",
   "description": "test",
   "main": "index.js",
   "typings": "types/typings.json",

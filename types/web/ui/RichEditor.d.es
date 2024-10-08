@@ -22,6 +22,7 @@ class RichEditor extends Component{
     width:string = 'auto';
     height:string = 'auto';
     className:string = '';
+    toolbarStickyPanelEnable = true;
 
     private _editor:class<Editor>=null;
 
@@ -110,6 +111,8 @@ class RichEditor extends Component{
 			this.instance.destroy();
 			this.instance = null;
 		}
+        let unmonitor = this.unmonitor;
+        if(unmonitor)unmonitor();
 		this.emit( 'destroy', this.instance);
     }
 
@@ -152,13 +155,27 @@ class RichEditor extends Component{
             });
 
             this.emit('ready', editor );
-
+            const stickyPanel = editor.ui.view.stickyPanel as Record;
+            if(stickyPanel){
+                let monitor = (event:Record, name, value)=>{
+                    if(!this.toolbarStickyPanelEnable){
+                        event.stop()
+                        event.return = false;
+                    }
+                }
+                stickyPanel.on('set:isActive', monitor)
+                this.unmonitor = ()=>{
+                    stickyPanel.off('set:isActive', monitor)
+                }
+            }
         })
         .catch( error => {
             console.error( error );
         });
         
     }
+
+    private unmonitor = null;
 
     protected getToolbarContainer(){
         return this.getRefs('toolbar-container')
@@ -174,9 +191,13 @@ class RichEditor extends Component{
 
     @Override
     protected render(){
+        let style={
+            width,
+            height
+        }
         return <div class={"rich-text-editor "+this.className}
                     data-type={this.getEditorName()}
-                    data-width={this.width} data-height={this.height}>
+                    data-width={this.width} data-height={this.height} style={style}>
                 <div ref="container"></div>
         </div>
     }

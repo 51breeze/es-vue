@@ -52,6 +52,7 @@ package web.ui{
         protected onInitialized():void{
             super.onInitialized();
             this.on('ready', (type, editor:Classic)=>{
+                let height = String(this.height).toLowerCase()==='auto' ? 'auto' : `calc(${this.height} - 39px)`
                 editor.editing.view.change( writer => {
                     const root = editor.editing.view.document.getRoot();
                     if(!editor.ui.view.element){
@@ -63,10 +64,10 @@ package web.ui{
                     if( editor.ui.view.editable ){
                         const parentNode = editor.ui.view.editable.element.parentNode as HTMLElement;
                         if( parentNode ){
-                            parentNode.style.height = this.height;
+                            parentNode.style.height = height;
                         }
                     }
-                    writer.setStyle('height',this.height, root);
+                    writer.setStyle('height',height, root);
                     writer.addClass('rich-text-classic-editable', root);
                 });
                 
@@ -85,10 +86,10 @@ package web.ui{
                                 if(name){
                                     const el = editor.ui.getEditableElement(name)
                                     if(el is HTMLElement){
-                                        el.style.height = this.height;
+                                        el.style.height = height;
                                         el.style.overflow = 'auto';
                                         if(el.parentNode is HTMLElement){
-                                            el.parentNode.style.height = this.height;
+                                            el.parentNode.style.height = height;
                                         }
                                     }
                                 }
@@ -96,21 +97,6 @@ package web.ui{
                         })
                     }
                 }
-
-                // editor.on('fullscreen', (event, status)=>{
-                //     editor.editing.view.change( writer => {
-                //         const root = editor.editing.view.document.getRoot();
-                //         const stickyPanel = editor.ui.view.stickyPanel;
-                //         const editable = editor.ui.view.editable;
-                //         if(root && stickyPanel && editable){
-                //             if(stickyPanel.contentPanelElement is HTMLElement){
-                //                stickyPanel.contentPanelElement.classList.remove('ck-sticky-panel__content_sticky')
-                //                stickyPanel.contentPanelElement.removeAttribute('style');
-                //             }
-                //         }
-                //     })
-                // });
-                
             });
         }
         
