@@ -1,9 +1,8 @@
 package web.ui
 
 import web.components.Component;
-
-@Import(MenuItem = "element-ui/packages/menu-item")
-@Embed('element-ui/lib/theme-chalk/menu-item.css')
+import {ElMenuItem as MenuItem} from 'element-plus/lib/components/menu'
+import 'element-plus/lib/components/menu-item/style/css'
 
 @Define('slot', 'title');
 
@@ -12,7 +11,6 @@ import web.components.Component;
     //点击菜单项时回调函数, 参数为菜单项实例
     click
 )
-
 
 /** Menu Item Component */
 declare final class MenuItem extends Component {

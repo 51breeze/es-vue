@@ -2,9 +2,10 @@ package web.ui;
 
 import web.components.Component;
 import web.ui.Popover as PopoverPlacement;
+import {ElTableColumn as TableColumn} from 'element-plus/lib/components/table'
+import 'element-plus/lib/components/table-column/style/css'
 
-@Import(TableColumn = "element-ui/packages/table-column")
-@Embed('element-ui/lib/theme-chalk/table-column.css')
+
 @Define(slot, header, scope:{$index:number, column:TableColumn});
 @Define(slot, 'default', scope:{$index:number,row:{[key:string]:any}, column:TableColumn});
 

@@ -1,9 +1,8 @@
 package web.ui
 
 import web.components.Component
-
-@Import(Steps = "element-ui/packages/steps")
-@Embed('element-ui/lib/theme-chalk/steps.css')
+import Steps from 'element-plus/lib/components/steps'
+import 'element-plus/lib/components/steps/style/css'
 
 /** Guide the user to complete tasks in accordance with the process. Its steps can be set according to the actual application scenario and the number of the steps can't be less than 2. */
 declare final class Steps extends Component {

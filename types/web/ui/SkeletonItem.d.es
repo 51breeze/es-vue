@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component
-
-@Import(SkeletonItem = "element-ui/packages/skeleton-item")
-@Embed('element-ui/lib/theme-chalk/skeleton-item.css')
+import {ElSkeletonItem as SkeletonItem} from 'element-plus/lib/components/skeleton'
+import 'element-plus/lib/components/skeleton-item/style/css'
 
 /** Skeleton Item Component */
 declare final class SkeletonItem extends Component {

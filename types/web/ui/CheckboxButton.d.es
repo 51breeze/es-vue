@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component
-
-@Import(CheckboxButton = "element-ui/packages/checkbox-button")
-@Embed('element-ui/lib/theme-chalk/checkbox-button.css')
+import {ElCheckboxButton as CheckboxButton} from 'element-plus/lib/components/checkbox'
+import 'element-plus/lib/components/checkbox-button/style/css'
 
 declare final class CheckboxButton extends Component{
    

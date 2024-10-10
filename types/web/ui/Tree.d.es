@@ -1,9 +1,10 @@
 package web.ui;
 
 import web.components.Component;
+import Tree from 'element-plus/lib/components/tree'
+import 'element-plus/lib/components/tree/style/css'
 
-@Import(Tree = "element-ui/packages/tree")
-@Embed('element-ui/lib/theme-chalk/tree.css')
+
 @Define('slot', 'reference');
 
 /** Tree Component */

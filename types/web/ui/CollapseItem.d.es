@@ -1,9 +1,8 @@
 package web.ui
 
 import web.components.Component
-
-@Import(CollapseItem = "element-ui/packages/collapse-item")
-@Embed('element-ui/lib/theme-chalk/collapse-item.css')
+import {ElCollapseItem as CollapseItem} from 'element-plus/lib/components/collapse'
+import 'element-plus/lib/components/collapse-item/style/css'
 
 @define(slot, 'default')
 @define(slot, 'title')

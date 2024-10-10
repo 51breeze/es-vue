@@ -1,9 +1,8 @@
 package web.ui
 
 import web.components.Component
-
-@Import(DescriptionsItem = "element-ui/packages/descriptions-item")
-@Embed('element-ui/lib/theme-chalk/descriptions-item.css')
+import {ElDescriptionsItem as DescriptionsItem} from 'element-plus/lib/components/descriptions'
+import 'element-plus/lib/components/descriptions-item/style/css'
 
 @Define(slot, 'label')
 @Define(slot, 'default')

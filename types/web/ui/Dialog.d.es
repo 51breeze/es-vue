@@ -1,12 +1,8 @@
 package web.ui;
 
 import web.components.Component;
-
-import Dialog from 'element-ui/packages/dialog'
-import 'element-ui/lib/theme-chalk/dialog.css';
-
-// import 'element-plus/theme-chalk/el-dialog.css';
-// import 'element-plus/theme-chalk/el-overlay.css';
+import Dialog from 'element-plus/lib/components/dialog'
+import 'element-plus/lib/components/dialog/style/css'
 
 @define(slot, 'default')
 @define(slot, 'title')

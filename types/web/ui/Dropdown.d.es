@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component;
-
-@Import(Dropdown = "element-ui/packages/dropdown")
-@Embed('element-ui/lib/theme-chalk/dropdown.css')
+import Dropdown from 'element-plus/lib/components/dropdown'
+import 'element-plus/lib/components/dropdown/style/css'
 
 @Define('slot', 'dropdown');
 @Define('slot', 'default');

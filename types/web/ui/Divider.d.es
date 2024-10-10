@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component;
-
-@Import(Divider = "element-ui/packages/divider")
-@Embed('element-ui/lib/theme-chalk/divider.css')
+import Divider from 'element-plus/lib/components/divider'
+import 'element-plus/lib/components/divider/style/css'
 
 /** Divider Component */
 declare final class Divider extends Component {

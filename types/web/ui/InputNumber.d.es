@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component
-
-import InputNumber from 'element-ui/packages/input-number'
-import 'element-ui/lib/theme-chalk/input-number.css';
+import InputNumber from 'element-plus/lib/components/input-number'
+import 'element-plus/lib/components/input-number/style/css'
 
 // import 'element-plus/theme-chalk/el-input.css';
 // import 'element-plus/theme-chalk/el-input-number.css';

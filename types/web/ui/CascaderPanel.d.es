@@ -1,10 +1,11 @@
 package web.ui;
+
 import web.components.Component
-//自定义备选项的节点内容，参数为 { node, data }，分别为当前节点的 Node 对象和数据
-@Define(slot,'default', scope)
+import CascaderPanel from 'element-plus/lib/components/cascader-panel'
+import 'element-plus/lib/components/cascader-panel/style/css'
+
+@Define(slot,'default', scope:{node:Node, data:Record<any>})
 @Define(slot,'empty')
-@Import(CascaderPanel = "element-ui/packages/cascader-panel")
-@Embed('element-ui/lib/theme-chalk/cascader-panel.css')
 
 @Define(
     emits, 

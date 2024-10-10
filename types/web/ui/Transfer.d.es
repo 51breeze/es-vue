@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component
-
-@Import(Transfer = "element-ui/packages/transfer")
-@Embed('element-ui/lib/theme-chalk/transfer.css')
+import Transfer from 'element-plus/lib/components/transfer'
+import 'element-plus/lib/components/transfer/style/css'
 
 @Define('slot', 'leftFooter');
 @Define('slot', 'rightFooter');

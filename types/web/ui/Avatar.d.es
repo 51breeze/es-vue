@@ -2,10 +2,10 @@ package web.ui;
 
 import web.components.Component;
 
-@Import(Avatar = "element-ui/packages/avatar")
-@Embed('element-ui/lib/theme-chalk/avatar.css')
-@Define('slot', 'default');
+import Avatar from 'element-plus/lib/components/avatar'
+import 'element-plus/lib/components/avatar/style/css'
 
+@Define('slot', 'default');
 @Define(emits, error)
 
 /** Avatar Component */

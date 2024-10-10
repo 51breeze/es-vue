@@ -1,9 +1,8 @@
 package web.ui
 
 import web.components.Component
-
-@Import(MenuItemGroup = "element-ui/packages/menu-item-group")
-@Embed('element-ui/lib/theme-chalk/menu-item-group.css')
+import {ElMenuItemGroup as MenuItemGroup} from 'element-plus/lib/components/menu'
+import 'element-plus/lib/components/menu-item-group/style/css'
 
 @Define('slot', 'title');
 

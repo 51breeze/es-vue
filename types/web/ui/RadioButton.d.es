@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component
-
-@Import(RadioButton = "element-ui/packages/radio-button")
-@Embed('element-ui/lib/theme-chalk/radio-group.css')
+import {ElRadioButton as RadioButton} from 'element-plus/lib/components/radio'
+import 'element-plus/lib/components/radio-button/style/css'
 
 declare final class RadioButton extends Component{
     //Radio 的 value

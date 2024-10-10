@@ -1,11 +1,8 @@
 package web.ui
 
 import web.components.Component
-
-@Import(Message = "element-ui/packages/message")
-@Embed('element-ui/lib/theme-chalk/message.css')
-
-// @Embed('element-plus/theme-chalk/el-badge.css')
+import Message from 'element-plus/lib/components/message'
+import 'element-plus/lib/components/message/style/css'
 
 /** Message Component */
 declare final class Message extends Component {

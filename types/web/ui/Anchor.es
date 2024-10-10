@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component;
-
-@Import(Alert = "element-ui/packages/alert")
-@Embed('element-ui/lib/theme-chalk/alert.css')
+import Anchor from 'element-plus/lib/components/anchor'
+import 'element-plus/lib/components/anchor/style/css'
 
 @Define(emits, change, click)
 @Define(slot, 'default');

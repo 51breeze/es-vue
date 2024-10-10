@@ -1,9 +1,9 @@
 package web.ui;
 
 import web.components.Component;
+import Backtop from 'element-plus/lib/components/backtop'
+import 'element-plus/lib/components/backtop/style/css'
 
-@Import(Backtop = "element-ui/packages/backtop")
-@Embed('element-ui/lib/theme-chalk/backtop.css')
 @Define(emits, click)
 
 /** Backtop Component */

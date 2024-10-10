@@ -1,9 +1,9 @@
 package web.ui;
 
 import web.components.Component
+import Pagination from 'element-plus/lib/components/pagination'
+import 'element-plus/lib/components/pagination/style/css'
 
-@Import(Pagination = "element-ui/packages/pagination")
-@Embed('element-ui/lib/theme-chalk/pagination.css')
 @Define(slot, 'default');
 @Define(emits, 'update:current-page', 'update:page-size', 'size-change', 'change', 'current-change', 'prev-click', 'next-click')
 

@@ -1,9 +1,9 @@
 package web.ui;
 
 import web.components.Component;
+import Carousel from 'element-plus/lib/components/carousel'
+import 'element-plus/lib/components/carousel/style/css'
 
-@Import(Carousel = "element-ui/packages/carousel")
-@Embed('element-ui/lib/theme-chalk/carousel.css')
 @Define(emits, change)
 @Define(slot, default)
 

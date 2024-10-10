@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component
-
-@Import(Input = "element-ui/packages/input")
-@Embed('element-ui/lib/theme-chalk/input.css')
+import Input from 'element-plus/lib/components/input'
+import 'element-plus/lib/components/input/style/css'
 
 //输入框头部内容，只对 type="text" 有效
 @define(slot, 'prefix')

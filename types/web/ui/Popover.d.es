@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component
-
-@Import(Popover = "element-ui/packages/popover")
-@Embed('element-ui/lib/theme-chalk/popover.css')
+import Popover from 'element-plus/lib/components/popover'
+import 'element-plus/lib/components/popover/style/css'
 
 @Define( slot, 'default')
 @Define( slot, 'reference')

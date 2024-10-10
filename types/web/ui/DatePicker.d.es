@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component
-
-@Import(DatePicker = "element-ui/packages/date-picker")
-@Embed('element-ui/lib/theme-chalk/date-picker.css')
+import DatePicker from 'element-plus/lib/components/date-picker'
+import 'element-plus/lib/components/date-picker/style/css'
 
 @Define(
     emits,

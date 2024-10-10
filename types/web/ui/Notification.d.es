@@ -1,9 +1,6 @@
 package web.ui{
-
-    @import(Notification = "element-ui/packages/notification")
-    @Embed('element-ui/lib/theme-chalk/notification.css');
-
-    //@Embed('element-ui/lib/theme-chalk/icon.css');
+    import Notification from 'element-plus/lib/components/notification'
+    import 'element-plus/lib/components/notification/style/css'
     
     declare final class Notification{
         @Callable

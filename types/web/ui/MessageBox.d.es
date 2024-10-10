@@ -1,13 +1,8 @@
 package web.ui
 
 import web.components.Component
-
-@Import(MessageBox = "element-ui/packages/message-box")
-@Embed('element-ui/lib/theme-chalk/message-box.css')
-
-// @Embed('element-plus/theme-chalk/el-overlay.css')
-// @Embed('element-plus/theme-chalk/el-button.css')
-// @Embed('element-plus/theme-chalk/el-input.css')
+import MessageBox from 'element-plus/lib/components/message-box'
+import 'element-plus/lib/components/message-box/style/css'
 
 declare final class MessageBox extends Component {
 

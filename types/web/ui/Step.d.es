@@ -1,9 +1,8 @@
 package web.ui
 
 import web.components.Component
-
-@Import(Step = "element-ui/packages/step")
-@Embed('element-ui/lib/theme-chalk/step.css')
+import {ElStep as Step} from 'element-plus/lib/components/steps'
+import 'element-plus/lib/components/step/style/css'
 
 @define(slot, 'icon')
 @define(slot, 'title')

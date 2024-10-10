@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component;
-
-@Import(Calendar = "element-ui/packages/calendar")
-@Embed('element-ui/lib/theme-chalk/calendar.css')
+import Calendar from 'element-plus/lib/components/calendar'
+import 'element-plus/lib/components/calendar/style/css'
 
 /** Calendar Component */
 declare final class Calendar extends Component {

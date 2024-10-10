@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component;
-
-@Import(Tag = "element-ui/packages/tag")
-@Embed('element-ui/lib/theme-chalk/tag.css')
+import Tag from 'element-plus/lib/components/tag'
+import 'element-plus/lib/components/tag/style/css'
 
 /** Tag Component */
 declare final class Tag extends Component {

@@ -1,9 +1,8 @@
 package web.ui
 
 import web.components.Component
-
-@Import(ImageViewer = "element-ui/packages/image/src/image-viewer.vue")
-@Embed('element-ui/lib/theme-chalk/image.css')
+import ImageViewer from 'element-plus/lib/components/image-viewer'
+import 'element-plus/lib/components/image-viewer/style/css'
 
 /** Image Component */
 declare final class ImageViewer extends Component {

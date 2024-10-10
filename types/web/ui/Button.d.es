@@ -1,7 +1,7 @@
 package web.ui;
 import web.components.Component
-@Import(Button = "element-ui/packages/button")
-@Embed('element-ui/lib/theme-chalk/button.css')
+import Button from 'element-plus/lib/components/button'
+import 'element-plus/lib/components/button/style/css'
 
 @Define(slot, loading)
 @Define(slot, icon)

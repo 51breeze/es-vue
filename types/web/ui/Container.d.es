@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component
-
-@Import(Container = "element-ui/packages/container")
-@Embed('element-ui/lib/theme-chalk/container.css')
+import container from 'element-plus/lib/components/container'
+import 'element-plus/lib/components/container/style/css'
 
 declare final class Container extends Component{
     /**

@@ -1,9 +1,8 @@
 package web.ui
 
 import web.components.Component
-
-@Import(Empty = "element-ui/packages/empty")
-@Embed('element-ui/lib/theme-chalk/empty.css')
+import Empty from 'element-plus/lib/components/empty'
+import 'element-plus/lib/components/empty/style/css'
 
 @Define(slot, 'default')
 @Define(slot, image)

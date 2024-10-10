@@ -3,8 +3,8 @@ package web.ui
 import web.components.Component
 import web.components.Directive
 
-@Import(Loading = "element-ui/packages/loading")
-@Embed('element-ui/lib/theme-chalk/loading.css')
+import Loading from 'element-plus/lib/components/loading'
+import 'element-plus/lib/components/loading/style/css'
 
 @Define(directives,'loading')
 

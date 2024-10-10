@@ -1,8 +1,8 @@
 package web.ui;
 
 import web.components.Component
-@Import(Checkbox = "element-ui/packages/checkbox")
-@Embed('element-ui/lib/theme-chalk/checkbox.css')
+import Checkbox from 'element-plus/lib/components/checkbox'
+import 'element-plus/lib/components/checkbox/style/css'
 
 @Define(
     emits, 

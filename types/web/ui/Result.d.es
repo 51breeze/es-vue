@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component
-
-@Import(Result = "element-ui/packages/result")
-@Embed('element-ui/lib/theme-chalk/result.css')
+import Result from 'element-plus/lib/components/result'
+import 'element-plus/lib/components/result/style/css'
 
 @define(slot, 'title')
 @define(slot, 'icon')

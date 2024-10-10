@@ -1,9 +1,8 @@
 package web.ui
 
 import web.components.Component
-
-@Import(Menu = "element-ui/packages/menu")
-@Embed('element-ui/lib/theme-chalk/menu.css')
+import Menu from 'element-plus/lib/components/menu'
+import 'element-plus/lib/components/menu/style/css'
 
 @Define(
     emits,

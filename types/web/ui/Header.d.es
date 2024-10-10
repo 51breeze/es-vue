@@ -1,9 +1,8 @@
 package web.ui
 
 import web.components.Component
-
 import {ElHeader as Header} from 'element-plus/lib/components/container'
-import 'element-plus/theme-chalk/el-header.css';
+import 'element-plus/lib/components/header/style/css'
 
 declare  final class Header extends Component{
     /**

@@ -1,8 +1,8 @@
 package web.ui;
 
 import web.components.Component
-import Cascader from 'element-ui/packages/cascader'
-import 'element-ui/lib/theme-chalk/cascader.css';
+import Cascader from 'element-plus/lib/components/cascader'
+import 'element-plus/lib/components/cascader/style/css'
 
 /*
 import 'element-plus/theme-chalk/el-cascader.css';

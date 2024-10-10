@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component
-
-import TimeSelect from 'element-ui/packages/time-select'
-import 'element-ui/lib/theme-chalk/time-select.css';
+import TimeSelect from 'element-plus/lib/components/time-select'
+import 'element-plus/lib/components/time-select/style/css'
 
 // import 'element-plus/theme-chalk/el-time-select.css';
 // import 'element-plus/theme-chalk/el-scrollbar.css';

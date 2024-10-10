@@ -1,9 +1,9 @@
 package web.ui;
 
 import web.components.Component;
+import {ElCarouselItem as CarouselItem} from 'element-plus/lib/components/carousel'
+import 'element-plus/lib/components/carousel-item/style/css'
 
-@Import(CarouselItem = "element-ui/packages/carousel-item")
-@Embed('element-ui/lib/theme-chalk/carousel-item.css')
 @Define(slot, default)
 /** Carousel Item Component */
 declare final class CarouselItem extends Component {

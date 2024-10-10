@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component;
-
-@Import(DropdownMenu = "element-ui/packages/dropdown-menu")
-@Embed('element-ui/lib/theme-chalk/dropdown-menu.css')
+import {ElDropdownMenu as DropdownMenu} from 'element-plus/lib/components/dropdown'
+import 'element-plus/lib/components/dropdown-menu/style/css'
 
 /** Dropdown Menu Component */
 declare final class DropdownMenu extends Component {}

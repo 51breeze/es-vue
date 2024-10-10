@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component
-
-@Import(Radio = "element-ui/packages/radio")
-@Embed('element-ui/lib/theme-chalk/radio.css')
+import Radio from 'element-plus/lib/components/radio'
+import 'element-plus/lib/components/radio/style/css'
 
 declare final class Radio extends Component{
     //绑定值

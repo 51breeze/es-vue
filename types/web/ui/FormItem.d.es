@@ -1,9 +1,8 @@
 package web.ui
 
 import web.components.Component
-
-@Import(FormItem = "element-ui/packages/form-item")
-@Embed('element-ui/lib/theme-chalk/form-item.css')
+import {ElFormItem as FormItem} from 'element-plus/lib/components/form'
+import 'element-plus/lib/components/form-item/style/css'
 
 @Define('slot', 'label');
 @Define('slot', 'default');

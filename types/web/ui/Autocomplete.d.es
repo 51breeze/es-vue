@@ -1,9 +1,8 @@
 package web.ui
 
 import web.components.Component
-
-@Import(Autocomplete = "element-ui/packages/autocomplete")
-@Embed('element-ui/lib/theme-chalk/autocomplete.css')
+import Autocomplete from 'element-plus/lib/components/autocomplete'
+import 'element-plus/lib/components/autocomplete/style/css'
 
 @Define(emits, blur, focus, input, clear, select, change)
 

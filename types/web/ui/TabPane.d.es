@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component
-
-@Import(TabPane = "element-ui/packages/tab-pane")
-@Embed('element-ui/lib/theme-chalk/tab-pane.css')
+import {ElTabPane as TabPane} from 'element-plus/lib/components/tabs'
+import 'element-plus/lib/components/tab-pane/style/css'
 
 @Define(slot, label);
 

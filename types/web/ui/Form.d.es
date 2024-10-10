@@ -1,9 +1,8 @@
 package web.ui
 
 import web.components.Component
-
-@Import(Form = "element-ui/packages/form")
-@Embed('element-ui/lib/theme-chalk/form.css')
+import Form from 'element-plus/lib/components/form'
+import 'element-plus/lib/components/form/style/css'
 
 /** Form Component */
 declare final class Form extends Component {

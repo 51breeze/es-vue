@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component
-
-@Import(TextLink = "element-ui/packages/link")
-@Embed('element-ui/lib/theme-chalk/link.css')
+import TextLink from 'element-plus/lib/components/link'
+import 'element-plus/lib/components/link/style/css'
 
 declare final class TextLink extends Component{
 

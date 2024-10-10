@@ -2,8 +2,8 @@ package web.ui;
 
 import web.components.Component;
 
-@Import(Alert = "element-ui/packages/alert")
-@Embed('element-ui/lib/theme-chalk/alert.css')
+import Alert from 'element-plus/lib/components/alert'
+import 'element-plus/lib/components/alert/style/css'
 
 @Define(emits, close)
 @Define(slot, 'default');

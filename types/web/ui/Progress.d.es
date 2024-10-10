@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component
-
-@Import(Progress = "element-ui/packages/progress")
-@Embed('element-ui/lib/theme-chalk/progress.css')
+import Progress from 'element-plus/lib/components/progress'
+import 'element-plus/lib/components/progress/style/css'
 
 /** Progress Component */
 declare final class Progress extends Component {

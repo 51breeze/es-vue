@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component
-
-@Import(Col = "element-ui/packages/col")
-@Embed('element-ui/lib/theme-chalk/col.css')
+import Col from 'element-plus/lib/components/col'
+import 'element-plus/lib/components/col/style/css'
 
 declare final class Col extends Component{
 

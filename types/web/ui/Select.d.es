@@ -1,7 +1,7 @@
 package web.ui
 
 import web.components.Component
-import 'element-ui/lib/theme-chalk/select.css';
+import 'element-plus/lib/components/select/style/css'
 
 @Define(slot,'prefix')
 @Define(slot,'default')

@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component
-
-@Import(Option = "element-ui/packages/option")
-@Embed('element-ui/lib/theme-chalk/option.css')
+import {ElOption as Option} from 'element-plus/lib/components/select'
+import 'element-plus/lib/components/option/style/css'
 
 declare final class Option extends Component{
     multiple:boolean = false;

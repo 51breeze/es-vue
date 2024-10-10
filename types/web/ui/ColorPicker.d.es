@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component
-
-@Import(ColorPicker = "element-ui/packages/color-picker")
-@Embed('element-ui/lib/theme-chalk/color-picker.css')
+import ColorPicker from 'element-plus/lib/components/color-picker'
+import 'element-plus/lib/components/color-picker/style/css'
 
 @Define(
     emits, 

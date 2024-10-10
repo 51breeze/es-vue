@@ -1,9 +1,9 @@
 package web.ui;
 
 import web.components.Component
+import Popconfirm from 'element-plus/lib/components/popconfirm'
+import 'element-plus/lib/components/popconfirm/style/css'
 
-@Import(Popconfirm = "element-ui/packages/popconfirm")
-@Embed('element-ui/lib/theme-chalk/popconfirm.css')
 @Define('slot', 'reference');
 
 @Define(

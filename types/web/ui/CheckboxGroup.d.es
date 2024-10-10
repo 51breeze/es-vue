@@ -1,16 +1,14 @@
 package web.ui;
 
 import web.components.Component
-
-@Import(CheckboxGroup = "element-ui/packages/checkbox-group")
-@Embed('element-ui/lib/theme-chalk/checkbox-group.css')
+import {ElCheckboxGroup as CheckboxGroup} from 'element-plus/lib/components/checkbox'
+import 'element-plus/lib/components/checkbox-group/style/css'
 
 @Define(
     emits, 
     //当绑定值变化时触发的事件
     change
 )
-
 
 declare final class CheckboxGroup extends Component{
     //绑定值

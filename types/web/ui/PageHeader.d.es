@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component
-
-@Import(PageHeader = "element-ui/packages/page-header")
-@Embed('element-ui/lib/theme-chalk/page-header.css')
+import PageHeader from 'element-plus/lib/components/page-header'
+import 'element-plus/lib/components/page-header/style/css'
 
 @Define('slot', 'title');
 @Define('slot', 'content');

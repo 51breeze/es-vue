@@ -1,9 +1,8 @@
 package web.ui
 
 import web.components.Component
-
-@Import(InfiniteScroll = "element-ui/packages/infinite-scroll")
-@Embed('element-ui/lib/theme-chalk/infinite-scroll.css')
+import InfiniteScroll from 'element-plus/lib/components/infinite-scroll'
+import 'element-plus/lib/components/infinite-scroll/style/css'
 
 @Define(directives,'infinite-scroll')
 declare final class InfiniteScroll extends Component {

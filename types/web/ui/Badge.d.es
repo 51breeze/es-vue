@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component;
-
-@Import(Badge = "element-ui/packages/badge")
-@Embed('element-ui/lib/theme-chalk/badge.css')
+import Badge from 'element-plus/lib/components/badge'
+import 'element-plus/lib/components/badge/style/css'
 
 /** Badge Component */
 declare final class Badge extends Component {

@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component
-
-@Import(Skeleton = "element-ui/packages/skeleton")
-@Embed('element-ui/lib/theme-chalk/skeleton.css')
+import Skeleton from 'element-plus/lib/components/skeleton'
+import 'element-plus/lib/components/skeleton/style/css'
 
 @Define(slot, 'default')
 @Define(slot, 'template')

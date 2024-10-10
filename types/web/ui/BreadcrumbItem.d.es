@@ -1,10 +1,8 @@
 package web.ui;
 
 import web.components.Component;
-
-@Import(BreadcrumbItem = "element-ui/packages/breadcrumb-item")
-@Embed('element-ui/lib/theme-chalk/breadcrumb-item.css')
-
+import {ElBreadcrumbItem as BreadcrumbItem} from 'element-plus/lib/components/breadcrumb'
+import 'element-plus/lib/components/breadcrumb-item/style/css'
 
 /** Breadcrumb Item Component */
 declare final class BreadcrumbItem extends Component {

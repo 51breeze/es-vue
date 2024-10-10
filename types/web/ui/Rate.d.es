@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component
-
-@Import(Rate = "element-ui/packages/rate")
-@Embed('element-ui/lib/theme-chalk/rate.css')
+import Rate from 'element-plus/lib/components/rate'
+import 'element-plus/lib/components/rate/style/css'
 
 /** Rate Component */
 declare final class Rate extends Component{

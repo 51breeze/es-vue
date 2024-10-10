@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component
-
-import TimePicker from 'element-ui/packages/time-picker'
-import 'element-ui/lib/theme-chalk/time-picker.css';
+import TimePicker from 'element-plus/lib/components/time-picker'
+import 'element-plus/lib/components/time-picker/style/css'
 
 // import 'element-plus/theme-chalk/el-time-picker.css';
 // import 'element-plus/theme-chalk/el-scrollbar.css';

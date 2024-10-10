@@ -1,9 +1,9 @@
 package web.ui
 
 import web.components.Component;
+import {ElSubMenu as MenuSubitem} from 'element-plus/lib/components/menu'
+import 'element-plus/lib/components/sub-menu/style/css'
 
-@Import(MenuSubitem = "element-ui/packages/submenu")
-@Embed('element-ui/lib/theme-chalk/submenu.css')
 
 @Define('slot', 'title');
 

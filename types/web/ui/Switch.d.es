@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component
-
-@Import(Switch = "element-ui/packages/switch")
-@Embed('element-ui/lib/theme-chalk/switch.css')
+import Switch from 'element-plus/lib/components/switch'
+import 'element-plus/lib/components/switch/style/css'
 
 declare final class Switch extends Component{
 

@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component
-
-@Import(Timeline = "element-ui/packages/timeline")
-@Embed('element-ui/lib/theme-chalk/timeline.css')
+import Timeline from 'element-plus/lib/components/timeline'
+import 'element-plus/lib/components/timeline/style/css'
 
 declare final class Timeline extends Component{
     reverse:boolean=false;

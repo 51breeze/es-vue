@@ -1,9 +1,9 @@
 package web.ui;
 
 import web.components.Component;
+import Table from 'element-plus/lib/components/table'
+import 'element-plus/lib/components/table/style/css'
 
-@Import(Table = "element-ui/packages/table")
-@Embed('element-ui/lib/theme-chalk/table.css')
 @Define(slot, append);
 
 /** Table Component */

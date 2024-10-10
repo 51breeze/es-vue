@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component
-
-@Import(Upload = "element-ui/packages/upload")
-@Embed('element-ui/lib/theme-chalk/upload.css')
+import Upload from 'element-plus/lib/components/upload'
+import 'element-plus/lib/components/upload/style/css'
 
 @Define(slot, trigger)
 @Define(slot, tip)

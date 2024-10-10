@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component
-
-@Import(Row = "element-ui/packages/row")
-@Embed('element-ui/lib/theme-chalk/row.css')
+import Row from 'element-plus/lib/components/row'
+import 'element-plus/lib/components/row/style/css'
 
 declare final class Row extends Component{
 

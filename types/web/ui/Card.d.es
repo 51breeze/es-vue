@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component;
-
-@Import(Card = "element-ui/packages/card")
-@Embed('element-ui/lib/theme-chalk/card.css')
+import Card from 'element-plus/lib/components/card'
+import 'element-plus/lib/components/card/style/css'
 
 @define(slot, 'default')
 @define(slot, 'header')

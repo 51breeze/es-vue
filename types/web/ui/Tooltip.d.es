@@ -1,9 +1,8 @@
 package web.ui;
 
 import web.components.Component;
-
-@Import(Tooltip = "element-ui/packages/tooltip")
-@Embed('element-ui/lib/theme-chalk/tooltip.css')
+import Tooltip from 'element-plus/lib/components/tooltip'
+import 'element-plus/lib/components/tooltip/style/css'
 
 /** Tooltip Component */
 declare final class Tooltip extends Component {

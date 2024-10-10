@@ -1,9 +1,8 @@
 package web.ui{
 
     import web.components.Component;
-    
-    @Import(Scrollbar = "element-ui/packages/scrollbar")
-    @Embed('element-ui/lib/theme-chalk/scrollbar.css')
+    import Scrollbar from 'element-plus/lib/components/scrollbar'
+    import 'element-plus/lib/components/scrollbar/style/css'
 
     @Define(
         emits,
