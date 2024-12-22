@@ -1,0 +1,1 @@
+export default "\r\n// styles/element/index.scss\r\n/* 只需要重写你需要的即可 */\r\n@forward 'element-plus/theme-chalk/src/common/var.scss' with (\r\n  $colors: (\r\n    'primary': (\r\n      'base': rgb(255, 1, 1),\r\n    ),\r\n  ),\r\n);\r\n\r\n@use \"element-plus/theme-chalk/src/index.scss\" as *;";

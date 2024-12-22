@@ -1,0 +1,115 @@
+.ck.ck-editor .rich-text-classic-editable{
+    box-sizing: border-box;
+}
+
+.ck.ck-editor.rich-text-editor .ck-source-editing-area{
+    height: 100%;
+}
+
+.ck.ck-editor.rich-text-editor .ck-source-editing-area textarea{
+    overflow: auto;
+}
+
+.rich-text-document{
+    background-color: rgb(240, 240, 240);
+    border: solid 1px rgb(240, 240, 240);
+    width: 100%;
+    /* display: flex;
+    flex-flow: column wrap;
+    align-items: center; */
+}
+.rich-text-document > .rich-text-toolbar{
+    width: 100%;
+}
+.rich-text-document > .rich-text-container{
+    width: 100%;
+    min-height: 250px;
+    max-height: 650px;
+    overflow-y: auto;
+}
+.rich-text-document > .rich-text-container > div{
+    background-color: rgb(255, 255, 255);
+    width: 90%;
+    min-height: 250px;
+    margin: 20px auto;
+}
+
+body[ckeditor-fullscreen="overlay"]{
+    overflow: hidden;
+    margin: 0;
+}
+
+body[ckeditor-fullscreen="overlay"] *[data-ck-editor-fullscreen="fullscreen"]{
+    position: absolute;
+}
+
+.rich-text-editor.fullscreen{
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%!important;
+    height:100%!important;
+    z-index: 999;
+    background-color: #fff;
+}
+
+.rich-text-editor.fullscreen[data-type="decoupled"]{
+    background-color: rgb(240, 240, 240);
+}
+
+.rich-text-editor.fullscreen[data-type="classic"] > .ck-editor > .ck-editor__main > .ck-editor__editable{
+    width: calc(100% - 2px)!important;
+    height:calc(100vh - 41px - 10px)!important;
+}
+
+.rich-text-editor.fullscreen[data-type="classic"] > .ck-editor > .ck-editor__main > .ck-source-editing-area{
+    height:calc(100vh - 41px - 10px)!important;
+}
+
+.rich-text-editor.fullscreen[data-type="classic"] > .ck-editor > .ck-editor__main > .ck-source-editing-area textarea{
+    height:calc(100vh - 41px - 10px)!important;
+    overflow: auto;
+}
+
+
+.rich-text-editor.fullscreen[data-type="classic"] > .ck-editor .ck-editor__top > .ck-sticky-panel > .ck-sticky-panel__content_sticky{
+    width: 100%!important;
+    top: 0px!important;
+}
+
+.rich-text-editor.fullscreen[data-type="inline"] > .ck-editor__editable{
+    width: calc(100% - 2px - var(--ck-spacing-standard) * 2 )!important;
+    height:calc(100vh - 41px - 10px)!important;
+    margin-top: 41px;
+}
+
+.rich-text-editor.fullscreen[data-type="balloon-block"] > .ck-editor__editable{
+    width: calc(100% - 41px - var(--ck-spacing-standard) * 2)!important;
+    height:calc(100vh - 10px)!important;
+    margin-left: 41px;
+}
+
+.rich-text-editor.fullscreen[data-type="balloon"] > .ck-editor__editable{
+    width: calc(100% - 2px - var(--ck-spacing-standard) * 2)!important;
+    height:calc(100vh - 10px)!important;
+}
+
+.rich-text-editor.fullscreen[data-type="decoupled"] > .rich-text-container{
+    min-height:inherit;
+    max-height:inherit;
+    overflow-y:auto;
+}
+
+.rich-text-editor.fullscreen[data-type="decoupled"] > .rich-text-container > .ck-editor__editable{
+    width: 90%!important;
+    height:calc(100vh - 40px - 40px)!important;
+}
+
+.rich-text-editor.fullscreen[data-type="multiroot"] > .ck-editor__main > .ck-editor__editable{
+    width: calc(100% - 2px - var(--ck-spacing-standard) * 2)!important;
+    height:calc(100vh - 40px - 10px )!important;
+}
+
+.ck.ck-block-toolbar-button{
+    --ck-z-default:2099
+}

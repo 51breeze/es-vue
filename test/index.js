@@ -8,7 +8,7 @@ describe('compile file', function() {
     let errors = [];
     let module = null;
     beforeAll(async function() {
-        compilation = await creator.startByFile('./Index.es');
+        compilation = await creator.factor('./Index.es');
         errors = compilation.compiler.errors;
     });
 
@@ -24,9 +24,7 @@ describe('compile file', function() {
     it('should compile success and build', function() {
         expect('Expected 0 errors').toContain( errors.length );
         if( errors.length===0 ){
-            creator.build( compilation, ()=>{
-                console.log("build[Index.es] done")
-            });
+            creator.build(compilation);
         }
     });
     
@@ -39,7 +37,7 @@ describe('compile file', function() {
     let errors = [];
     let module = null;
     beforeAll(async function() {
-        compilation = await creator.startByFile('./karma/Index.es');
+        compilation = await creator.factor('./karma/Index.es');
         errors = compilation.compiler.errors;
     });
 
@@ -55,9 +53,7 @@ describe('compile file', function() {
     it('should compile success and build', function() {
         expect('Expected 0 errors').toContain( errors.length );
         if( errors.length===0 ){
-            creator.build( compilation, ()=>{
-                console.log("build[karma/Index.es] done")
-            });
+            creator.build( compilation);
         }
     });
     
@@ -69,7 +65,7 @@ describe('compile file', function() {
     let errors = [];
     let module = null;
     beforeAll(async function() {
-        compilation = await creator.startByFile('./karma/Test.es');
+        compilation = await creator.factor('./karma/Test.es');
         errors = compilation.compiler.errors;
     });
 
@@ -86,9 +82,7 @@ describe('compile file', function() {
     it('should compile success and build', function() {
         expect('Expected 0 errors').toContain( errors.length );
         if( errors.length===0 ){
-            creator.build( compilation, ()=>{
-                console.log("build[karma/Test.es] done")
-            });
+            creator.build( compilation);
         }
     });
     

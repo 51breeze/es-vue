@@ -1,19 +1,18 @@
 {
-  "name": "es-vue",
-  "version": "0.7.0",
-  "description": "support vue for EaseScript",
-  "main": "index.js",
-  "typings": "types/typings.json",
+  "name": "@easescript/es-vue",
+  "version": "0.0.1",
+  "description": "Code Transform To VUE For EaseScript Plugin",
+  "main": "dist/index.js",
+  "typings": "dist/types/typings.json",
   "scripts": {
-    "es": "es -V",
-    "esc": "esc -f karma/Test.es",
-    "dev-test": "jasmine ./test/index.js",
-    "dev-run": "jasmine babel-node ./test/build/Index.js",
-    "webpack": "webpack-dev-server --hot",
-    "build": "webpack --mode production",
-    "dev-test-run": "npm run dev-test & npm run dev-run",
+    "dev": "npm run build && jasmine ./test/index.js",
+    "jasmine": "jasmine ./test/index.js",
+    "run": "jasmine babel-node ./test/.output/Index.js",
+    "test": "npm run dev & npm run run",
+    "build": "npm run manifest && node ./scripts/build.js",
     "karma": "karma start",
-    "manifest": "esc -o types -f types/index.d.es --manifest --scope es-vue --inherit es-javascript"
+    "webpack": "webpack-dev-server --hot",
+    "manifest": "esc -o lib/types -f lib/types/index.d.es --manifest --scope es-vue --inherit es-javascript"
   },
   "repository": {
     "type": "git",
@@ -27,12 +26,11 @@
   "author": "Jun Ye",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/51breeze/es-javascript/issues"
+    "url": "https://github.com/51breeze/es-vue/issues"
   },
-  "homepage": "https://github.com/51breeze/es-javascript#readme",
+  "homepage": "https://github.com/51breeze/es-vue#readme",
   "dependencies": {
-    "glob-path": "latest",
-    "lodash": "^4.17.21"
+    "@easescript/es-javascript": "latest"
   },
   "devDependencies": {
     "@babel/core": "^7.18.6",
@@ -101,13 +99,13 @@
   "esconfig": {
     "scope": "es-vue",
     "typings": [
-      "types/web/components",
-      "types/web/events",
-      "types/web/Application.d.es",
-      "types/web/Store.es",
-      "types/web/Lang.es",
-      "types/hmr.d.es",
-      "types/vue.d.es"
+      "dist/types/web/components",
+      "dist/types/web/events",
+      "dist/types/web/Application.d.es",
+      "dist/types/web/Store.es",
+      "dist/types/web/Lang.es",
+      "dist/types/hmr.d.es",
+      "dist/types/vue.d.es"
     ],
     "inherits": [
       "es-javascript"
