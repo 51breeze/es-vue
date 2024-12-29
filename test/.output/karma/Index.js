@@ -1,17 +1,19 @@
 import "./../asstes/theme.js";
 import Class from "./../Class.js";
-import {normalizeStyle,withCtx} from "vue";
+import {createVNode,normalizeStyle,withCtx} from "vue";
 import Application from "./../web/Application.js";
 import Lang from "./../web/Lang.js";
 import Manger from "./Manger.js";
 import Router from "./../web/components/Router.js";
 import Home from "./pages/Home.js";
 import List from "./pages/List.js";
+import Link from "./../web/components/Link.js";
+import Layout from "./ui/Layout.js";
+import Component from "./../web/components/Component.js";
+import dev_tools_HMR from "./../dev/tools/HMR.js";
 const _private = Class.getKeySymbols("2b668c2c");
 function Index(){
     Application.call(this);
-    this.title='Karma Testing555';
-    this.styles='ssss';
     Object.defineProperty(this,_private,{
         value:{
             _router:null
@@ -54,7 +56,8 @@ Class.creator(Index,{
                 const obj = {}
                 obj.test??=null;
                 obj.test?.name;
-            }
+            },
+            configurable:true
         },
         globals:{
             m:576,
@@ -63,7 +66,8 @@ Class.creator(Index,{
                 return {
                     Lang:Lang
                 }
-            }
+            },
+            configurable:true
         },
         onMounted:{
             m:544,
@@ -71,7 +75,8 @@ Class.creator(Index,{
                 const lang = Lang.use();
                 console.log('onMounted',lang.fetch('home.title'));
                 this.title=lang.fetch('home.title');
-            }
+            },
+            configurable:true
         },
         _router:{
             m:2056,
@@ -87,7 +92,8 @@ Class.creator(Index,{
                     mode:'hash',
                     routes:this.routes
                 });
-            }
+            },
+            configurable:true
         },
         routes:{
             m:576,
@@ -114,24 +120,36 @@ Class.creator(Index,{
                     },
                     component:List
                 }];
-            }
+            },
+            configurable:true
         },
         locale:{
             m:576,
             enumerable:true,
             get:function locale(){
                 return Lang.use();
-            }
+            },
+            configurable:true
         },
         title:{
-            m:520,
-            writable:true,
-            enumerable:true
+            m:576,
+            enumerable:true,
+            get:function title(){
+                return this.reactive("title");
+            },
+            set:function title(value){
+                this.reactive("title",value);
+            }
         },
         styles:{
-            m:520,
-            writable:true,
-            enumerable:true
+            m:576,
+            enumerable:true,
+            get:function styles(){
+                return this.reactive("styles");
+            },
+            set:function styles(value){
+                this.reactive("styles",value);
+            }
         },
         render:{
             m:544,
@@ -160,8 +178,36 @@ Class.creator(Index,{
                     createVNode("br"),
                     createVNode(Layout)
                 ]);
-            }
+            },
+            configurable:true
         }
     }
 });
-export default Index;
+if(module.hot){
+    module.hot.accept();
+    if(!dev_tools_HMR.createRecord("2b668c2c",Index)){
+        dev_tools_HMR.reload("2b668c2c",Index)
+    }
+}
+export default Component.createComponent(Index,{
+    name:"es-Index",
+    __hmrId:"2b668c2c",
+    props:{
+        title:{
+            type:String,
+            default:'Karma Testing555'
+        },
+        title:{
+            type:String,
+            default:'Karma Testing555'
+        },
+        styles:{
+            type:String,
+            default:'ssss'
+        },
+        styles:{
+            type:String,
+            default:'ssss'
+        }
+    }
+});

@@ -1,5 +1,5 @@
 import Class from "./../../Class.js";
-import _Router from "vue-router";
+import  *  as _Router from "vue-router";
 /*
  * Copyright © 2017 EaseScript All rights reserved.
  * Released under the MIT license

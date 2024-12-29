@@ -4,15 +4,20 @@ import {watch as _watch} from "vue";
 import {computed,ref,toRefs,markRaw} from "@vue/reactivity";
 import System from "./../System.js";
 import Reflect from "./../Reflect.js";
+const _private = Class.getKeySymbols("9a135a96");
 function Store(){
     this.key='store';
     this.storeProxy=null;
     this.storeInstance=null;
+    Object.defineProperty(this,_private,{
+        value:{}
+    });
 }
 Class.creator(Store,{
     m:513,
     ns:"web",
     name:"Store",
+    private:_private,
     methods:{
         getInstances:{
             m:2336,
@@ -90,19 +95,20 @@ Class.creator(Store,{
         create:{
             m:1056,
             value:function create(){
-                const descriptor = Reflect.getDescriptor(this) || {}
+                const descriptor = Reflect.getDescriptor(this);
                 const states = this.getStorage();
                 const getters = {}
                 const actions = {}
-                const members = (descriptor.members || []);
+                const members = descriptor.members;
+                console.log(members,"=========members===============");
                 const bindMethods = {}
                 const selfMethods = ['setState','getState','whenPropertyNotExists','getOptions','getStorage'];
                 const selfProperties = ['storeInstance','key','storeProxy'];
                 const publicMethods = ['patch','onAction','reset','subscribe','watch','dispose'];
                 const _proxy = new Proxy(this,{
                     get:(target,key,receiver)=>{
-                        if(Reflect.get(Store,descriptor,"privateKey") === key){
-                            return this[Reflect.get(Store,descriptor,"privateKey")];
+                        if(descriptor.isPrivatePropertyKey(key)){
+                            return this[key];
                         }
                         if(selfMethods.includes(key)){
                             if(bindMethods.hasOwnProperty(key)){
@@ -113,26 +119,26 @@ Class.creator(Store,{
                         if(selfProperties.includes(key)){
                             return this[key];
                         }
-                        const desc = members[key];
+                        const desc = descriptor.getMemberDescriptor(key);
                         if(desc){
-                            if(Reflect.get(Store,desc,"label") === 'property'){
-                                if(Reflect.get(Store,desc,"permission") === 'public'){
+                            if(desc.isProperty()){
+                                if(desc.isPublic()){
                                     return store.$state[key];
                                 }
                                 return this[key];
                             }else 
-                            if(Reflect.get(Store,desc,"label") === 'accessor'){
-                                if(Reflect.get(Store,desc,"get")){
-                                    return Reflect.call(Store,Reflect.get(Store,desc,"get"),"call",[this]);
+                            if(desc.isAccessor()){
+                                if(desc.getter){
+                                    return desc.invokeGetter(this);
                                 }else{
                                     throw new ReferenceError(`Store property the "${key}" is not readable.`);
                                 }
                             }else 
-                            if(Reflect.get(Store,desc,"label") === 'method'){
+                            if(desc.isMethod()){
                                 if(bindMethods.hasOwnProperty(key)){
                                     return bindMethods[key];
                                 }
-                                return bindMethods[key]=Reflect.call(Store,Reflect.get(Store,desc,"value"),"bind",[this]);
+                                return bindMethods[key]=Reflect.call(Store,desc.value,"bind",[this]);
                             }
                         }else{
                             key=String(key);
@@ -144,19 +150,19 @@ Class.creator(Store,{
                         }
                     },
                     set:(target,key,value)=>{
-                        const desc = members[key];
+                        const desc = descriptor.getMemberDescriptor(key);
                         if(desc){
-                            if(Reflect.get(Store,desc,"label") === 'property'){
-                                if(Reflect.get(Store,desc,"permission") === 'public'){
+                            if(desc.isProperty()){
+                                if(desc.isPublic()){
                                     store.$state[key]=value;
                                 }else{
                                     this[key]=value;
                                 }
                                 return true;
                             }else 
-                            if(Reflect.get(Store,desc,"label") === 'accessor'){
-                                if(Reflect.get(Store,desc,"set")){
-                                    Reflect.call(Store,Reflect.get(Store,desc,"set"),"call",[this,value]);
+                            if(desc.isAccessor()){
+                                if(desc.setter){
+                                    desc.invokeSetter(this,value);
                                     return true;
                                 }
                             }
@@ -166,24 +172,23 @@ Class.creator(Store,{
                         }
                     }
                 });
-                for(let name in members){
-                    const desc = members[name];
-                    if(Reflect.get(Store,desc,"permission") !== 'public')
-                    continue;
-                    if(Reflect.get(Store,desc,"label") === 'property'){
-                        if(!states.hasOwnProperty(name)){
-                            states[name]=Reflect.get(Store,desc,"value");
+                members.forEach((desc)=>{
+                    if(!desc.isPublic())
+                    return 
+                    if(desc.isProperty()){
+                        if(!states.hasOwnProperty(desc.key)){
+                            states[desc.key]=desc.value;
                         }
                     }else 
-                    if(Reflect.get(Store,desc,"label") === 'accessor'){
-                        if(Reflect.get(Store,desc,"get")){
-                            getters[name]=Reflect.call(Store,Reflect.get(Store,desc,"get"),"bind",[_proxy]);
+                    if(desc.isAccessor()){
+                        if(desc.getter){
+                            getters[desc.key]=desc.getter.bind(_proxy);
                         }
                     }else 
-                    if(Reflect.get(Store,desc,"label") === 'method'){
-                        actions[name]=Reflect.call(Store,Reflect.get(Store,desc,"value"),"bind",[_proxy]);
+                    if(desc.isMethod()){
+                        actions[desc.key]=Reflect.call(Store,desc.value,"bind",[_proxy]);
                     }
-                }
+                });
                 const pinia = Store._getActivePinia();
                 const id = this.key + ':' + (descriptor.namespace ? descriptor.namespace + '.' + descriptor.className : descriptor.className);
                 let setupOptions = {
@@ -198,23 +203,23 @@ Class.creator(Store,{
                 this.storeInstance=store;
                 this.storeProxy=new Proxy(store,{
                     set:(target,key,value)=>{
-                        const desc = members[key];
+                        const desc = descriptor.getMemberDescriptor(key);
                         if(!desc){
-                            throw new ReferenceError(`Store property the "${key}" is not exist`);
+                            throw new ReferenceError(`Store property the "${key}" 222 is not exist`);
                         }
-                        if(Reflect.get(Store,desc,"permission") !== 'public'){
-                            throw new ReferenceError(`Store ${Reflect.get(Store,desc,"label")} the "${key}" is not accessible`);
+                        if(!desc.isPublic()){
+                            throw new ReferenceError(`Store ${desc.label} the "${key}" is not accessible`);
                         }
-                        if(Reflect.get(Store,desc,"label") === 'accessor'){
-                            if(Reflect.get(Store,desc,"set")){
-                                Reflect.call(Store,Reflect.get(Store,desc,"set"),"call",[this,value]);
+                        if(desc.isAccessor()){
+                            if(desc.setter){
+                                desc.invokeSetter(this,value);
                                 return true;
                             }else{
                                 throw new ReferenceError(`Store property the "${key}" is not writable.`);
                             }
                         }else 
-                        if(Reflect.get(Store,desc,"label") === 'property'){
-                            if(Reflect.get(Store,desc,"writable")){
+                        if(desc.isProperty()){
+                            if(desc.writable){
                                 store.$state[key]=value;
                                 return true;
                             }else{
@@ -234,12 +239,12 @@ Class.creator(Store,{
                             }
                             return bindMethods[key]=(this[key]).bind(this);
                         }
-                        const desc = members[key];
+                        const desc = descriptor.getMemberDescriptor(key);
                         if(!desc){
                             return this.whenPropertyNotExists(String(key));
                         }
-                        if(Reflect.get(Store,desc,"permission") !== 'public'){
-                            throw new ReferenceError(`Store ${Reflect.get(Store,desc,"label")} the "${key}" is not accessible`);
+                        if(!desc.isPublic()){
+                            throw new ReferenceError(`Store ${desc.label} the "${key}" is not accessible`);
                         }
                         return store[key];
                     }

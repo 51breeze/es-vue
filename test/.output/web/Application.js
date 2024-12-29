@@ -1,8 +1,8 @@
-import "#es-vue-web-application-style";
+import "element-plus/theme-chalk/index.css";
 import Class from "./../Class.js";
-import Vue from "vue";
-import __config from "${__filename}?callhook&action=config";
-import __routes from "${__filename}?callhook&action=route";
+import  *  as Vue from "vue";
+import __config from "./../Application.d-8fa13900.js";
+import __routes from "./../Application.d-9fb64709.js";
 import Component from "./components/Component.js";
 import Router from "./components/Router.js";
 import ComponentEvent from "./events/ComponentEvent.js";

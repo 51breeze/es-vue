@@ -141,22 +141,16 @@ function injectFactor(name, from, defaultValue){
 
     if( value !== void 0 ){
         value = this.receivePropValue(value, name);
-        if(descriptor.type === Reflect.MEMBERS_ACCESSOR){
-            if( descriptor.set ){
-                descriptor.set.call(this,value);
+        if(descriptor.isAccessor()){
+            if(descriptor.setter){
+                descriptor.invokeSetter(this,value);
             }else{
                 throw new Error(`Injector property '${name}' is readonly.`);
             }
-        }else if(descriptor.type === Reflect.MEMBERS_METHODS){
-            descriptor.method.call(this, value);
-        }else if( descriptor.type === Reflect.MEMBERS_PROPERTY ){
-            let target = this;
-            if( descriptor.modifier === Reflect.MODIFIER_PRIVATE ){
-                target = descriptor.dataset;
-            }
-            if( target ){
-                target[name] = value;
-            }
+        }else if(descriptor.isMethod()){
+            descriptor.invokeMethod(this, value);
+        }else if(descriptor.isProperty()){
+            descriptor.setPropertyValue(value)
         }
     }
     return value;
@@ -631,6 +625,9 @@ Object.defineProperty( Component, 'resolveDirective', {value:function resolveDir
                 }else{
                     dire = new config.directiveClass( context );
                 }
+
+                console.log( dire,'------resolveDirective----------' )
+
                 directiveClassMaps[name] = dire;
             }
         }else{
@@ -665,7 +662,7 @@ Object.defineProperty( Component, 'createComponent', {value:function createCompo
     const esPrivateKey = options.esPrivateKey;
     const ssrCtx = options.__ssrContext;
     const asyncSetup = options.__asyncSetup;
-    const classDescriptor = Class.getDescriptor(constructor);
+    const classDescriptor = Class.getClassDescriptor(constructor);
     options.props = options.props || {};
     if(classDescriptor){
         let inheritClass = classDescriptor;
@@ -679,7 +676,7 @@ Object.defineProperty( Component, 'createComponent', {value:function createCompo
                         }
                     })
                 }
-                inheritClass = Class.getDescriptor(inheritClass);
+                inheritClass = Class.getClassDescriptor(inheritClass);
             }else{
                 break;
             }

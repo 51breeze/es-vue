@@ -1,9 +1,9 @@
 import Class from "./../Class.js";
-import _common1 from "D:\tools\es-vue\test\src\locales\common.json";
-import _Home2 from "D:\tools\es-vue\test\src\locales\us-en\Home.es";
-import _common3 from "D:\tools\es-vue\test\src\locales\zh-cn\common.es";
-import _Home4 from "D:\tools\es-vue\test\src\locales\zh-cn\Home.es";
-import _zh_CN5 from "D:\tools\es-vue\test\src\locales\zh-CN.es";
+import _common1 from "D:/tools/es-vue/test/src/locales/common.json";
+import _zh_CN2 from "D:/tools/es-vue/test/src/locales/zh-CN.es";
+import _Home3 from "D:/tools/es-vue/test/src/locales/us-en/Home.es";
+import _common4 from "D:/tools/es-vue/test/src/locales/zh-cn/common.es";
+import _Home5 from "D:/tools/es-vue/test/src/locales/zh-cn/Home.es";
 import System from "./../System.js";
 const _private = Class.getKeySymbols("3e89d133");
 function Lang(){
@@ -156,25 +156,25 @@ Class.creator(Lang,{
                     content:
                     _common1
                 },{
+                    path:"locales/zh-CN.es",
+                    isFile:true,
+                    content:
+                    _zh_CN2
+                },{
                     path:"locales/us-en/Home.es",
                     isFile:true,
                     content:
-                    _Home2
+                    _Home3
                 },{
                     path:"locales/zh-cn/common.es",
                     isFile:true,
                     content:
-                    _common3
+                    _common4
                 },{
                     path:"locales/zh-cn/Home.es",
                     isFile:true,
                     content:
-                    _Home4
-                },{
-                    path:"locales/zh-CN.es",
-                    isFile:true,
-                    content:
-                    _zh_CN5
+                    _Home5
                 }];
             }
         },

@@ -1,31 +1,59 @@
+import "element-plus/lib/components/dialog/style/css";
+import "element-plus/lib/components/button/style/css";
 import Class from "./../../Class.js";
-import {withCtx,normalizeClass,normalizeStyle} from "vue";
+import {withCtx,createVNode,normalizeClass,normalizeStyle} from "vue";
 import VList from "./../vue/list.js";
 import Component from "./../../web/components/Component.js";
 import UserStore from "./../../stores/UserStore.js";
+import web_ui_Button from "element-plus/lib/components/button";
+import web_ui_Dialog from "element-plus/lib/components/dialog";
+import karma_components_List from "./../components/List.js";
+import karma_components_Slot from "./../components/Slot.js";
 import System from "./../../System.js";
+import karma_components_Directive from "./../components/Directive.js";
+import web_ui_RichText from "./../../web/ui/RichText.js";
+import web_ui_RichTextBalloonBlock from "./../../web/ui/RichTextBalloonBlock.js";
+import web_ui_RichTextInline from "./../../web/ui/RichTextInline.js";
+import web_ui_RichTextDocument from "./../../web/ui/RichTextDocument.js";
+import web_ui_RichTextMultiroot from "./../../web/ui/RichTextMultiroot.js";
 import Lang from "./../../web/Lang.js";
+import dev_tools_HMR from "./../../dev/tools/HMR.js";
 const _private = Class.getKeySymbols("29813c5e");
 function Home(){
-    Component.apply(this,arguments);
-    this.list=[];
-    this.fromData={
-        account:'account',
-        password:'password',
-        check:'checked',
-        type:'email'
-    }
-    this.response='null';
+    Component.call(this,arguments[0]);
     Object.defineProperty(this,_private,{
         value:{
-            _title:'Home page',
-            text:'Hello,worlds',
-            text2:'Hello,worlds 22222',
-            data:{},
-            layout:{},
-            showEditor:false
+            response:'null'
         }
     });
+    Object.defineProperties(this[_private],{
+        _title:{
+            get:()=>this.reactive("_title",void 0,()=>'Home page'),
+            set:(value)=>this.reactive("_title",value)
+        },
+        text:{
+            get:()=>this.reactive("text",void 0,()=>'Hello,worlds'),
+            set:(value)=>this.reactive("text",value)
+        },
+        text2:{
+            get:()=>this.reactive("text2",void 0,()=>'Hello,worlds 22222'),
+            set:(value)=>this.reactive("text2",value)
+        },
+        data:{
+            get:()=>this.reactive("data",void 0,()=>({})),
+            set:(value)=>this.reactive("data",value)
+        },
+        layout:{
+            get:()=>this.reactive("layout",void 0,()=>({})),
+            set:(value)=>this.reactive("layout",value)
+        },
+        showEditor:{
+            get:()=>this.reactive("showEditor",void 0,()=>false),
+            set:(value)=>this.reactive("showEditor",value)
+        }
+    });
+    this.provide("list",()=>this.list);
+    this.provide("homePage",this.providesss.bind(this));
 }
 Class.creator(Home,{
     m:513,
@@ -35,28 +63,45 @@ Class.creator(Home,{
     inherit:Component,
     members:{
         list:{
-            m:520,
-            writable:true,
-            enumerable:true
+            m:576,
+            enumerable:true,
+            get:function list(){
+                return this.reactive("list");
+            },
+            set:function list(value){
+                this.reactive("list",value);
+            }
         },
         fromData:{
-            m:520,
-            writable:true,
-            enumerable:true
+            m:576,
+            enumerable:true,
+            get:function fromData(){
+                return this.reactive("fromData");
+            },
+            set:function fromData(value){
+                this.reactive("fromData",value);
+            }
         },
         _title:{
             m:2056,
-            writable:true
+            writable:true,
+            value:'Home page'
         },
         providesss:{
             m:544,
             value:function providesss(){
                 return [1];
-            }
+            },
+            configurable:true
         },
         response:{
-            m:1032,
-            writable:true
+            m:1088,
+            get:function response(){
+                return this[_private].response;
+            },
+            set:function response(value){
+                this[_private].response=value;
+            }
         },
         title:{
             m:576,
@@ -67,19 +112,22 @@ Class.creator(Home,{
             set:function title(value){
                 console.trace(this.toString(),'-------set title------',this.title,value);
                 this[_private]._title=value;
-            }
+            },
+            configurable:true
         },
         addItem:{
             m:544,
             value:function addItem(item){
                 this.list.push(item);
-            }
+            },
+            configurable:true
         },
         setType:{
             m:544,
             value:function setType(value){
                 this.fromData.type=value;
-            }
+            },
+            configurable:true
         },
         onMounted:{
             m:544,
@@ -99,23 +147,28 @@ Class.creator(Home,{
                 }catch(e){
                     console.log(e,'--------------');
                 }
-            }
+            },
+            configurable:true
         },
         text:{
             m:2056,
-            writable:true
+            writable:true,
+            value:'Hello,worlds'
         },
         text2:{
             m:2056,
-            writable:true
+            writable:true,
+            value:'Hello,worlds 22222'
         },
         data:{
             m:2056,
-            writable:true
+            writable:true,
+            value:{}
         },
         layout:{
             m:2056,
-            writable:true
+            writable:true,
+            value:{}
         },
         spreadData:{
             m:576,
@@ -126,11 +179,13 @@ Class.creator(Home,{
                     title:this.title,
                     fromData:this.fromData
                 }
-            }
+            },
+            configurable:true
         },
         showEditor:{
             m:2056,
-            writable:true
+            writable:true,
+            value:false
         },
         render:{
             m:544,
@@ -146,12 +201,12 @@ Class.creator(Home,{
                     }])
                 },[
                     "66666666666666 2222--33388866667777 ",
-                    createVNode(Button,{
+                    createVNode(web_ui_Button,{
                         onClick:()=>this[_private].showEditor=true
                     },{
                         default:withCtx(()=>["fdfdfdsf"])
                     }),
-                    createVNode(Dialog,{
+                    createVNode(web_ui_Dialog,{
                         modelValue:this[_private].showEditor,
                         "onUpdate:modelValue":(e)=>this[_private].showEditor=e
                     },{
@@ -162,11 +217,11 @@ Class.creator(Home,{
                     },[
                         this.title
                     ]),
-                    createVNode(List,{
+                    createVNode(karma_components_List,{
                         ...this.spreadData,
                         ref:'list'
                     }),
-                    createVNode(Slot,{
+                    createVNode(karma_components_Slot,{
                         items:this.list,
                         ref:"slot-component-1"
                     },{
@@ -174,7 +229,7 @@ Class.creator(Home,{
                             createVNode("div",null,["footer default children"])
                         ])
                     }),
-                    createVNode(Slot,{
+                    createVNode(karma_components_Slot,{
                         items:this.list,
                         ref:"slot-component-2"
                     },{
@@ -189,9 +244,9 @@ Class.creator(Home,{
                             item.label
                         ))))
                     }),
-                    createVNode(Directive),
+                    createVNode(karma_components_Directive),
                     createVNode("div",null,[
-                        createVNode(RichText,{
+                        createVNode(web_ui_RichText,{
                             value:this[_private].text,
                             modelValue:this[_private].text,
                             height:"200px",
@@ -199,7 +254,7 @@ Class.creator(Home,{
                         })
                     ]),
                     createVNode("div",null,[
-                        createVNode(RichTextBalloonBlock,{
+                        createVNode(web_ui_RichTextBalloonBlock,{
                             value:this[_private].text2,
                             modelValue:this[_private].text2,
                             height:"100px",
@@ -207,7 +262,7 @@ Class.creator(Home,{
                         })
                     ]),
                     createVNode("div",null,[
-                        createVNode(RichTextInline,{
+                        createVNode(web_ui_RichTextInline,{
                             value:this[_private].text2,
                             modelValue:this[_private].text2,
                             "onUpdate:modelValue":(e)=>this[_private].text2=e
@@ -215,7 +270,7 @@ Class.creator(Home,{
                     ]),
                     "------------------------- ",
                     createVNode("div",null,[
-                        createVNode(RichTextDocument,{
+                        createVNode(web_ui_RichTextDocument,{
                             value:this[_private].text2,
                             modelValue:this[_private].text2,
                             "onUpdate:modelValue":(e)=>this[_private].text2=e
@@ -225,14 +280,14 @@ Class.creator(Home,{
                         ref:"editor-main"
                     },["editor-main "]),
                     createVNode("div",null,[
-                        createVNode(RichTextDocument,{
+                        createVNode(web_ui_RichTextDocument,{
                             value:this[_private].text2,
                             modelValue:this[_private].text2,
                             "onUpdate:modelValue":(e)=>this[_private].text2=e
                         })
                     ]),
                     createVNode("div",null,[
-                        createVNode(RichTextMultiroot,{
+                        createVNode(web_ui_RichTextMultiroot,{
                             layout:this[_private].layout,
                             value:this[_private].data,
                             modelValue:this[_private].data,
@@ -246,8 +301,53 @@ Class.creator(Home,{
                         Lang.fetch('home.start')
                     ))
                 ]);
-            }
+            },
+            configurable:true
         }
     }
 });
-export default Home;
+if(module.hot){
+    module.hot.accept();
+    if(!dev_tools_HMR.createRecord("29813c5e",Home)){
+        dev_tools_HMR.reload("29813c5e",Home)
+    }
+}
+export default Component.createComponent(Home,{
+    name:"es-Home",
+    __hmrId:"29813c5e",
+    emits:Object.assign(["close","start","open"],{
+        end:"ending"
+    }),
+    file:true,
+    props:{
+        list:{
+            type:Array,
+            default:()=>([])
+        },
+        list:{
+            type:Array,
+            default:()=>([])
+        },
+        fromData:{
+            type:Object,
+            default:()=>({
+                account:'account',
+                password:'password',
+                check:'checked',
+                type:'email'
+            })
+        },
+        fromData:{
+            type:Object,
+            default:()=>({
+                account:'account',
+                password:'password',
+                check:'checked',
+                type:'email'
+            })
+        },
+        title:{
+            type:String
+        }
+    }
+});

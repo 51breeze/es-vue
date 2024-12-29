@@ -1,0 +1,1 @@
+export default ".app{\r\n        display:flex;\r\n        border-top:solid 1px #ebebeb;\r\n    }\r\n    .app > .right{\r\n        width:100%;\r\n        display:flex;\r\n        flex-direction: column;\r\n        justify-content: space-between;\r\n    }\r\n    .app > .right > .container{\r\n        width:100%;\r\n        height:100%;\r\n    }";

@@ -69,21 +69,26 @@ package web{
         }
 
         protected create(){
-            const descriptor = Reflect.getDescriptor(this) || {};
+            const descriptor = Reflect.getDescriptor(this);
             const states = this.getStorage();
             const getters = {};
             const actions = {};
+            const members:MemberDescriptor[] = descriptor.members;
 
-            type DT = {[key:string]:any, value?:Function, get?:Function, set?:Function};
-            const members:{[key:string]:DT}[] = (descriptor.members || []) as any[];
+
+            console.log( members ,"=========members===============" )
+
+
+
+
             const bindMethods = {};
             const selfMethods = ['setState','getState','whenPropertyNotExists','getOptions','getStorage'];
             const selfProperties = ['storeInstance','key','storeProxy'];
             const publicMethods = ['patch','onAction','reset','subscribe','watch','dispose']
             const _proxy = new Proxy(this, {
                 get:(target,key,receiver)=>{
-                    if(descriptor.privateKey === key){
-                        return this[descriptor.privateKey];
+                    if(descriptor.isPrivatePropertyKey(key)){
+                        return this[key];
                     }
                     if(selfMethods.includes(key)){
                         if( bindMethods.hasOwnProperty(key) ){
@@ -94,20 +99,20 @@ package web{
                         return this[key];
                     }
 
-                    const desc = members[key];
+                    const desc = descriptor.getMemberDescriptor(key);
                     if(desc){
-                        if(desc.label==='property'){
-                            if(desc.permission==='public'){
+                        if(desc.isProperty()){
+                            if(desc.isPublic()){
                                 return store.$state[key];
                             }
                             return this[key];
-                        }else if(desc.label==='accessor'){
-                            if(desc.get){
-                                return desc.get.call(this);
+                        }else if(desc.isAccessor()){
+                            if(desc.getter){
+                                return desc.invokeGetter(this);
                             }else{
                                 throw new ReferenceError(`Store property the "${key}" is not readable.`) 
                             }
-                        }else if(desc.label==='method'){
+                        }else if(desc.isMethod()){
                             if( bindMethods.hasOwnProperty(key) ){
                                 return bindMethods[key];
                             }
@@ -123,18 +128,18 @@ package web{
                     }
                 },
                 set:(target,key,value)=>{
-                    const desc = members[key];
+                    const desc = descriptor.getMemberDescriptor(key);
                     if(desc){
-                        if(desc.label==='property'){
-                            if(desc.permission==='public'){
+                        if(desc.isProperty()){
+                            if(desc.isPublic()){
                                 store.$state[key]=value
                             }else{
                                 this[key] = value;
                             }
                             return true
-                        }else if(desc.label==='accessor'){
-                            if(desc.set){
-                                desc.set.call(this, value);
+                        }else if(desc.isAccessor()){
+                            if(desc.setter){
+                                desc.invokeSetter(this, value);
                                 return true;
                             }
                         }
@@ -145,21 +150,20 @@ package web{
                 }
             });
 
-            for(let name in members){
-                const desc = members[name];
-                if(desc.permission!=='public')continue;
-                if(desc.label==='property'){
-                    if(!states.hasOwnProperty(name)){
-                        states[name] = desc.value;
+            members.forEach( desc=>{
+                if(!desc.isPublic())return;
+                if(desc.isProperty()){
+                    if(!states.hasOwnProperty(desc.key)){
+                        states[desc.key] = desc.value;
                     }
-                }else if(desc.label==='accessor'){
-                    if(desc.get){
-                        getters[name] = desc.get.bind(_proxy);
+                }else if(desc.isAccessor()){
+                    if(desc.getter){
+                        getters[desc.key] = desc.getter.bind(_proxy);
                     }
-                }else if(desc.label==='method'){
-                    actions[name] = desc.value.bind(_proxy);
+                }else if(desc.isMethod()){
+                    actions[desc.key] = desc.value.bind(_proxy);
                 }
-            }
+            })
 
             const pinia = _getActivePinia();
             const id = this.key+':'+(descriptor.namespace ? descriptor.namespace +'.'+ descriptor.className : descriptor.className);
@@ -189,21 +193,21 @@ package web{
             this.storeInstance = store;
             this.storeProxy = new Proxy(store, {
                 set:(target,key,value)=>{
-                    const desc = members[key];
+                    const desc = descriptor.getMemberDescriptor(key);
                     if(!desc){
-                        throw new ReferenceError(`Store property the "${key}" is not exist`)
+                        throw new ReferenceError(`Store property the "${key}" 222 is not exist`)
                     }
-                    if(desc.permission!=='public'){
+                    if(!desc.isPublic()){
                         throw new ReferenceError(`Store ${desc.label} the "${key}" is not accessible`)
                     }
-                    if(desc.label==='accessor'){
-                        if(desc.set){
-                            desc.set.call(this, value);
+                    if(desc.isAccessor()){
+                        if(desc.setter){
+                            desc.invokeSetter(this, value);
                             return true;
                         }else{
                             throw new ReferenceError(`Store property the "${key}" is not writable.`)
                         }
-                    }else if(desc.label==='property'){
+                    }else if(desc.isProperty()){
                         if(desc.writable){
                             store.$state[key] = value;
                             return true;
@@ -224,18 +228,18 @@ package web{
                         }
                         return bindMethods[key] = (this[key] as Function).bind(this);
                     }
-                    const desc = members[key];
+                    const desc = descriptor.getMemberDescriptor(key);
                     if(!desc){
                         return this.whenPropertyNotExists(String(key))
                     }
-                    if(desc.permission!=='public'){
+                    if(!desc.isPublic()){
                         throw new ReferenceError(`Store ${desc.label} the "${key}" is not accessible`)
                     }
                     //getters computed 在服务端使用了缓存导致与客户端状态不同步
                     when(Env(platform, server)){
                         when(Env(mode, development)){
-                            if(desc.get){
-                                return desc.get.call(this)
+                            if(desc.getter){
+                                return desc.invokeGetter(this)
                             }
                         }
                     }

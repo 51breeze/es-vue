@@ -6,7 +6,7 @@ const {VueLoaderPlugin} = require("vue-loader");
 const htmlWebpackPlugin = require('html-webpack-plugin');
 const workspace = path.resolve( "./test/src" )
 
-const build = path.resolve( "./test/build" )
+const build = path.resolve( "./test/.output" )
 //const loader = require.resolve("es-loader")
 const loader = require.resolve("es-loader")
 
@@ -18,15 +18,17 @@ const format = 'default';
 
 process.env.format = format
 
-
+let plugin = require('./dist/index.js');
+plugin = plugin.default || plugin;
 const plugins=[
   {
-    plugin:require('../es-vue'),
+    plugin:plugin,
     options:{
-      webpack:true,
-      styleLoader:['style-loader','css-loader'],
-      useAbsolutePathImport:true,
-      output:build,
+      webpack:{
+        enable:true,
+        inlineStyleLoader:['style-loader','css-loader']
+      },
+      outDir:build,
       sourceMaps:true,
       version:3,
       uiFully:true,
@@ -42,7 +44,7 @@ const plugins=[
         //platform:'server'
       },
       hot:true,
-      format:format, //vue-template
+      //format:format, //vue-template
       
       babel:false,
       // babel:{
@@ -72,7 +74,6 @@ const plugins=[
       //     ]
       //   ]
       // },
-      workspace
     }
   }
 ];

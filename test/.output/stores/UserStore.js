@@ -1,5 +1,6 @@
 import Class from "./../Class.js";
 import Store from "./../web/Store.js";
+const _private = Class.getKeySymbols("8e63fa18");
 function UserStore(){
     Store.apply(this,arguments);
     this.userinfo={
@@ -9,11 +10,15 @@ function UserStore(){
     this.isLoginssss=false;
     this.persson=null;
     this.add="===99999==";
+    Object.defineProperty(this,_private,{
+        value:{}
+    });
 }
 Class.creator(UserStore,{
     m:513,
     ns:"stores",
     name:"UserStore",
+    private:_private,
     inherit:Store,
     methods:{
         use:{
