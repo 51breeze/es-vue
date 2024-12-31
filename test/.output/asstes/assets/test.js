@@ -1,1 +1,0 @@
-export default "input{\r\n\r\n  width:auto;\r\n  padding:16px;\r\n  border: solid 1px rgb(55, 165, 238);\r\n\r\n}\r\n\r\n.fade-enter-active, .fade-leave-active {\r\n  transition: opacity .5s;\r\n}\r\n.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {\r\n  opacity: 0;\r\n}\r\n";
