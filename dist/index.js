@@ -427,7 +427,7 @@ var import_Compilation = __toESM(require("easescript/lib/core/Compilation"));
 var import_path6 = __toESM(require("path"));
 
 // node_modules/@easescript/transform/lib/core/Builder.js
-var import_Utils19 = __toESM(require("easescript/lib/core/Utils"));
+var import_Utils20 = __toESM(require("easescript/lib/core/Utils"));
 
 // node_modules/@easescript/transform/lib/core/Context.js
 var import_path2 = __toESM(require("path"));
@@ -4093,7 +4093,6 @@ function getVirtualModuleManager(VirtualModuleFactory) {
 // node_modules/@easescript/transform/lib/core/Context.js
 var import_Utils4 = __toESM(require("easescript/lib/core/Utils"));
 var import_Range = __toESM(require("easescript/lib/core/Range"));
-var import_crypto2 = require("crypto");
 var Context = class _Context extends Token_default {
   static is(value) {
     return value ? value instanceof _Context : false;
@@ -4344,6 +4343,17 @@ var Context = class _Context extends Token_default {
   }
   removeNode(stack) {
     this.#nodes.delete(stack);
+  }
+  getHashId(len = 8) {
+    let target = this.#target;
+    if (import_Utils4.default.isCompilation(target)) {
+      let file = target.file || Array.from(target.modules.values()).map((m) => m.getName()).join(",");
+      return createUniqueHashId(file, len);
+    } else if (isVModule(target) || import_Utils4.default.isModule(target)) {
+      return createUniqueHashId(target.getName(), len);
+    } else {
+      throw new Error("Invalid target");
+    }
   }
   getModuleReferenceName(module2, context = null) {
     let name = null;
@@ -4801,7 +4811,7 @@ var Context = class _Context extends Token_default {
       }
       let ext = import_path2.default.extname(file);
       suffix = suffix || ext;
-      return import_path2.default.basename(file, ext) + "-" + (0, import_crypto2.createHash)("sha256").update(source).digest("hex").substring(0, 8) + suffix;
+      return import_path2.default.basename(file, ext) + "-" + createUniqueHashId(source) + suffix;
     }
     return source;
   }
@@ -6050,11 +6060,6 @@ var ClassBuilder = class {
     }
     return this.privateName;
   }
-  getHashId(len = 8) {
-    const name = this.module.getName();
-    const file = this.compilation.file;
-    return createUniqueHashId(`${file}:${name}`, len);
-  }
   createPrivateSymbolNode(ctx, name) {
     if (!ctx.options.privateChain)
       return null;
@@ -6083,7 +6088,7 @@ var ClassBuilder = class {
             ctx.createCallExpression(
               createStaticReferenceNode(ctx, this.stack, "Class", "getKeySymbols"),
               [
-                ctx.createLiteral(this.getHashId())
+                ctx.createLiteral(ctx.getHashId())
               ]
             )
           )
@@ -7183,6 +7188,7 @@ function createSlotNode(ctx, stack, ...args) {
       [slots].concat(args)
     );
     node.isSlotNode = true;
+    node.isRenderSlot = true;
     return node;
   } else {
     const node = ctx.createCallExpression(
@@ -7221,7 +7227,7 @@ function createForMapNode(ctx, object, element, item, key, index, stack) {
     ]
   );
 }
-function createForEachNode(ctx, refs, element, item, key) {
+function createForEachNode(ctx, refs, element, item, key, stack) {
   const args = [item];
   if (key) {
     args.push(key);
@@ -7238,29 +7244,6 @@ function createForEachNode(ctx, refs, element, item, key) {
       ctx.createArrowFunctionExpression(element, args)
     ]
   );
-  if (element.type === "ArrayExpression") {
-    return ctx.createCallExpression(
-      ctx.createMemberExpression([
-        node,
-        ctx.createIdentifier("reduce")
-      ]),
-      [
-        ctx.createArrowFunctionExpression([
-          ctx.createIdentifier("acc"),
-          ctx.createIdentifier("item")
-        ], ctx.createCallee(
-          ctx.createMemberExpression([
-            ctx.createIdentifier("acc"),
-            ctx.createIdentifier("concat")
-          ]),
-          [
-            ctx.createIdentifier("item")
-          ]
-        )),
-        ctx.createArrayExpression()
-      ]
-    );
-  }
   return node;
 }
 function getComponentDirectiveAnnotation(module2) {
@@ -7370,7 +7353,8 @@ function createChildNode(ctx, stack, childNode, prev = null) {
           refs,
           content[0],
           item,
-          key
+          key,
+          stack
         );
       } else {
         content[0] = createForMapNode(
@@ -7509,7 +7493,6 @@ function createChildren(ctx, children, data) {
       }
     }
   };
-  let hasComplex = false;
   while (true) {
     result = next();
     if (last) {
@@ -7531,52 +7514,37 @@ function createChildren(ctx, children, data) {
       } else if (!(last.ifEnd && last.cmd.includes("else"))) {
         value = last.content;
       }
-      const complex = last.child.isJSXExpressionContainer ? !!(last.child.expression.isMemberExpression || last.child.expression.isCallExpression) : false;
-      if (last.cmd.includes("each") || last.cmd.includes("for") || last.child.isSlot || last.child.isDirective || complex) {
-        hasComplex = true;
-      }
       push(content, value);
     }
     last = result;
     if (!result)
       break;
   }
-  if (!content.length)
-    return null;
-  if (hasComplex) {
-    let first = content[0];
-    if (content.length === 1 && (first.type == "ArrayExpression" || first.isForNode || first.isSlotNode)) {
-      return first;
-    }
-    let base = content.length > 1 ? content.shift() : ctx.createArrayExpression();
-    if (base.type !== "ArrayExpression" && !base.isForNode) {
-      base = ctx.createArrayExpression([base]);
-      base.newLine = true;
-    }
-    const node2 = ctx.createCallExpression(
-      ctx.createMemberExpression([
-        base,
-        ctx.createIdentifier("concat")
-      ]),
-      content.reduce(function(acc, val) {
-        if (val.type === "ArrayExpression") {
-          return acc.concat(...val.elements);
-        } else {
-          return acc.concat(val);
+  if (content.length > 1) {
+    return content.reduce((acc, item) => {
+      if ((item.type === "Literal" || item.isScalarType) && acc.length > 0) {
+        let index2 = acc.length - 1;
+        let last2 = acc[index2];
+        if (last2.type === "Literal" || last2.isScalarType) {
+          const node = ctx.createBinaryExpression(
+            last2,
+            item,
+            "+"
+          );
+          node.isMergeStringNode = true;
+          node.isScalarType = true;
+          node.isExpressionContainer = !!(last2.isExpressionContainer || item.isExpressionContainer);
+          acc.splice(index2, 1, node);
+          return acc;
         }
-      }, [])
-    );
-    node2.newLine = true;
-    node2.indentation = true;
-    return node2;
+      }
+      acc.push(item);
+      return acc;
+    }, []);
   }
-  const node = ctx.createArrayExpression(content);
-  if (content.length > 1 || !(content[0].type === "Literal" || content[0].type === "Identifier")) {
-    node.newLine = true;
-  }
-  return node;
+  return content;
 }
-function createGetEventValueNode(ctx, name = "e") {
+function createGetEventValueNode2(ctx, name = "e") {
   return ctx.createCallExpression(
     ctx.createMemberExpression([
       ctx.createThisExpression(),
@@ -7649,11 +7617,14 @@ function getBinddingEventName(stack) {
   }
   return null;
 }
-function createElementPropsNode(ctx, data, stack) {
+function createElementPropsNode(ctx, data, stack, excludes2 = null) {
   const items = [];
   Object.entries(data).map((item) => {
     const [key, value] = item;
     if (key === "slots" || key === "directives" || key === "keyProps") {
+      return;
+    }
+    if (excludes2 && excludes2.includes(key)) {
       return;
     }
     if (value) {
@@ -7887,7 +7858,7 @@ function createAttributes(ctx, stack, data) {
         return [
           binddingModelValue.isReflectSetter ? binddingModelValue : ctx.createAssignmentExpression(
             binddingModelValue,
-            getEvent ? createGetEventValueNode(ctx) : ctx.createIdentifier("e")
+            getEvent ? createGetEventValueNode2(ctx) : ctx.createIdentifier("e")
           ),
           [
             ctx.createIdentifier("e")
@@ -7990,7 +7961,11 @@ function createAttributes(ctx, stack, data) {
         data[name] = property;
         break;
       default:
-        data.attrs.push(property);
+        if (item.isMemberProperty) {
+          data.props.push(property);
+        } else {
+          data.attrs.push(property);
+        }
     }
   });
   if (!data.key) {
@@ -8075,15 +8050,18 @@ function createComponentDirectiveProperties(ctx, stack, data, callback = null) {
 }
 function createCustomDirectiveProperties(ctx, stack, data, callback = null) {
   const node = createResolveComponentDirective(ctx, stack, data, null, null, true, callback);
+  let res = false;
   if (node) {
+    res = true;
     data.directives.push(node);
   }
   if (stack.parentStack && stack.parentStack.isDirective && stack.jsxRootElement !== stack.parentStack) {
     let dName = stack.parentStack.openingElement.name.value().toLowerCase();
     if (dName === "custom") {
-      createCustomDirectiveProperties(ctx, stack.parentStack, data, callback);
+      return createCustomDirectiveProperties(ctx, stack.parentStack, data, callback) || res;
     }
   }
+  return res;
 }
 function createResolveComponentDirective(ctx, stack, data, direModule = null, direName = null, isCustom = false, callback = null) {
   const props = [];
@@ -8269,7 +8247,7 @@ function createDirectiveElementNode(ctx, stack, children) {
       });
       let item = argument.item || ctx.createIdentifier("item");
       let key = argument.key || ctx.createIdentifier("key");
-      let node = name === "for" ? createForMapNode(ctx, argument.refs, children, item, key, argument.index, stack) : createForEachNode(ctx, argument.refs, children, item, key);
+      let node = name === "for" ? createForMapNode(ctx, argument.refs, children, item, key, argument.index, stack) : createForEachNode(ctx, argument.refs, children, item, key, stack);
       node.isForNode = true;
       return node;
     }
@@ -8326,6 +8304,63 @@ function getChildren(stack) {
     return !(child.isJSXScript && child.isScriptProgram || child.isJSXStyle);
   });
 }
+function makeNormalChildren(ctx, children) {
+  if (!children.length)
+    return null;
+  if (children.some((item) => !!item.maybeIsArrayNodes)) {
+    let childNods2 = ctx.createArrayExpression(children);
+    if (children.length > 1) {
+      childNods2.newLine = children.some((item) => item.type === "CallExpression");
+    }
+    return ctx.createCallExpression(
+      ctx.createMemberExpression([
+        childNods2,
+        ctx.createIdentifier("reduce")
+      ]),
+      [
+        ctx.createArrowFunctionExpression(
+          ctx.createCallExpression(
+            ctx.createMemberExpression([
+              ctx.createIdentifier("acc"),
+              ctx.createIdentifier("concat")
+            ]),
+            [
+              ctx.createIdentifier("item")
+            ]
+          ),
+          [
+            ctx.createIdentifier("acc"),
+            ctx.createIdentifier("item")
+          ]
+        ),
+        ctx.createArrayExpression()
+      ]
+    );
+  }
+  if (children.length === 1) {
+    let first = children[0];
+    if (first.type == "ArrayExpression" || first.isForNode) {
+      return first;
+    }
+  } else if (children.length > 1 && children.some((item) => item.type == "ArrayExpression" || item.isForNode)) {
+    let base = children.shift();
+    if (!base.isForNode) {
+      base = ctx.createArrayExpression([base]);
+    }
+    return ctx.createCallExpression(
+      ctx.createMemberExpression([
+        base,
+        ctx.createIdentifier("concat")
+      ]),
+      children
+    );
+  }
+  let childNods = ctx.createArrayExpression(children);
+  if (children.length > 1) {
+    childNods.newLine = children.some((item) => item.type === "CallExpression");
+  }
+  return childNods;
+}
 function createElement(ctx, stack) {
   let data = {
     directives: [],
@@ -8335,7 +8370,7 @@ function createElement(ctx, stack) {
   };
   let isRoot = stack.jsxRootElement === stack;
   let children = getChildren(stack);
-  let childNodes = createChildren(ctx, children, data, stack);
+  let childNodes = makeNormalChildren(ctx, createChildren(ctx, children, data, stack));
   let desc = stack.description();
   let componentDirective = getComponentDirectiveAnnotation(desc);
   let nodeElement = null;
@@ -8414,6 +8449,8 @@ function createElement(ctx, stack) {
   if (nodeElement && data.directives && data.directives.length > 0) {
     nodeElement = createWithDirectives(ctx, nodeElement, data.directives);
   }
+  nodeElement.hasKeyAttribute = !!data.key;
+  nodeElement.hasRefAttribute = !!data.ref;
   return nodeElement;
 }
 
@@ -8430,8 +8467,30 @@ function JSXEmptyExpression_default(ctx, stack) {
 }
 
 // node_modules/@easescript/transform/lib/tokens/JSXExpressionContainer.js
+var import_Namespace7 = __toESM(require("easescript/lib/core/Namespace"));
+var import_Utils13 = __toESM(require("easescript/lib/core/Utils"));
 function JSXExpressionContainer_default(ctx, stack) {
-  return ctx.createToken(stack.expression);
+  let node = ctx.createToken(stack.expression);
+  if (node) {
+    let maybeIsArrayNodes = false;
+    let type = stack.expression.type();
+    let isScalar = import_Utils13.default.isScalar(type);
+    if (!type || !isScalar) {
+      maybeIsArrayNodes = true;
+      if (type) {
+        let origin = import_Utils13.default.getOriginType(type);
+        if (origin && import_Utils13.default.isModule(origin)) {
+          if (origin.isWebComponent || import_Namespace7.default.globals.get("VNode").is(origin)) {
+            maybeIsArrayNodes = false;
+          }
+        }
+      }
+    }
+    node.maybeIsArrayNodes = maybeIsArrayNodes;
+    node.isScalarType = isScalar;
+    node.isExpressionContainer = !stack.expression.isLiteral;
+  }
+  return node;
 }
 
 // node_modules/@easescript/transform/lib/tokens/JSXFragment.js
@@ -8514,6 +8573,11 @@ function JSXScript_default(ctx, stack) {
 function JSXSpreadAttribute_default(ctx, stack) {
   const node = ctx.createNode(stack);
   node.argument = ctx.createToken(stack.argument);
+  if (node.argument) {
+    node.maybeIsArrayNodes = !!node.argument.maybeIsArrayNodes;
+    node.isScalarType = !!node.argument.isScalarType;
+    node.isExpressionContainer = !!node.argument.isExpressionContainer;
+  }
   return node;
 }
 
@@ -8565,9 +8629,9 @@ function LogicalExpression_default(ctx, stack) {
 }
 
 // node_modules/@easescript/transform/lib/tokens/MemberExpression.js
-var import_Utils13 = __toESM(require("easescript/lib/core/Utils"));
+var import_Utils14 = __toESM(require("easescript/lib/core/Utils"));
 function addImportReference(ctx, desc, module2) {
-  if (import_Utils13.default.isStack(desc) && (desc.isDeclaratorVariable || desc.isDeclaratorFunction)) {
+  if (import_Utils14.default.isStack(desc) && (desc.isDeclaratorVariable || desc.isDeclaratorFunction)) {
     let imports = desc.imports;
     if (Array.isArray(imports)) {
       imports.forEach((item) => {
@@ -8586,23 +8650,23 @@ function MemberExpression(ctx, stack) {
   const module2 = stack.module;
   const description = stack.descriptor();
   const objectType = stack.object.type();
-  if (description && description.isModule && objectType && !objectType.isLiteralObjectType && import_Utils13.default.isTypeModule(description)) {
+  if (description && description.isModule && objectType && !objectType.isLiteralObjectType && import_Utils14.default.isTypeModule(description)) {
     ctx.addDepend(description, stack.module);
   } else {
     const objectDescriptor = stack.object.descriptor();
-    if (import_Utils13.default.isTypeModule(objectDescriptor)) {
+    if (import_Utils14.default.isTypeModule(objectDescriptor)) {
       ctx.addDepend(objectDescriptor, stack.module);
     } else {
       addImportReference(ctx, objectDescriptor, module2 || stack.compilation);
       addImportReference(ctx, description, module2 || stack.compilation);
     }
   }
-  if (!description || import_Utils13.default.isType(description) && description.isAnyType && !stack.optional) {
+  if (!description || import_Utils14.default.isType(description) && description.isAnyType && !stack.optional) {
     let isReflect = true;
     if (description) {
       isReflect = false;
       let hasDynamic = description.isComputeType && description.isPropertyExists();
-      if (!hasDynamic && !import_Utils13.default.isLiteralObjectType(objectType)) {
+      if (!hasDynamic && !import_Utils14.default.isLiteralObjectType(objectType)) {
         isReflect = true;
       }
     }
@@ -8621,7 +8685,7 @@ function MemberExpression(ctx, stack) {
   const resolveName = getMethodOrPropertyAlias(ctx, description);
   const privateChain = ctx.options.privateChain;
   if (privateChain && description && description.isMethodDefinition && !(description.static || description.module.static)) {
-    const modifier = import_Utils13.default.getModifierValue(description);
+    const modifier = import_Utils14.default.getModifierValue(description);
     const refModule = description.module;
     if (modifier === "private" && refModule.children.length > 0) {
       let property = resolveName ? ctx.createIdentifier(resolveName, stack.property) : ctx.createToken(stack.property);
@@ -8635,7 +8699,7 @@ function MemberExpression(ctx, stack) {
       );
     }
   }
-  if (objectType && !objectType.isLiteralObjectType && import_Utils13.default.isClassType(description)) {
+  if (objectType && !objectType.isLiteralObjectType && import_Utils14.default.isClassType(description)) {
     ctx.addDepend(description, stack.module);
     if (!stack.hasMatchAutoImporter) {
       return ctx.createIdentifier(
@@ -8690,7 +8754,7 @@ function MemberExpression(ctx, stack) {
   }
   let propertyNode = resolveName ? ctx.createIdentifier(resolveName, stack.property) : ctx.createToken(stack.property);
   if (privateChain && description && description.isPropertyDefinition && !(description.static || description.module.static)) {
-    const modifier = import_Utils13.default.getModifierValue(description);
+    const modifier = import_Utils14.default.getModifierValue(description);
     if ("private" === modifier) {
       const object = ctx.createMemberExpression([
         ctx.createToken(stack.object),
@@ -8728,12 +8792,12 @@ function MemberExpression(ctx, stack) {
 var MemberExpression_default = MemberExpression;
 
 // node_modules/@easescript/transform/lib/tokens/MethodDefinition.js
-var import_Utils14 = __toESM(require("easescript/lib/core/Utils"));
+var import_Utils15 = __toESM(require("easescript/lib/core/Utils"));
 function MethodDefinition_default(ctx, stack, type) {
   const node = FunctionDeclaration_default(ctx, stack, type);
   node.async = stack.expression.async ? true : false;
   node.static = !!stack.static;
-  node.modifier = import_Utils14.default.getModifierValue(stack);
+  node.modifier = import_Utils15.default.getModifierValue(stack);
   node.kind = "method";
   node.isAbstract = !!stack.isAbstract;
   node.isFinal = !!stack.isFinal;
@@ -8756,11 +8820,11 @@ function MethodSetterDefinition_default(ctx, stack, type) {
 }
 
 // node_modules/@easescript/transform/lib/tokens/NewExpression.js
-var import_Utils15 = __toESM(require("easescript/lib/core/Utils"));
+var import_Utils16 = __toESM(require("easescript/lib/core/Utils"));
 function NewExpression_default(ctx, stack) {
   let desc = stack.callee.type();
-  desc = import_Utils15.default.getOriginType(desc);
-  if (desc !== stack.module && import_Utils15.default.isTypeModule(desc)) {
+  desc = import_Utils16.default.getOriginType(desc);
+  if (desc !== stack.module && import_Utils16.default.isTypeModule(desc)) {
     ctx.addDepend(desc, stack.module);
   }
   const node = ctx.createNode(stack);
@@ -8820,7 +8884,7 @@ function Property_default(ctx, stack) {
 }
 
 // node_modules/@easescript/transform/lib/tokens/PropertyDefinition.js
-var import_Utils16 = __toESM(require("easescript/lib/core/Utils"));
+var import_Utils17 = __toESM(require("easescript/lib/core/Utils"));
 function PropertyDefinition_default(ctx, stack) {
   let init = null;
   if (stack.annotations && stack.annotations.length > 0) {
@@ -8851,7 +8915,7 @@ function PropertyDefinition_default(ctx, stack) {
   }
   const node = ctx.createNode(stack);
   const decl = ctx.createToken(stack.declarations[0]);
-  node.modifier = import_Utils16.default.getModifierValue(stack);
+  node.modifier = import_Utils17.default.getModifierValue(stack);
   node.static = !!stack.static;
   node.kind = stack.kind;
   node.key = decl.id;
@@ -9026,13 +9090,13 @@ function StructTableKeyDefinition_default(ctx, stack) {
 }
 
 // node_modules/@easescript/transform/lib/tokens/StructTableMethodDefinition.js
-var import_Namespace7 = __toESM(require("easescript/lib/core/Namespace"));
+var import_Namespace8 = __toESM(require("easescript/lib/core/Namespace"));
 function createNode(ctx, item, isKey = false, toLower = false, type = null) {
   if (!item)
     return null;
   if (type === "enum") {
     if (item.isIdentifier || item.isMemberExpression) {
-      const type2 = import_Namespace7.default.globals.get(item.value());
+      const type2 = import_Namespace8.default.globals.get(item.value());
       const list = [];
       if (type2 && type2.isModule && type2.isEnum) {
         Array.from(type2.descriptors.keys()).forEach((key) => {
@@ -9152,7 +9216,7 @@ function TypeTransformExpression_default(ctx, stack) {
 }
 
 // node_modules/@easescript/transform/lib/tokens/UnaryExpression.js
-var import_Utils17 = __toESM(require("easescript/lib/core/Utils"));
+var import_Utils18 = __toESM(require("easescript/lib/core/Utils"));
 function UnaryExpression_default(ctx, stack) {
   const operator = stack.operator;
   const prefix = stack.prefix;
@@ -9160,7 +9224,7 @@ function UnaryExpression_default(ctx, stack) {
     const desc = stack.argument.description();
     if (desc && desc.isAnyType) {
       const hasDynamic = desc && desc.isComputeType && desc.isPropertyExists();
-      if (!hasDynamic && !import_Utils17.default.isLiteralObjectType(stack.argument.object.type())) {
+      if (!hasDynamic && !import_Utils18.default.isLiteralObjectType(stack.argument.object.type())) {
         const property = stack.argument.computed ? ctx.createToken(stack.argument.property) : ctx.createLiteral(
           stack.argument.property.value(),
           void 0,
@@ -9184,7 +9248,7 @@ function UnaryExpression_default(ctx, stack) {
 }
 
 // node_modules/@easescript/transform/lib/tokens/UpdateExpression.js
-var import_Utils18 = __toESM(require("easescript/lib/core/Utils"));
+var import_Utils19 = __toESM(require("easescript/lib/core/Utils"));
 function UpdateExpression_default(ctx, stack) {
   const node = ctx.createNode(stack);
   const operator = stack.operator;
@@ -9197,11 +9261,11 @@ function UpdateExpression_default(ctx, stack) {
     let isReflect = false;
     if (stack.argument.computed) {
       const hasDynamic = desc && desc.isComputeType && desc.isPropertyExists();
-      if (!hasDynamic && !import_Utils18.default.isLiteralObjectType(stack.argument.object.type())) {
+      if (!hasDynamic && !import_Utils19.default.isLiteralObjectType(stack.argument.object.type())) {
         isReflect = true;
       }
     } else if (desc && desc.isAnyType) {
-      isReflect = !import_Utils18.default.isLiteralObjectType(stack.argument.object.type());
+      isReflect = !import_Utils19.default.isLiteralObjectType(stack.argument.object.type());
     }
     if (isReflect) {
       const method = operator === "++" ? "incre" : "decre";
@@ -9549,7 +9613,7 @@ function createBuildContext(plugin2, records3 = /* @__PURE__ */ new Map()) {
     const deps = /* @__PURE__ */ new Set();
     ctx.dependencies.forEach((dataset) => {
       dataset.forEach((dep) => {
-        if (import_Utils19.default.isModule(dep)) {
+        if (import_Utils20.default.isModule(dep)) {
           if (!dep.isStructTable && dep.isDeclaratorModule) {
             dep = ctx.getVModule(dep.getName());
             if (dep) {
@@ -9560,7 +9624,7 @@ function createBuildContext(plugin2, records3 = /* @__PURE__ */ new Map()) {
           }
         } else if (isVModule(dep)) {
           deps.add(dep);
-        } else if (import_Utils19.default.isCompilation(dep)) {
+        } else if (import_Utils20.default.isCompilation(dep)) {
           deps.add(dep);
         }
       });
@@ -9885,15 +9949,48 @@ var Plugin = class _Plugin {
 var Plugin_default = Plugin;
 
 // lib/core/Builder.js
-var import_Utils22 = __toESM(require("easescript/lib/core/Utils"));
+var import_Utils25 = __toESM(require("easescript/lib/core/Utils"));
 
 // lib/core/Context.js
-var import_Utils20 = __toESM(require("easescript/lib/core/Utils"));
+var import_Utils22 = __toESM(require("easescript/lib/core/Utils"));
+
+// lib/core/Common.js
+var import_Utils21 = __toESM(require("easescript/lib/core/Utils"));
+function hasStyleScoped(compilation) {
+  if (!import_Utils21.default.isCompilation(compilation))
+    return false;
+  return compilation.jsxStyles.some((style) => {
+    return style.openingElement.attributes.some((attr) => {
+      if (compare(attr.name.value(), "scoped")) {
+        if (!attr.value)
+          return true;
+        return !compare(attr.value.value(), "false");
+      }
+    });
+  });
+}
+
+// lib/core/Context.js
 var EXCLUDE_STYLE_RE = /[\\\/]style[\\\/](css|index)$/i;
 var Context2 = class extends Context_default {
+  #staticHoisted = /* @__PURE__ */ new Set();
+  addStaticHoisted(node) {
+    if (node) {
+      let local = `__hoisted_${this.#staticHoisted.size}__`;
+      local = this.createIdentifier(this.getGlobalRefName(null, local));
+      this.#staticHoisted.add(this.createVariableDeclaration("const", [
+        this.createVariableDeclarator(local, node)
+      ]));
+      return local;
+    }
+    return null;
+  }
+  get staticHoistedItems() {
+    return Array.from(this.#staticHoisted.values());
+  }
   getAvailableOriginType(type) {
     if (type) {
-      const originType = import_Utils20.default.getOriginType(type);
+      const originType = import_Utils22.default.getOriginType(type);
       switch (originType.id) {
         case "String":
         case "Number":
@@ -9956,7 +10053,7 @@ __export(tokens_exports2, {
 var ClassBuilder_default2 = ClassBuilder_default;
 
 // lib/core/ESXClassBuilder.js
-var import_Utils21 = __toESM(require("easescript/lib/core/Utils"));
+var import_Utils23 = __toESM(require("easescript/lib/core/Utils"));
 var hotRecords = /* @__PURE__ */ new Map();
 var removeNewlineRE = /[\r\n\t]/g;
 var ESXClassBuilder = class extends ClassBuilder_default2 {
@@ -10402,7 +10499,7 @@ var ESXClassBuilder = class extends ClassBuilder_default2 {
     }
     hotRecords.set(compilation, sections);
     const hmrHandler = opts.hmrHandler || "module.hot";
-    const hashIdNode = ctx.createLiteral(this.getHashId());
+    const hashIdNode = ctx.createLiteral(ctx.getHashId());
     moduleId = ctx.createIdentifier(moduleId);
     ctx.afterBody.push(ctx.createIfStatement(
       ctx.createChunkExpression(hmrHandler, false, false),
@@ -10492,7 +10589,7 @@ var ESXClassBuilder = class extends ClassBuilder_default2 {
         }
       }
     }
-    let scopeId = this.getStyleScopeId();
+    let scopeId = this.getStyleScopeId(ctx);
     if (scopeId) {
       properties2.push(
         ctx.createProperty(
@@ -10508,7 +10605,7 @@ var ESXClassBuilder = class extends ClassBuilder_default2 {
         ctx.createProperty(
           ctx.createIdentifier("__hmrId"),
           ctx.createLiteral(
-            this.getHashId()
+            ctx.getHashId()
           )
         )
       );
@@ -10520,7 +10617,7 @@ var ESXClassBuilder = class extends ClassBuilder_default2 {
           ctx.createProperty(
             ctx.createIdentifier("__ssrContext"),
             ctx.createLiteral(
-              import_Utils21.default.normalizePath(file)
+              import_Utils23.default.normalizePath(file)
             )
           )
         );
@@ -10539,20 +10636,11 @@ var ESXClassBuilder = class extends ClassBuilder_default2 {
     }
     return ctx.createObjectExpression(properties2);
   }
-  getStyleScopeId() {
+  getStyleScopeId(ctx) {
     let present = this.#styleScopeId;
     if (present === void 0) {
-      const scoped = this.compilation.jsxStyles.some((style) => {
-        return style.openingElement.attributes.some((attr) => {
-          if (attr.name.value().toLowerCase() === "scoped") {
-            if (!attr.value)
-              return true;
-            return attr.value.value() !== "false";
-          }
-        });
-      });
-      if (scoped) {
-        present = this.#styleScopeId = this.getHashId();
+      if (hasStyleScoped(this.compilation)) {
+        present = this.#styleScopeId = ctx.getHashId();
       } else {
         present = this.#styleScopeId = null;
       }
@@ -10680,28 +10768,832 @@ function ClassDeclaration_default2(ctx, stack) {
   }
 }
 
-// lib/core/ESX.js
+// lib/core/ESXOptimize.js
+var import_Namespace9 = __toESM(require("easescript/lib/core/Namespace"));
+var import_Utils24 = __toESM(require("easescript/lib/core/Utils"));
+var Cache2 = getCacheManager("common");
+var hasStyleScopedKey = Symbol("hasStyleScoped");
+var ELEMENT_TEXT = 1;
+var ELEMENT_CLASS = 2;
+var ELEMENT_STYLE = 4;
+var ELEMENT_PROPS = 8;
+var ELEMENT_FULL_PROPS = 16;
+var ELEMENT_STABLE_FRAGMENT = 64;
+var ELEMENT_KEYED_FRAGMENT = 128;
+var ELEMENT_UNKEYED_FRAGMENT = 256;
+var ELEMENT_NEED_PATCH = 512;
+var ELEMENT_DYNAMIC_SLOTS = 1024;
+var ELEMENT_HOISTED = -1;
+var ELEMENT_BAIL = -2;
+function addPatchFlag(data, flag, isProps = false) {
+  if ((data.patchFlag & flag) !== flag) {
+    if (data.hasDynamicKeys && isProps && flag !== ELEMENT_FULL_PROPS) {
+      return;
+    }
+    if (flag === ELEMENT_HOISTED) {
+      data.patchFlag = ELEMENT_HOISTED;
+    } else if (flag === ELEMENT_BAIL) {
+      data.patchFlag = ELEMENT_BAIL;
+    } else {
+      data.patchFlag |= flag;
+    }
+  }
+}
+function isOpenBlock(stack, childrenNum) {
+  const isRoot = stack.jsxRootElement === stack;
+  if (isRoot)
+    return true;
+  if (stack.isDirective || stack.directives && stack.directives.length > 0) {
+    let isShowDirective = false;
+    if (!stack.isDirective && stack.directives.length === 1) {
+      isShowDirective = compare(stack.directives[0].name.value(), "show");
+    }
+    return !isShowDirective;
+  } else if (stack.parentStack && stack.parentStack.isDirective) {
+    let isShowDirective = compare(stack.parentStack.openingElement.name.value(), "show");
+    return !isShowDirective && childrenNum === 1;
+  } else if (stack.jsxRootElement === stack.parentStack) {
+  } else {
+    const desc = stack.descriptor();
+    if (desc) {
+      const type = desc.type();
+      if (import_Utils24.default.isModule(type)) {
+        return import_Namespace9.default.globals.get("web.components.Fragment").is(type);
+      }
+    }
+  }
+  return false;
+}
+function createChildren2(ctx, children, data, stack, isWebComponent) {
+  let content = [];
+  let len = children.length;
+  let index = 0;
+  let last = null;
+  let result = null;
+  let pureStaticChild = true;
+  let next = () => {
+    if (index < len) {
+      const child = children[index++];
+      const childNode = createChildNode(
+        ctx,
+        child,
+        ctx.createToken(child),
+        last
+      ) || next();
+      if (child.directives && child.directives.length > 0) {
+        pureStaticChild = false;
+      } else if (childNode && childNode.pureStaticChild === false) {
+        pureStaticChild = false;
+      }
+      if (child.hasAttributeSlot) {
+        pureStaticChild = false;
+        const attributeSlot = child.openingElement.attributes.find((attr) => attr.isAttributeSlot);
+        if (attributeSlot) {
+          const name = attributeSlot.name.value();
+          const scopeName = attributeSlot.value ? ctx.createToken(
+            attributeSlot.parserSlotScopeParamsStack()
+          ) : null;
+          let childrenNodes = childNode.content;
+          if (childrenNodes.length === 1 && childrenNodes[0].type === "ArrayExpression") {
+            childrenNodes = childrenNodes[0];
+          } else {
+            childrenNodes = ctx.createArrayExpression(childrenNodes);
+          }
+          const params = scopeName ? [
+            ctx.createAssignmentExpression(
+              scopeName,
+              ctx.createObjectExpression()
+            )
+          ] : [];
+          const renderSlots = createSlotCalleeNode(
+            ctx,
+            child,
+            ctx.createArrowFunctionExpression(childrenNodes, params)
+          );
+          data.slots[name] = renderSlots;
+          return next();
+        }
+      } else if (child.isSlot && !child.isSlotDeclared) {
+        pureStaticChild = false;
+        const name = child.openingElement.name.value();
+        data.slots[name] = childNode.content[0];
+        return next();
+      } else if (child.isDirective) {
+        pureStaticChild = false;
+        childNode.cmd.push(
+          child.openingElement.name.value().toLowerCase()
+        );
+      }
+      return childNode;
+    }
+    return null;
+  };
+  const push = (data2, value) => {
+    if (value) {
+      if (Array.isArray(value)) {
+        data2.push(...value);
+      } else {
+        data2.push(value);
+      }
+    }
+  };
+  while (true) {
+    result = next();
+    if (last) {
+      let value = null;
+      const hasIf = last.cmd.includes("if");
+      if (hasIf) {
+        pureStaticChild = false;
+        if (result && result.cmd.includes("elseif")) {
+          result.cmd = last.cmd.concat(result.cmd);
+          result.content = last.content.concat(result.content);
+        } else if (result && result.cmd.includes("else")) {
+          value = getCascadeConditional(last.content.concat(result.content));
+          result.ifEnd = true;
+        } else {
+          if (result)
+            result.ifEnd = true;
+          last.content.push(createCommentVNode(ctx, "end if"));
+          value = getCascadeConditional(last.content);
+        }
+      } else if (!(last.ifEnd && last.cmd.includes("else"))) {
+        value = last.content;
+      }
+      push(content, value);
+    }
+    last = result;
+    if (!result)
+      break;
+  }
+  data.pureStaticChild = pureStaticChild;
+  if (content.length > 1) {
+    let hasText = false;
+    const nodes = content.reduce((acc, item) => {
+      if (!hasText && item.type === "Literal") {
+        hasText = true;
+      }
+      if ((item.type === "Literal" || item.isScalarType) && acc.length > 0) {
+        let index2 = acc.length - 1;
+        let last2 = acc[index2];
+        if (item.type === last2.type && last2.type === "Literal") {
+          last2.value += item.value;
+          last2.raw = `"${last2.value}"`;
+          return acc;
+        } else if (last2.type === "Literal" || last2.isScalarType) {
+          const node = ctx.createBinaryExpression(
+            last2,
+            item,
+            "+"
+          );
+          node.isMergeStringNode = true;
+          node.isScalarType = true;
+          node.isExpressionContainer = !!(last2.isExpressionContainer || item.isExpressionContainer);
+          acc.splice(index2, 1, node);
+          return acc;
+        }
+      }
+      acc.push(item);
+      return acc;
+    }, []);
+    if (hasText) {
+      return makeTextChildrenNodes(ctx, nodes);
+    }
+    return nodes;
+  }
+  if (isWebComponent) {
+    return makeTextChildrenNodes(ctx, content);
+  }
+  return content;
+}
+function makeTextChildrenNodes(ctx, nodes) {
+  return nodes.map((node) => {
+    if (node.type === "Literal" || node.isMergeStringNode && !node.isExpressionContainer) {
+      node = ctx.addStaticHoisted(
+        createTextVNode(ctx, node, ELEMENT_HOISTED)
+      );
+      node.pureStaticChild = true;
+    }
+    return node;
+  });
+}
+function createAttributes2(ctx, stack, data) {
+  const ssr = !!ctx.options.ssr;
+  const pushEvent = (name, node, category) => {
+    if (ssr && category === "on")
+      return;
+    let events = data[category] || (data[category] = []);
+    if (!Node_default.is(name)) {
+      name = String(name);
+      name = name.includes(":") ? ctx.createLiteral(name) : ctx.createIdentifier(name);
+    }
+    let property = ctx.createProperty(name, node);
+    if (property.key.computed) {
+      property.computed = true;
+      property.key.computed = false;
+    }
+    if (category === "on") {
+      if (property.computed) {
+        property.key = ctx.createTemplateLiteral([
+          ctx.createTemplateElement("on")
+        ], [
+          ctx.createCallExpression(
+            createStaticReferenceNode(ctx, stack, "System", "firstUpperCase"),
+            [
+              property.key
+            ]
+          )
+        ]);
+      } else {
+        property.key.value = "on" + toFirstUpperCase(property.key.value);
+        if (property.key.type === "Literal") {
+          property.key.raw = `"${property.key.value}"`;
+        }
+      }
+    }
+    events.push(property);
+  };
+  const createPropertyNode = (propName, propValue) => {
+    return ctx.createProperty(
+      propName.includes("-") ? ctx.createLiteral(propName) : ctx.createIdentifier(propName),
+      propValue
+    );
+  };
+  let isComponent = stack.isComponent || stack.isWebComponent;
+  let nodeType = !isComponent ? stack.openingElement.name.value().toLowerCase() : null;
+  let binddingModelValue = null;
+  let afterDirective = null;
+  let custom = null;
+  if (nodeType === "input") {
+    afterDirective = "vModelText";
+  } else if (nodeType === "select") {
+    afterDirective = "vModelSelect";
+  } else if (nodeType === "textarea") {
+    afterDirective = "vModelText";
+  }
+  const forStack = stack.getParentStack((stack2) => {
+    return stack2.scope.isForContext || !(stack2.isJSXElement || stack2.isJSXExpressionContainer);
+  }, true);
+  const inFor = forStack && forStack.scope && forStack.scope.isForContext ? true : false;
+  const descModule = stack.isWebComponent ? stack.description() : null;
+  const definedEmits = getComponentEmitAnnotation(descModule);
+  const getDefinedEmitName = (name) => {
+    if (definedEmits && Object.prototype.hasOwnProperty.call(definedEmits, name)) {
+      name = toCamelCase(definedEmits[name]);
+    }
+    return name;
+  };
+  let pureStaticAttributes = true;
+  stack.openingElement.attributes.forEach((item) => {
+    if (item.isAttributeXmlns)
+      return;
+    if (item.isAttributeDirective) {
+      if (item.isAttributeDirective) {
+        pureStaticAttributes = false;
+        const name2 = item.name.value();
+        if (compare(name2, "show")) {
+          data.directives.push(
+            createDirectiveArrayNode(
+              ctx,
+              "vShow",
+              ctx.createToken(item.valueArgument.expression)
+            )
+          );
+        } else if (compare(name2, "custom")) {
+          data.directives.push(
+            createResolveAttriubeDirective(
+              ctx,
+              item
+            )
+          );
+        }
+      }
+      return;
+    } else if (item.isJSXSpreadAttribute) {
+      if (item.argument) {
+        data.props.push(
+          ctx.createSpreadElement(
+            ctx.createToken(item.argument),
+            item
+          )
+        );
+        addPatchFlag(data, ELEMENT_FULL_PROPS, true);
+      }
+      return;
+    } else if (item.isAttributeSlot) {
+      return;
+    }
+    let value = ctx.createToken(item);
+    if (!value)
+      return;
+    let ns = value.namespace;
+    let name = value.name.value;
+    let propName = name;
+    let propValue = value.value;
+    let attrLowerName = name.toLowerCase();
+    if (propValue && propValue.isExpressionContainer && propValue.type !== "Literal") {
+      pureStaticAttributes = false;
+    }
+    if (ns === "@events" || ns === "@natives") {
+      pureStaticAttributes = false;
+      name = getDefinedEmitName(name);
+    }
+    if (ns && ns.includes("::")) {
+      let [seg, className] = ns.split("::", 2);
+      ns = seg;
+      name = createStaticReferenceNode(ctx, item, className, name);
+      name.computed = true;
+      custom = name;
+    }
+    let isDOMAttribute = false;
+    if (item.isMemberProperty) {
+      let attrDesc = item.getAttributeDescription(stack.getSubClassDescription());
+      if (attrDesc) {
+        isDOMAttribute = getMethodAnnotations(attrDesc, ["domattribute"]).length > 0;
+      }
+    }
+    if (ns === "@events" || ns === "@natives") {
+      pushEvent(name, createAttributeBindingEventNode(ctx, item, propValue), "on");
+      return;
+    } else if (ns === "@binding") {
+      pureStaticAttributes = false;
+      binddingModelValue = propValue;
+      if (!binddingModelValue || !(binddingModelValue.type === "MemberExpression" || binddingModelValue.type === "Identifier")) {
+        binddingModelValue = null;
+        if (item.value && item.value.isJSXExpressionContainer) {
+          const stack2 = item.value.expression;
+          if (stack2 && stack2.isMemberExpression && !stack2.optional) {
+            binddingModelValue = ctx.createCallExpression(
+              createStaticReferenceNode(ctx, stack2, "Reflect", "set"),
+              [
+                stack2.module ? ctx.createIdentifier(stack2.module.id) : ctx.createLiteral(null),
+                ctx.createToken(stack2.object),
+                stack2.computed ? ctx.createToken(stack2.property) : ctx.createLiteral(stack2.property.value()),
+                ctx.createIdentifier("value")
+              ],
+              stack2
+            );
+            binddingModelValue.isReflectSetter = true;
+          }
+        }
+      }
+    }
+    let bindValuePropName = null;
+    if (item.isMemberProperty) {
+      if (ns === "@binding" && attrLowerName === "value") {
+        bindValuePropName = propName;
+        data.props.push(
+          createPropertyNode(
+            propName,
+            propValue
+          )
+        );
+        propName = "modelValue";
+      }
+      if (!isDOMAttribute) {
+        data.props.push(
+          createPropertyNode(
+            propName,
+            propValue
+          )
+        );
+      }
+    }
+    if (propValue && propValue.type != "Literal" && (ns !== "@binding" || item.isMemberProperty || propValue.isExpressionContainer)) {
+      if (bindValuePropName) {
+        data.keyProps.push(ctx.createLiteral(bindValuePropName));
+      }
+      data.keyProps.push(ctx.createLiteral(propName));
+      addPatchFlag(data, ELEMENT_PROPS, true);
+    }
+    if (item.isMemberProperty && !isDOMAttribute && ns !== "@binding") {
+      return;
+    }
+    if (attrLowerName === "type" && nodeType === "input" && propValue && propValue.type === "Literal") {
+      const value2 = propValue.value.toLowerCase();
+      if (value2 === "checkbox") {
+        afterDirective = "vModelCheckbox";
+        pureStaticAttributes = false;
+      } else if (value2 === "radio") {
+        afterDirective = "vModelRadio";
+        pureStaticAttributes = false;
+      }
+    }
+    if (ns === "@binding") {
+      const createBinddingParams = (getEvent = false) => {
+        return [
+          binddingModelValue.isReflectSetter ? binddingModelValue : ctx.createAssignmentExpression(
+            binddingModelValue,
+            getEvent ? createGetEventValueNode(ctx) : ctx.createIdentifier("e")
+          ),
+          [
+            ctx.createIdentifier("e")
+          ]
+        ];
+      };
+      if (custom && binddingModelValue) {
+        pushEvent(custom, ctx.createArrowFunctionExpression(
+          ...createBinddingParams(!stack.isWebComponent)
+        ), "on");
+      } else if ((stack.isWebComponent || afterDirective) && binddingModelValue) {
+        let eventName = propName;
+        if (propName === "modelValue") {
+          eventName = "update:modelValue";
+        }
+        if (item.isMemberProperty) {
+          let _name = getBinddingEventName(item.description());
+          if (_name) {
+            eventName = toCamelCase(_name);
+          }
+        }
+        pushEvent(
+          getDefinedEmitName(eventName),
+          ctx.createArrowFunctionExpression(
+            ...createBinddingParams()
+          ),
+          "on"
+        );
+      } else if (binddingModelValue) {
+        pushEvent(
+          ctx.createIdentifier("input"),
+          ctx.createArrowFunctionExpression(
+            ...createBinddingParams(true)
+          ),
+          "on"
+        );
+      }
+      if (afterDirective && binddingModelValue) {
+        data.directives.push(
+          createDirectiveArrayNode(ctx, afterDirective, binddingModelValue)
+        );
+      }
+      return;
+    }
+    if (!ns && (attrLowerName === "ref" || attrLowerName === "refs")) {
+      pureStaticAttributes = false;
+      name = propName = "ref";
+      let useArray = inFor || attrLowerName === "refs";
+      if (useArray) {
+        propValue = ctx.createArrowFunctionExpression(
+          ctx.createCallExpression(
+            ctx.createMemberExpression([
+              ctx.createThisExpression(),
+              ctx.createIdentifier("setRefNode")
+            ]),
+            [
+              value.value,
+              ctx.createIdentifier("node"),
+              ctx.createLiteral(true)
+            ]
+          ),
+          [
+            ctx.createIdentifier("node")
+          ]
+        );
+      }
+    }
+    if (name === "class" || name === "staticClass") {
+      if (propValue && propValue.type !== "Literal") {
+        propValue = ctx.createCallExpression(
+          ctx.createIdentifier(
+            ctx.getVNodeApi("normalizeClass")
+          ),
+          [
+            propValue
+          ]
+        );
+      }
+    } else if (name === "style" || name === "staticStyle") {
+      if (propValue && !(propValue.type === "Literal" || propValue.type === "ObjectExpression")) {
+        propValue = ctx.createCallExpression(
+          ctx.createIdentifier(
+            ctx.getVNodeApi("normalizeStyle")
+          ),
+          [propValue]
+        );
+      }
+    } else if (attrLowerName === "key" || attrLowerName === "tag") {
+      name = attrLowerName;
+    }
+    const property = createPropertyNode(
+      propName,
+      propValue
+    );
+    switch (name) {
+      case "class":
+        if (item.value && !item.value.isLiteral && !isComponent) {
+          addPatchFlag(data, ELEMENT_CLASS, true);
+        }
+      case "style":
+        if (item.value && !item.value.isLiteral && !isComponent) {
+          addPatchFlag(data, ELEMENT_STYLE, true);
+        }
+      case "ref":
+      case "key":
+      case "tag":
+        data[name] = property;
+        break;
+      default:
+        if (item.isMemberProperty) {
+          data.props.push(property);
+        } else {
+          data.attrs.push(property);
+        }
+    }
+  });
+  if (!data.key) {
+    data.key = createElementKeyPropertyNode(ctx, stack);
+  }
+  data.pureStaticAttributes = pureStaticAttributes;
+}
+function createTextVNode(ctx, node, flags = null) {
+  let args = [
+    node
+  ];
+  if (flags !== null) {
+    args.push(ctx.createLiteral(flags));
+  }
+  let text = ctx.createCallExpression(
+    ctx.createIdentifier(ctx.getVNodeApi("createTextVNode")),
+    args
+  );
+  text.isTextVNode = true;
+  return text;
+}
+function createFragmentVNode2(ctx, children, props, flags, disableStack = true) {
+  const openBlock = ctx.createCallExpression(
+    ctx.createIdentifier(
+      ctx.getVNodeApi("openBlock")
+    ),
+    disableStack ? [
+      ctx.createLiteral(true)
+    ] : []
+  );
+  const nodeFlags = flags > 0 ? ctx.createLiteral(flags) : null;
+  const args = [
+    ctx.createIdentifier(ctx.getVNodeApi("Fragment")),
+    props ? props : ctx.createLiteral(null),
+    children
+  ];
+  if (nodeFlags) {
+    args.push(nodeFlags);
+  }
+  const createVNode = ctx.createCallExpression(
+    ctx.createIdentifier(
+      ctx.getVNodeApi("createElementBlock")
+    ),
+    args
+  );
+  const node = ctx.createParenthesizedExpression(
+    ctx.createSequenceExpression([openBlock, createVNode])
+  );
+  node.isElementVNode = true;
+  node.isFragmentVNode = true;
+  return node;
+}
+function createElementBlockVNode(ctx, stack, isComponent, args, disableStack) {
+  stack = stack && stack.openingElement ? stack.openingElement.name : null;
+  let openBlockArgs = [];
+  if (disableStack) {
+    openBlockArgs.push(ctx.createLiteral(true));
+  }
+  let openBlock = ctx.createCallExpression(
+    ctx.createIdentifier(
+      ctx.getVNodeApi("openBlock")
+    ),
+    openBlockArgs
+  );
+  let callee = ctx.createCallExpression(
+    ctx.createIdentifier(ctx.getVNodeApi(isComponent ? "createBlock" : "createElementBlock")),
+    args,
+    stack
+  );
+  let node = ctx.createParenthesizedExpression(
+    ctx.createSequenceExpression([
+      openBlock,
+      callee
+    ])
+  );
+  node.isElementVNode = true;
+  return node;
+}
+function createElementVNode(ctx, stack, isComponent, args, data) {
+  stack = stack && stack.openingElement ? stack.openingElement.name : null;
+  if (data.patchFlag === ELEMENT_HOISTED && data["class"] && stack.isModuleForWebComponent(stack.module)) {
+    let scopeId = Cache2.get(stack.compilation, hasStyleScopedKey);
+    if (scopeId == null) {
+      if (hasStyleScoped(stack.compilation)) {
+        Cache2.set(stack.compilation, hasStyleScopedKey, scopeId = ctx.getHashId());
+      } else {
+        Cache2.set(stack.compilation, hasStyleScopedKey, scopeId = "");
+      }
+    }
+    if (scopeId) {
+      scopeId = String(ctx.options.vue.scopePrefix || "") + scopeId;
+      const node2 = ctx.createCallExpression(
+        createStaticReferenceNode(ctx, stack, "web.components.Component", "createHoistedVnode"),
+        [
+          ...args.slice(0, 3),
+          ctx.createLiteral(scopeId)
+        ],
+        stack
+      );
+      node2.isElementVNode = true;
+      return node2;
+    }
+  }
+  let node = ctx.createCallExpression(
+    ctx.createIdentifier(
+      ctx.getVNodeApi(isComponent ? "createVNode" : "createElementVNode")
+    ),
+    args,
+    stack
+  );
+  node.isElementVNode = true;
+  return node;
+}
+var excludes = ["patchFlag", "hasMultipleChildNodes", "pureStaticAttributes", "pureStaticChild"];
+function makeElementVNode(ctx, stack, data, children, isBlock) {
+  const isJsxProgram = stack.compilation.JSX && stack.parentStack.isProgram;
+  const isComponent = stack.isComponent && !isJsxProgram;
+  const isRoot = stack.jsxRootElement === stack;
+  let name = null;
+  let isFragment = stack.isJSXFragment;
+  let childNodes = children;
+  let props = data.keyProps;
+  let patchFlag = data.patchFlag;
+  let desc = null;
+  if (!isComponent) {
+    if (data.hasMultipleChildNodes) {
+      isFragment = true;
+    }
+  }
+  if (isRoot && isJsxProgram && !isFragment && childNodes && !data.hasMultipleChildNodes && childNodes.type === "ArrayExpression" && childNodes.elements.length === 1) {
+    return childNodes.elements[0];
+  }
+  if (isComponent) {
+    desc = stack.descriptor();
+    if (import_Utils24.default.isModule(desc)) {
+      ctx.addDepend(desc);
+      name = ctx.createIdentifier(
+        ctx.getModuleReferenceName(desc, stack.module)
+      );
+    } else {
+      name = ctx.createIdentifier(
+        stack.openingElement.name.value()
+      );
+    }
+  } else {
+    name = ctx.createLiteral(stack.openingElement.name.value());
+  }
+  let dataObject = createElementPropsNode(ctx, data, stack, excludes);
+  let items = [name, null, null, null, null];
+  let pos = 1;
+  if (dataObject) {
+    pos = 2;
+    items[1] = dataObject;
+  }
+  if (childNodes) {
+    pos = 3;
+    items[2] = childNodes;
+  }
+  if (patchFlag) {
+    pos = 4;
+    items[3] = ctx.createLiteral(patchFlag);
+  }
+  if (props && props.length > 0) {
+    pos = 5;
+    items[4] = ctx.createArrayExpression(props);
+  }
+  const args = items.slice(0, pos).map((item) => item || ctx.createLiteral(null));
+  if (isBlock) {
+    return createElementBlockVNode(ctx, stack, isComponent, args, false);
+  } else {
+    return createElementVNode(ctx, stack, isComponent, args, data);
+  }
+}
+function makeNormalChildren2(ctx, children, data) {
+  if (!children.length)
+    return null;
+  if (children.some((item) => !!item.maybeIsArrayNodes)) {
+    let childNods = ctx.createArrayExpression(children);
+    if (children.length > 1) {
+      childNods.newLine = children.some((item) => item.type === "CallExpression");
+    }
+    data.hasMultipleChildNodes = true;
+    return ctx.createCallExpression(
+      ctx.createMemberExpression([
+        childNods,
+        ctx.createIdentifier("reduce")
+      ]),
+      [
+        ctx.createArrowFunctionExpression(
+          ctx.createCallExpression(
+            ctx.createMemberExpression([
+              ctx.createIdentifier("acc"),
+              ctx.createIdentifier("concat")
+            ]),
+            [
+              ctx.createIdentifier("item")
+            ]
+          ),
+          [
+            ctx.createIdentifier("acc"),
+            ctx.createIdentifier("item")
+          ]
+        ),
+        ctx.createArrayExpression()
+      ]
+    );
+  }
+  if (children.length === 1) {
+    let first = children[0];
+    if (first.type == "ArrayExpression" || first.isForNode) {
+      data.hasMultipleChildNodes = true;
+      return first;
+    }
+  } else if (children.length > 1 && children.some((item) => item.type == "ArrayExpression" || item.isForNode)) {
+    let base = children.shift();
+    if (!base.isForNode) {
+      base = ctx.createArrayExpression([base]);
+    }
+    data.hasMultipleChildNodes = true;
+    return ctx.createCallExpression(
+      ctx.createMemberExpression([
+        base,
+        ctx.createIdentifier("concat")
+      ]),
+      children
+    );
+  }
+  if (children.length > 1) {
+    let childNods = ctx.createArrayExpression(children);
+    data.hasMultipleChildNodes = true;
+    childNods.newLine = children.some((item) => item.type === "CallExpression");
+    return childNods;
+  }
+  return children[0];
+}
+function hasForAttrDirective(stack) {
+  if (stack.directives && stack.directives.length > 0) {
+    return stack.directives.some((dir) => {
+      const name = dir.name.value();
+      return compare(name, "for") || compare(name, "each");
+    });
+  }
+  return false;
+}
+function isForDirective(stack) {
+  if (!stack)
+    return false;
+  if (stack.parentStack && stack.parentStack.isDirective) {
+    const openingElement = stack.parentStack.openingElement;
+    const name = openingElement.name.value();
+    return compare(name, "for") || compare(name, "each");
+  }
+  return hasForAttrDirective(stack);
+}
+function createKeyPropertyNode(ctx, stack) {
+  return ctx.createProperty(
+    ctx.createIdentifier("key"),
+    ctx.createLiteral(getDepth(stack))
+  );
+}
+function isPureStaticChild(children) {
+  return children.every((item) => !!(item.type === "Literal" || item.isMergeStringNode && !item.isExpressionContainer || item.pureStaticChild));
+}
 function createElement2(ctx, stack) {
   let data = {
     directives: [],
     slots: {},
     attrs: [],
-    props: []
+    props: [],
+    keyProps: []
   };
   let isRoot = stack.jsxRootElement === stack;
-  let children = getChildren(stack);
-  let childNodes = createChildren(ctx, children, data, stack);
-  let desc = stack.description();
+  let isWebComponent = stack.isWebComponent && !(stack.compilation.JSX && stack.parentStack.isProgram);
+  let rawChildren = getChildren(stack);
+  let children = createChildren2(ctx, rawChildren, data, stack, isWebComponent);
+  let childNodes = makeNormalChildren2(ctx, children, data);
+  let desc = stack.descriptor();
   let componentDirective = getComponentDirectiveAnnotation(desc, true);
+  let hasDynamicSlots = false;
   let nodeElement = null;
+  let ps = stack.parentStack.scope;
   if (stack.isDirective && stack.openingElement.name.value().toLowerCase() === "custom") {
     componentDirective = true;
   } else if (stack.isComponent && isDirectiveInterface(desc)) {
     componentDirective = true;
   }
   if (componentDirective) {
+    if (childNodes) {
+      if (data.hasMultipleChildNodes) {
+        let hasKey = children.every((item) => !!item.hasKeyAttribute);
+        return createFragmentVNode2(ctx, childNodes, null, hasKey ? ELEMENT_KEYED_FRAGMENT : ELEMENT_UNKEYED_FRAGMENT);
+      }
+    }
     return childNodes;
   }
+  let isInheritComponentDirective = false;
   if (stack.parentStack && stack.parentStack.isDirective) {
     let dName = stack.parentStack.openingElement.name.value().toLowerCase();
     if (dName === "show") {
@@ -10714,20 +11606,67 @@ function createElement2(ctx, stack) {
         )
       );
     } else if (dName === "custom") {
-      createCustomDirectiveProperties(ctx, stack.parentStack, data);
+      isInheritComponentDirective = createCustomDirectiveProperties(ctx, stack.parentStack, data, (prop) => {
+        if (prop.isInheritDirectiveProp) {
+          data.keyProps.push(ctx.createLiteral(prop.key.value));
+          addPatchFlag(data, ELEMENT_PROPS);
+        }
+      });
     }
   } else {
-    createComponentDirectiveProperties(ctx, stack.parentStack, data);
+    isInheritComponentDirective = createComponentDirectiveProperties(ctx, stack.parentStack, data, (prop) => {
+      if (prop.isInheritDirectiveProp) {
+        data.keyProps.push(ctx.createLiteral(prop.key.value));
+        addPatchFlag(data, ELEMENT_PROPS);
+      }
+    });
   }
   if (!stack.isJSXFragment) {
     if (!(isRoot && stack.openingElement.name.value() === "root")) {
-      createAttributes(ctx, stack, data);
+      createAttributes2(ctx, stack, data);
     }
   }
-  const isWebComponent = stack.isWebComponent && !(stack.compilation.JSX && stack.parentStack.isProgram);
-  if (isWebComponent) {
-    const properties2 = [];
+  let normalDirectives = [];
+  if (data.directives && data.directives.length > 0) {
+    normalDirectives = data.directives.filter((dire) => !dire.isInheritComponentDirective);
+    if (normalDirectives.length > 0) {
+      addPatchFlag(data, ELEMENT_NEED_PATCH);
+    }
+  }
+  if (!hasDynamicSlots) {
+    hasDynamicSlots = isWebComponent && (ps.isSlotScope || ps.isAttributeSlotScope || isForDirective(stack) || hasForAttrDirective(stack.parentStack));
+  }
+  let pureStaticChild = data.pureStaticAttributes && data.pureStaticChild && isPureStaticChild(children);
+  let isBlock = hasDynamicSlots || isOpenBlock(stack, children.length) || isInheritComponentDirective;
+  let isStaticHoisted = !(stack.isComponent || stack.isDirective || stack.isSlot || isBlock || normalDirectives.length > 0) && pureStaticChild;
+  if (!stack.isWebComponent) {
+    if (data.ref && data.hasMultipleChildNodes) {
+      addPatchFlag(data, ELEMENT_NEED_PATCH, true);
+    }
+    if (!isStaticHoisted && !data.hasMultipleChildNodes && childNodes && childNodes.isExpressionContainer) {
+      if (childNodes.isMergeStringNode || childNodes.isScalarType) {
+        addPatchFlag(data, ELEMENT_TEXT);
+      }
+    }
+  }
+  if (isStaticHoisted) {
+    addPatchFlag(data, ELEMENT_HOISTED);
+  }
+  if (hasDynamicSlots) {
+    addPatchFlag(data, ELEMENT_DYNAMIC_SLOTS);
+  }
+  if (isWebComponent && !(stack.isDirective || stack.isSlot)) {
+    let properties2 = [];
     if (childNodes) {
+      if (import_Utils24.default.isModule(desc)) {
+        let fullname = desc.getName();
+        if (fullname === "web.components.KeepAlive") {
+          hasDynamicSlots = true;
+        }
+      }
+      if (!data.hasMultipleChildNodes && childNodes.type !== "ArrayExpression") {
+        childNodes = ctx.createArrayExpression([childNodes]);
+      }
       properties2.push(ctx.createProperty(
         ctx.createIdentifier("default"),
         createWithCtxNode(
@@ -10752,23 +11691,44 @@ function createElement2(ctx, stack) {
     }
   }
   if (stack.isSlot) {
+    if (childNodes && !data.hasMultipleChildNodes && childNodes.type !== "ArrayExpression") {
+      childNodes = ctx.createArrayExpression([childNodes]);
+    }
     nodeElement = createSlotElementNode(ctx, stack, childNodes);
   } else if (stack.isDirective) {
+    if (childNodes && data.hasMultipleChildNodes) {
+      nodeElement = createFragmentVNode2(
+        ctx,
+        childNodes,
+        ctx.createObjectExpression([createKeyPropertyNode(ctx, stack)]),
+        ELEMENT_STABLE_FRAGMENT,
+        false
+      );
+      nodeElement.hasKeyAttribute = true;
+      childNodes = nodeElement;
+    }
     nodeElement = createDirectiveElementNode(ctx, stack, childNodes);
   } else {
     if (stack.isJSXFragment || isRoot && !isWebComponent && stack.openingElement.name.value() === "root") {
-      if (Array.isArray(childNodes) && childNodes.length === 1) {
-        nodeElement = childNodes[0];
+      if (data.hasMultipleChildNodes) {
+        nodeElement = createFragmentVNode2(ctx, childNodes, null, ELEMENT_STABLE_FRAGMENT, !isRoot);
       } else {
-        nodeElement = createFragmentVNode(ctx, childNodes);
+        nodeElement = childNodes;
       }
     } else {
-      nodeElement = createElementNode(ctx, stack, data, childNodes);
+      nodeElement = makeElementVNode(ctx, stack, data, childNodes, isBlock);
     }
+  }
+  pureStaticChild = false;
+  if (nodeElement && isStaticHoisted) {
+    pureStaticChild = true;
+    nodeElement = ctx.addStaticHoisted(nodeElement);
   }
   if (nodeElement && data.directives && data.directives.length > 0) {
     nodeElement = createWithDirectives(ctx, nodeElement, data.directives);
   }
+  nodeElement.pureStaticChild = pureStaticChild;
+  nodeElement.hasKeyAttribute = !!data.key;
   return nodeElement;
 }
 
@@ -10776,7 +11736,10 @@ function createElement2(ctx, stack) {
 function JSXElement2(ctx, stack) {
   if (!ctx.options.esx.enable)
     return;
-  return createElement2(ctx, stack);
+  if (ctx.options.vue.optimize) {
+    return createElement2(ctx, stack);
+  }
+  return createElement(ctx, stack);
 }
 
 // lib/tokens/JSXFragment.js
@@ -10844,6 +11807,7 @@ async function buildProgram2(ctx, compilation, graph) {
   exports2.push(...exportNodes.exports);
   let layout = [
     ...imports,
+    ...ctx.staticHoistedItems,
     ...ctx.beforeBody,
     ...body,
     ...ctx.afterBody,
@@ -11009,7 +11973,7 @@ function createBuildContext2(plugin2, records3 = /* @__PURE__ */ new Map()) {
     const deps = /* @__PURE__ */ new Set();
     ctx.dependencies.forEach((dataset) => {
       dataset.forEach((dep) => {
-        if (import_Utils22.default.isModule(dep)) {
+        if (import_Utils25.default.isModule(dep)) {
           if (!dep.isStructTable && dep.isDeclaratorModule) {
             dep = ctx.getVModule(dep.getName());
             if (dep) {
@@ -11020,7 +11984,7 @@ function createBuildContext2(plugin2, records3 = /* @__PURE__ */ new Map()) {
           }
         } else if (isVModule(dep)) {
           deps.add(dep);
-        } else if (import_Utils22.default.isCompilation(dep)) {
+        } else if (import_Utils25.default.isCompilation(dep)) {
           deps.add(dep);
         }
       });
@@ -11760,11 +12724,8 @@ var defaultConfig2 = {
   metadata: {
     platform: "client",
     versions: {
-      "vue": "3.0.0"
+      vue: "3.0.0"
     }
-  },
-  esx: {
-    optimize: true
   },
   ui: {
     fully: false,
@@ -11774,6 +12735,7 @@ var defaultConfig2 = {
     module: "cjs"
   },
   vue: {
+    optimize: true,
     makeOptions: {
       file: false,
       ssrContext: true,

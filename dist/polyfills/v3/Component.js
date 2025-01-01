@@ -620,14 +620,20 @@ Object.defineProperty( Component, 'resolveDirective', {value:function resolveDir
                 dire = directiveClassMaps[name];
             }else{
                 const result = Reflect.getDescriptor(config.directiveClass, 'directive')
-                if( result && result.isStatic && result.label === 'accessor' && result.get ){
-                    dire = result.get.call(this);
+                if( result ){
+                    if(result.isStatic()){
+                        if(result.isAccessor()){
+                            dire = result.invokeGetter(null);
+                        }else if(result.isMethod()){
+                            dire = result.invokeMethod();
+                        }else{
+                            let className = System.getQualifiedClassName(config.directiveClass)
+                            throw new ReferenceError(`"${className}".directive is not getter or method on Component.resolveDirective`)
+                        }
+                    }
                 }else{
-                    dire = new config.directiveClass( context );
+                    dire = new config.directiveClass();
                 }
-
-                console.log( dire,'------resolveDirective----------' )
-
                 directiveClassMaps[name] = dire;
             }
         }else{
@@ -638,7 +644,6 @@ Object.defineProperty( Component, 'resolveDirective', {value:function resolveDir
                 dire = config.directiveClass;
             }
         }
-
     }else if( typeof dire === "string" ){
         dire = _resolveDirective( dire );
     }

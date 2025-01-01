@@ -3,7 +3,7 @@ import web.components.Component
 
 class List extends Component {
 
-    items:({label:string})[] = [];
+    items:({label:any})[] = [];
 
    // title:string ='the is list Component';
 
@@ -73,7 +73,7 @@ class List extends Component {
 
             <div class='for-way4'>
                 <d:each name="items" item="item" key="key" >
-                    {item.label}-{key}
+                    <span>{item.label}-{key}</span>
                 </d:each>
             </div>
 
@@ -82,7 +82,7 @@ class List extends Component {
                     {key}:{item}
                 </div>
             </div>
-            
+
         </div>
     }
 

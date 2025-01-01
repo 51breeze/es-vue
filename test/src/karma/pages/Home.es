@@ -17,7 +17,7 @@ import VList from '../vue/list.es';
 class Home extends Component{
 
       @Provider
-      list:{label:string}[] = [];
+      list:{label:string}[] = [{label:'999999999'}];
 
       @Reactive
       fromData = {account:'account',password:'password',check:'checked',type:'email'}

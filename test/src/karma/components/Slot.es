@@ -10,7 +10,7 @@ class Slot extends Component {
 
     @Override
     render(){
-        console.log('---Slot Component----render11-----', this.title, this.items );
+        console.log('---Slot Component----render11-----', this.title, this.items);
         return <div class="slot" xmlns:ui="web.ui" xmlns:d="@directives" xmlns:s="@slots">
             <div class='head'>
                 <s:head>

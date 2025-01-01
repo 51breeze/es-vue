@@ -23,7 +23,6 @@ class Creator {
             outDir:'test/.output',
             mode:'development',
             hot:true,
-            webpack:false,
             babel:false,
             version:3,
             // format:'vue-template',//vue-jsx vue-template
@@ -31,6 +30,9 @@ class Creator {
             optimize:true,
             sourceMaps:true,
             useAbsolutePathImport:true,
+            vue:{
+                optimize:true,
+            },
             metadata:{
                 env:process.env,
                 //platform:'server'

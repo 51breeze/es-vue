@@ -43,6 +43,9 @@ const plugins=[
         env:process.env,
         //platform:'server'
       },
+      vue:{
+        optimize:true,
+      },
       hot:true,
       //format:format, //vue-template
       

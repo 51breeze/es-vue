@@ -206,14 +206,14 @@ class List extends Component{
                     <ui:Option label = "US" value = "US"></ui:Option>
                 </ui:Select>
 
-                <ui:InputNumber></ui:InputNumber>
+                <ui:InputNumber bind:value={this.formData.count}></ui:InputNumber>
 
                 <div class="container">
                     <ui:Checkbox bind:value={this.formData.checkAll} indeterminate={this.formData.isIndeterminate} on:change={handleCheckAllChange.bind(this)} />
                 </div>
                 <ui:CheckboxGroup bind:value={this.formData.checkedCities}>
                     <d:each name={this.formData.cities} item="item">
-                            <ui:Checkbox key={item} label={item}>{item}</ui:Checkbox>
+                            <ui:Checkbox key={item} value={item}>{item}</ui:Checkbox>
                     </d:each>
                 </ui:CheckboxGroup>
 
@@ -486,7 +486,7 @@ class List extends Component{
 }
 
 
-<style type='scss'>
+<style type='scss' scoped>
     .infinite-list {
         height: 300px;
         padding: 0;
