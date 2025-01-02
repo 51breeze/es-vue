@@ -26,7 +26,7 @@ class DirectiveAssert extends Base {
                   const ifElNodes = Array.from( ifEl?.childNodes ).filter( node=>!(node.nodeType==8 || node.nodeType==3) );
                   const showElNodes = Array.from( showEl?.childNodes ).filter( node=>!(node.nodeType==8 || node.nodeType==3) );
 
-                   console.log( app.condition, '------------app.condition----------------' )
+                   console.log( app.condition, '------------app.condition----------------', ifElNodes )
 
                   expect( 0 ).toEqual( ifElNodes.length );
                   expect( 3 ).toEqual( showElNodes.length );

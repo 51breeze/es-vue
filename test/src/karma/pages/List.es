@@ -435,6 +435,7 @@ class List extends Component{
                 <ui:InfiniteScroll value = {this.loadList} disabled = {this.formData.infiniteCount > 20} distance={5}>
                     <ul class="infinite-list" style="overflow: auto">
                             <li d:for="i in this.formData.infiniteCount"  key={i} class="infinite-list-item">infinite-scroll {i}</li>
+                            <div class="infinite-footer">infinite-scroll footer</div>
                     </ul>
                 </ui:InfiniteScroll>
 
@@ -486,7 +487,10 @@ class List extends Component{
 }
 
 
-<style type='scss' scoped>
+<style type='scss'>
+    :deep(.infinite-footer){
+        background: #ccc;
+    }
     .infinite-list {
         height: 300px;
         padding: 0;
@@ -505,4 +509,5 @@ class List extends Component{
     .infinite-list .infinite-list-item + .list-item {
         margin-top: 10px;
     }
+    /*::v-deep*/
 </style>

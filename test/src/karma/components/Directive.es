@@ -12,6 +12,10 @@ class Directive extends Component {
         when( Env(testframework, 'karma') ){
             new DirectiveAssert(this);
         }
+
+        // setTimeout(()=>{
+        //     this.condition = false;
+        // },3000)
     }
 
     @Injector
@@ -36,7 +40,7 @@ class Directive extends Component {
         console.log('---Directive Component render---', this.condition)
         return <div class="directive" xmlns:ui="web.ui" xmlns:d="@directives">
             <div class='if-condition'>
-                <div d:if="condition" class='way-1'>if-way 1</div>
+                <div d:if="condition" key="963" class='way-1'>if-way 1</div>
                 <d:if condition="condition">
                     <div class='way-2'>if-way 2-1</div>
                     <div class='way-2'>if-way 2-2</div>

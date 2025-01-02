@@ -4477,6 +4477,9 @@ var Context = class _Context extends Token_default {
       let lang = attrs.lang || attrs.type || "css";
       let suffix = "file." + lang;
       let _attrs = { ...attrs, index, type, lang, [suffix]: "" };
+      if (_attrs.scoped) {
+        _attrs.scoped = this.getHashId();
+      }
       let source = this.getModuleResourceId(context, _attrs);
       let webpack = this.options.webpack || {};
       if (webpack.enable) {
@@ -7144,10 +7147,13 @@ function createFragmentVNode(ctx, children, props = null) {
     props ? props : ctx.createLiteral(null),
     children
   ];
-  return ctx.createCallExpression(
+  let node = ctx.createCallExpression(
     ctx.createIdentifier(ctx.getVNodeApi("createVNode")),
     items
   );
+  node.isElementVNode = true;
+  node.isFragmentVNode = true;
+  return node;
 }
 function createWithDirectives(ctx, node, directives) {
   const array = ctx.createArrayExpression(directives);
@@ -7162,12 +7168,16 @@ function createWithDirectives(ctx, node, directives) {
     ]
   );
 }
-function createCommentVNode(ctx, text) {
+function createCommentVNode(ctx, text, asBlock = false) {
+  let args = [
+    ctx.createLiteral(text)
+  ];
+  if (asBlock) {
+    args.push(ctx.createLiteral(true));
+  }
   return ctx.createCallExpression(
     ctx.createIdentifier(ctx.getVNodeApi("createCommentVNode")),
-    [
-      ctx.createLiteral(text)
-    ]
+    args
   );
 }
 function createSlotNode(ctx, stack, ...args) {
@@ -7368,6 +7378,7 @@ function createChildNode(ctx, stack, childNode, prev = null) {
         );
       }
       content[0].isForNode = true;
+      content[0] = createFragmentVNode(ctx, content[0]);
       cmd.push(name);
     } else if (name === "if") {
       const node = ctx.createNode("ConditionalExpression");
@@ -7399,20 +7410,6 @@ function createChildNode(ctx, stack, childNode, prev = null) {
     content
   };
 }
-function createSlotCalleeNode(ctx, stack, child, ...args) {
-  if (stack.isSlotDeclared) {
-    return ctx.createCallExpression(
-      ctx.createMemberExpression([
-        ctx.createThisExpression(),
-        ctx.createIdentifier("slot")
-      ]),
-      child ? args.concat(child) : args,
-      stack
-    );
-  } else {
-    return child || ctx.createArrowFunctionExpression(ctx.createArrayExpression());
-  }
-}
 function getCascadeConditional(elements) {
   if (elements.length < 2) {
     throw new Error("Invaild expression");
@@ -7429,7 +7426,7 @@ function getCascadeConditional(elements) {
   }
   return lastElement;
 }
-function createChildren(ctx, children, data) {
+function createChildren(ctx, children, data, stack) {
   let content = [];
   let len = children.length;
   let index = 0;
@@ -7463,12 +7460,11 @@ function createChildren(ctx, children, data) {
               ctx.createObjectExpression()
             )
           ] : [];
-          const renderSlots = createSlotCalleeNode(
+          data.slots[name] = createSlotNode(
             ctx,
             child,
             ctx.createArrowFunctionExpression(childrenNodes, params)
           );
-          data.slots[name] = renderSlots;
           return next();
         }
       } else if (child.isSlot && !child.isSlotDeclared) {
@@ -7521,11 +7517,15 @@ function createChildren(ctx, children, data) {
       break;
   }
   if (content.length > 1) {
-    return content.reduce((acc, item) => {
-      if ((item.type === "Literal" || item.isScalarType) && acc.length > 0) {
+    content = content.reduce((acc, item) => {
+      if ((item.type === "Literal" || item.isScalarType && item.isExpressionContainer) && acc.length > 0) {
         let index2 = acc.length - 1;
         let last2 = acc[index2];
-        if (last2.type === "Literal" || last2.isScalarType) {
+        if (item.type === last2.type && last2.type === "Literal") {
+          last2.value += item.value;
+          last2.raw = `"${last2.value}"`;
+          return acc;
+        } else if (last2.type === "Literal" || last2.isScalarType && last2.isExpressionContainer) {
           const node = ctx.createBinaryExpression(
             last2,
             item,
@@ -7533,7 +7533,6 @@ function createChildren(ctx, children, data) {
           );
           node.isMergeStringNode = true;
           node.isScalarType = true;
-          node.isExpressionContainer = !!(last2.isExpressionContainer || item.isExpressionContainer);
           acc.splice(index2, 1, node);
           return acc;
         }
@@ -7542,7 +7541,20 @@ function createChildren(ctx, children, data) {
       return acc;
     }, []);
   }
-  return content;
+  return content.map((child) => createNormalChildrenVNode(ctx, child, stack));
+}
+function createNormalChildrenVNode(ctx, vnode, stack) {
+  let node = vnode;
+  if (vnode.isExpressionContainer && !vnode.isExplicitVNode) {
+    node = ctx.createCallExpression(
+      createStaticReferenceNode(ctx, stack, "web.components.Component", "normalVNode"),
+      [
+        vnode
+      ]
+    );
+    node.isElementVNode = true;
+  }
+  return node;
 }
 function createGetEventValueNode2(ctx, name = "e") {
   return ctx.createCallExpression(
@@ -8249,7 +8261,7 @@ function createDirectiveElementNode(ctx, stack, children) {
       let key = argument.key || ctx.createIdentifier("key");
       let node = name === "for" ? createForMapNode(ctx, argument.refs, children, item, key, argument.index, stack) : createForEachNode(ctx, argument.refs, children, item, key, stack);
       node.isForNode = true;
-      return node;
+      return createFragmentVNode(ctx, node);
     }
   }
   return null;
@@ -8288,11 +8300,11 @@ function createElementNode(ctx, stack, data, children) {
 function getDepth(stack) {
   let parentStack = stack.parentStack;
   while (parentStack) {
-    if (parentStack.isJSXElement || parentStack.isJSXExpressionContainer || parentStack.isMethodDefinition || parentStack.isProgram)
+    if (parentStack.isJSXElement || parentStack.isJSXExpressionContainer || parentStack.isMethodDefinition || parentStack.isBlockStatement || parentStack.isProgram)
       break;
     parentStack = parentStack.parentStack;
   }
-  if (parentStack && (parentStack.isDirective || parentStack.isSlot || parentStack.isJSXExpressionContainer)) {
+  if (parentStack && (parentStack.isJSXElement || parentStack.isJSXExpressionContainer)) {
     const index = stack.childIndexAt;
     const prefix = getDepth(parentStack);
     return prefix ? prefix + "." + index : index;
@@ -8307,57 +8319,16 @@ function getChildren(stack) {
 function makeNormalChildren(ctx, children) {
   if (!children.length)
     return null;
-  if (children.some((item) => !!item.maybeIsArrayNodes)) {
-    let childNods2 = ctx.createArrayExpression(children);
-    if (children.length > 1) {
-      childNods2.newLine = children.some((item) => item.type === "CallExpression");
-    }
-    return ctx.createCallExpression(
-      ctx.createMemberExpression([
-        childNods2,
-        ctx.createIdentifier("reduce")
-      ]),
-      [
-        ctx.createArrowFunctionExpression(
-          ctx.createCallExpression(
-            ctx.createMemberExpression([
-              ctx.createIdentifier("acc"),
-              ctx.createIdentifier("concat")
-            ]),
-            [
-              ctx.createIdentifier("item")
-            ]
-          ),
-          [
-            ctx.createIdentifier("acc"),
-            ctx.createIdentifier("item")
-          ]
-        ),
-        ctx.createArrayExpression()
-      ]
-    );
-  }
-  if (children.length === 1) {
-    let first = children[0];
-    if (first.type == "ArrayExpression" || first.isForNode) {
-      return first;
-    }
-  } else if (children.length > 1 && children.some((item) => item.type == "ArrayExpression" || item.isForNode)) {
-    let base = children.shift();
-    if (!base.isForNode) {
-      base = ctx.createArrayExpression([base]);
-    }
-    return ctx.createCallExpression(
-      ctx.createMemberExpression([
-        base,
-        ctx.createIdentifier("concat")
-      ]),
-      children
-    );
-  }
   let childNods = ctx.createArrayExpression(children);
-  if (children.length > 1) {
-    childNods.newLine = children.some((item) => item.type === "CallExpression");
+  let num = 0;
+  childNods.newLine = children.some((item) => {
+    if (item.type === "Literal" || item.type === "Identifier") {
+      num++;
+    }
+    return item.type === "CallExpression" || item.type === "ConditionalExpression" || item.isFragmentVNode;
+  });
+  if (num > 1) {
+    childNods.newLine = true;
   }
   return childNods;
 }
@@ -8380,6 +8351,15 @@ function createElement(ctx, stack) {
     componentDirective = true;
   }
   if (componentDirective) {
+    if (childNodes) {
+      if (childNodes.type == "ArrayExpression") {
+        if (childNodes.elements.length === 1) {
+          return childNodes.elements[0];
+        } else {
+          return createFragmentVNode(ctx, childNodes);
+        }
+      }
+    }
     return childNodes;
   }
   if (stack.parentStack && stack.parentStack.isDirective) {
@@ -8434,6 +8414,13 @@ function createElement(ctx, stack) {
   if (stack.isSlot) {
     nodeElement = createSlotElementNode(ctx, stack, childNodes);
   } else if (stack.isDirective) {
+    if (childNodes && childNodes.type == "ArrayExpression") {
+      if (childNodes.elements.length === 1) {
+        childNodes = childNodes.elements[0];
+      } else {
+        childNodes = createFragmentVNode(ctx, childNodes);
+      }
+    }
     nodeElement = createDirectiveElementNode(ctx, stack, childNodes);
   } else {
     if (stack.isJSXFragment || isRoot && !isWebComponent && stack.openingElement.name.value() === "root") {
@@ -8469,26 +8456,32 @@ function JSXEmptyExpression_default(ctx, stack) {
 // node_modules/@easescript/transform/lib/tokens/JSXExpressionContainer.js
 var import_Namespace7 = __toESM(require("easescript/lib/core/Namespace"));
 var import_Utils13 = __toESM(require("easescript/lib/core/Utils"));
+function checkVNodeType(type) {
+  if (!type || type.isAnyType)
+    return false;
+  if (type.isUnionType) {
+    return type.elements.some((el) => checkVNodeType(el.type()));
+  }
+  let origin = import_Utils13.default.getOriginType(type);
+  if (origin && import_Utils13.default.isModule(origin)) {
+    if (origin.isWebComponent() || import_Namespace7.default.globals.get("VNode").is(origin)) {
+      return true;
+    }
+  }
+  return false;
+}
 function JSXExpressionContainer_default(ctx, stack) {
   let node = ctx.createToken(stack.expression);
   if (node) {
-    let maybeIsArrayNodes = false;
+    let isExplicitVNode = false;
     let type = stack.expression.type();
-    let isScalar = import_Utils13.default.isScalar(type);
-    if (!type || !isScalar) {
-      maybeIsArrayNodes = true;
-      if (type) {
-        let origin = import_Utils13.default.getOriginType(type);
-        if (origin && import_Utils13.default.isModule(origin)) {
-          if (origin.isWebComponent || import_Namespace7.default.globals.get("VNode").is(origin)) {
-            maybeIsArrayNodes = false;
-          }
-        }
-      }
+    let isScalar = stack.expression.isLiteral || import_Utils13.default.isScalar(type);
+    if (type && !isScalar) {
+      isExplicitVNode = checkVNodeType(type);
     }
-    node.maybeIsArrayNodes = maybeIsArrayNodes;
+    node.isExplicitVNode = isExplicitVNode;
     node.isScalarType = isScalar;
-    node.isExpressionContainer = !stack.expression.isLiteral;
+    node.isExpressionContainer = true;
   }
   return node;
 }
@@ -8573,11 +8566,6 @@ function JSXScript_default(ctx, stack) {
 function JSXSpreadAttribute_default(ctx, stack) {
   const node = ctx.createNode(stack);
   node.argument = ctx.createToken(stack.argument);
-  if (node.argument) {
-    node.maybeIsArrayNodes = !!node.argument.maybeIsArrayNodes;
-    node.isScalarType = !!node.argument.isScalarType;
-    node.isExpressionContainer = !!node.argument.isExpressionContainer;
-  }
   return node;
 }
 
@@ -10799,7 +10787,7 @@ function addPatchFlag(data, flag, isProps = false) {
     }
   }
 }
-function isOpenBlock(stack, childrenNum) {
+function isOpenBlock(stack) {
   const isRoot = stack.jsxRootElement === stack;
   if (isRoot)
     return true;
@@ -10811,8 +10799,7 @@ function isOpenBlock(stack, childrenNum) {
     return !isShowDirective;
   } else if (stack.parentStack && stack.parentStack.isDirective) {
     let isShowDirective = compare(stack.parentStack.openingElement.name.value(), "show");
-    return !isShowDirective && childrenNum === 1;
-  } else if (stack.jsxRootElement === stack.parentStack) {
+    return !isShowDirective;
   } else {
     const desc = stack.descriptor();
     if (desc) {
@@ -10824,6 +10811,90 @@ function isOpenBlock(stack, childrenNum) {
   }
   return false;
 }
+function createChildNode2(ctx, stack, childNode, prev = null) {
+  if (!childNode)
+    return null;
+  const cmd = [];
+  let content = [childNode];
+  if (!stack.directives || !(stack.directives.length > 0)) {
+    return {
+      cmd,
+      child: stack,
+      content
+    };
+  }
+  const directives = stack.directives.slice(0).sort((a, b) => {
+    const bb = b.name.value().toLowerCase();
+    const aa = a.name.value().toLowerCase();
+    const v1 = bb === "each" || bb === "for" ? 1 : 0;
+    const v2 = aa === "each" || aa === "for" ? 1 : 0;
+    return v1 - v2;
+  });
+  while (directives.length > 0) {
+    const directive = directives.shift();
+    const name = directive.name.value().toLowerCase();
+    const valueArgument = directive.valueArgument;
+    if (name === "each" || name === "for") {
+      let refs = ctx.createToken(valueArgument.expression);
+      let item = ctx.createIdentifier(valueArgument.declare.item);
+      let key = ctx.createIdentifier(valueArgument.declare.key || "key");
+      let index = valueArgument.declare.index;
+      if (index) {
+        index = ctx.createIdentifier(index);
+      }
+      if (name === "each") {
+        content[0] = createForEachNode(
+          ctx,
+          refs,
+          content[0],
+          item,
+          key,
+          stack
+        );
+      } else {
+        content[0] = createForMapNode(
+          ctx,
+          refs,
+          content[0],
+          item,
+          key,
+          index,
+          stack
+        );
+      }
+      content[0].isForNode = true;
+      content[0] = createFragmentVNode2(ctx, content[0]);
+      cmd.push(name);
+    } else if (name === "if") {
+      const node = ctx.createNode("ConditionalExpression");
+      node.test = ctx.createToken(valueArgument.expression);
+      node.consequent = content[0];
+      content[0] = node;
+      cmd.push(name);
+    } else if (name === "elseif") {
+      if (!prev || !(prev.cmd.includes("if") || prev.cmd.includes("elseif"))) {
+        directive.name.error(1114, name);
+      } else {
+        cmd.push(name);
+      }
+      const node = ctx.createNode("ConditionalExpression");
+      node.test = ctx.createToken(valueArgument.expression);
+      node.consequent = content[0];
+      content[0] = node;
+    } else if (name === "else") {
+      if (!prev || !(prev.cmd.includes("if") || prev.cmd.includes("elseif"))) {
+        directive.name.error(1114, name);
+      } else {
+        cmd.push(name);
+      }
+    }
+  }
+  return {
+    cmd,
+    child: stack,
+    content
+  };
+}
 function createChildren2(ctx, children, data, stack, isWebComponent) {
   let content = [];
   let len = children.length;
@@ -10834,16 +10905,20 @@ function createChildren2(ctx, children, data, stack, isWebComponent) {
   let next = () => {
     if (index < len) {
       const child = children[index++];
-      const childNode = createChildNode(
+      const childNode = createChildNode2(
         ctx,
         child,
         ctx.createToken(child),
         last
       ) || next();
-      if (child.directives && child.directives.length > 0) {
-        pureStaticChild = false;
-      } else if (childNode && childNode.pureStaticChild === false) {
-        pureStaticChild = false;
+      if (pureStaticChild) {
+        if (child.directives && child.directives.length > 0) {
+          pureStaticChild = false;
+        } else if (childNode && childNode.pureStaticChild === false) {
+          pureStaticChild = false;
+        } else if (childNode.content[0]) {
+          pureStaticChild = childNode.content[0].type === "Literal";
+        }
       }
       if (child.hasAttributeSlot) {
         pureStaticChild = false;
@@ -10859,13 +10934,14 @@ function createChildren2(ctx, children, data, stack, isWebComponent) {
           } else {
             childrenNodes = ctx.createArrayExpression(childrenNodes);
           }
+          childrenNodes.newLine = true;
           const params = scopeName ? [
             ctx.createAssignmentExpression(
               scopeName,
               ctx.createObjectExpression()
             )
           ] : [];
-          const renderSlots = createSlotCalleeNode(
+          const renderSlots = createSlotNode(
             ctx,
             child,
             ctx.createArrowFunctionExpression(childrenNodes, params)
@@ -10913,7 +10989,7 @@ function createChildren2(ctx, children, data, stack, isWebComponent) {
         } else {
           if (result)
             result.ifEnd = true;
-          last.content.push(createCommentVNode(ctx, "end if"));
+          last.content.push(createCommentVNode(ctx, "end if", true));
           value = getCascadeConditional(last.content);
         }
       } else if (!(last.ifEnd && last.cmd.includes("else"))) {
@@ -10927,19 +11003,15 @@ function createChildren2(ctx, children, data, stack, isWebComponent) {
   }
   data.pureStaticChild = pureStaticChild;
   if (content.length > 1) {
-    let hasText = false;
-    const nodes = content.reduce((acc, item) => {
-      if (!hasText && item.type === "Literal") {
-        hasText = true;
-      }
-      if ((item.type === "Literal" || item.isScalarType) && acc.length > 0) {
+    content = content.reduce((acc, item) => {
+      if ((item.type === "Literal" || item.isScalarType && item.isExpressionContainer) && acc.length > 0) {
         let index2 = acc.length - 1;
         let last2 = acc[index2];
         if (item.type === last2.type && last2.type === "Literal") {
           last2.value += item.value;
           last2.raw = `"${last2.value}"`;
           return acc;
-        } else if (last2.type === "Literal" || last2.isScalarType) {
+        } else if (last2.type === "Literal" || last2.isScalarType && last2.isExpressionContainer) {
           const node = ctx.createBinaryExpression(
             last2,
             item,
@@ -10947,7 +11019,6 @@ function createChildren2(ctx, children, data, stack, isWebComponent) {
           );
           node.isMergeStringNode = true;
           node.isScalarType = true;
-          node.isExpressionContainer = !!(last2.isExpressionContainer || item.isExpressionContainer);
           acc.splice(index2, 1, node);
           return acc;
         }
@@ -10955,26 +11026,32 @@ function createChildren2(ctx, children, data, stack, isWebComponent) {
       acc.push(item);
       return acc;
     }, []);
-    if (hasText) {
-      return makeTextChildrenNodes(ctx, nodes);
-    }
-    return nodes;
   }
-  if (isWebComponent) {
-    return makeTextChildrenNodes(ctx, content);
-  }
-  return content;
+  return content.map((child) => createNormalChildrenVNode2(ctx, child, stack));
 }
-function makeTextChildrenNodes(ctx, nodes) {
-  return nodes.map((node) => {
-    if (node.type === "Literal" || node.isMergeStringNode && !node.isExpressionContainer) {
-      node = ctx.addStaticHoisted(
-        createTextVNode(ctx, node, ELEMENT_HOISTED)
+function createNormalChildrenVNode2(ctx, vnode, stack) {
+  let node = vnode;
+  if (vnode.type === "Literal") {
+    node = ctx.addStaticHoisted(
+      createTextVNode(ctx, vnode, ELEMENT_HOISTED)
+    );
+    node.isElementVNode = true;
+    node.pureStaticChild = true;
+  } else if (vnode.isExpressionContainer || vnode.isMergeStringNode) {
+    if (vnode.isScalarType) {
+      node = createTextVNode(ctx, node, ELEMENT_TEXT);
+    } else if (!vnode.isExplicitVNode) {
+      node = ctx.createCallExpression(
+        createStaticReferenceNode(ctx, stack, "web.components.Component", "normalVNode"),
+        [
+          vnode
+        ]
       );
-      node.pureStaticChild = true;
     }
-    return node;
-  });
+    node.pureStaticChild = false;
+    node.isElementVNode = true;
+  }
+  return node;
 }
 function createAttributes2(ctx, stack, data) {
   const ssr = !!ctx.options.ssr;
@@ -11378,29 +11455,6 @@ function createElementBlockVNode(ctx, stack, isComponent, args, disableStack) {
 }
 function createElementVNode(ctx, stack, isComponent, args, data) {
   stack = stack && stack.openingElement ? stack.openingElement.name : null;
-  if (data.patchFlag === ELEMENT_HOISTED && data["class"] && stack.isModuleForWebComponent(stack.module)) {
-    let scopeId = Cache2.get(stack.compilation, hasStyleScopedKey);
-    if (scopeId == null) {
-      if (hasStyleScoped(stack.compilation)) {
-        Cache2.set(stack.compilation, hasStyleScopedKey, scopeId = ctx.getHashId());
-      } else {
-        Cache2.set(stack.compilation, hasStyleScopedKey, scopeId = "");
-      }
-    }
-    if (scopeId) {
-      scopeId = String(ctx.options.vue.scopePrefix || "") + scopeId;
-      const node2 = ctx.createCallExpression(
-        createStaticReferenceNode(ctx, stack, "web.components.Component", "createHoistedVnode"),
-        [
-          ...args.slice(0, 3),
-          ctx.createLiteral(scopeId)
-        ],
-        stack
-      );
-      node2.isElementVNode = true;
-      return node2;
-    }
-  }
   let node = ctx.createCallExpression(
     ctx.createIdentifier(
       ctx.getVNodeApi(isComponent ? "createVNode" : "createElementVNode")
@@ -11412,24 +11466,12 @@ function createElementVNode(ctx, stack, isComponent, args, data) {
   return node;
 }
 var excludes = ["patchFlag", "hasMultipleChildNodes", "pureStaticAttributes", "pureStaticChild"];
-function makeElementVNode(ctx, stack, data, children, isBlock) {
-  const isJsxProgram = stack.compilation.JSX && stack.parentStack.isProgram;
-  const isComponent = stack.isComponent && !isJsxProgram;
-  const isRoot = stack.jsxRootElement === stack;
+function makeElementVNode(ctx, stack, data, childNodes, isBlock) {
+  let isComponent = stack.isComponent;
   let name = null;
-  let isFragment = stack.isJSXFragment;
-  let childNodes = children;
   let props = data.keyProps;
   let patchFlag = data.patchFlag;
   let desc = null;
-  if (!isComponent) {
-    if (data.hasMultipleChildNodes) {
-      isFragment = true;
-    }
-  }
-  if (isRoot && isJsxProgram && !isFragment && childNodes && !data.hasMultipleChildNodes && childNodes.type === "ArrayExpression" && childNodes.elements.length === 1) {
-    return childNodes.elements[0];
-  }
   if (isComponent) {
     desc = stack.descriptor();
     if (import_Utils24.default.isModule(desc)) {
@@ -11444,6 +11486,25 @@ function makeElementVNode(ctx, stack, data, children, isBlock) {
     }
   } else {
     name = ctx.createLiteral(stack.openingElement.name.value());
+  }
+  if (!isBlock && data.patchFlag === ELEMENT_HOISTED && data["class"] && stack.isModuleForWebComponent(stack.module)) {
+    let scopeId = Cache2.get(stack.compilation, hasStyleScopedKey);
+    if (scopeId == null) {
+      if (hasStyleScoped(stack.compilation)) {
+        Cache2.set(stack.compilation, hasStyleScopedKey, scopeId = ctx.getHashId());
+      } else {
+        Cache2.set(stack.compilation, hasStyleScopedKey, scopeId = "");
+      }
+    }
+    if (scopeId) {
+      scopeId = String(ctx.options.vue.scopePrefix || "") + scopeId;
+      data.attrs.push(
+        ctx.createProperty(
+          ctx.createLiteral(scopeId),
+          ctx.createLiteral(1)
+        )
+      );
+    }
   }
   let dataObject = createElementPropsNode(ctx, data, stack, excludes);
   let items = [name, null, null, null, null];
@@ -11474,64 +11535,21 @@ function makeElementVNode(ctx, stack, data, children, isBlock) {
 function makeNormalChildren2(ctx, children, data) {
   if (!children.length)
     return null;
-  if (children.some((item) => !!item.maybeIsArrayNodes)) {
-    let childNods = ctx.createArrayExpression(children);
-    if (children.length > 1) {
-      childNods.newLine = children.some((item) => item.type === "CallExpression");
+  let childNods = ctx.createArrayExpression(children);
+  let num = 0;
+  childNods.newLine = children.some((item) => {
+    if (item.type === "Literal" || item.type === "Identifier") {
+      num++;
     }
-    data.hasMultipleChildNodes = true;
-    return ctx.createCallExpression(
-      ctx.createMemberExpression([
-        childNods,
-        ctx.createIdentifier("reduce")
-      ]),
-      [
-        ctx.createArrowFunctionExpression(
-          ctx.createCallExpression(
-            ctx.createMemberExpression([
-              ctx.createIdentifier("acc"),
-              ctx.createIdentifier("concat")
-            ]),
-            [
-              ctx.createIdentifier("item")
-            ]
-          ),
-          [
-            ctx.createIdentifier("acc"),
-            ctx.createIdentifier("item")
-          ]
-        ),
-        ctx.createArrayExpression()
-      ]
-    );
-  }
-  if (children.length === 1) {
-    let first = children[0];
-    if (first.type == "ArrayExpression" || first.isForNode) {
-      data.hasMultipleChildNodes = true;
-      return first;
-    }
-  } else if (children.length > 1 && children.some((item) => item.type == "ArrayExpression" || item.isForNode)) {
-    let base = children.shift();
-    if (!base.isForNode) {
-      base = ctx.createArrayExpression([base]);
-    }
-    data.hasMultipleChildNodes = true;
-    return ctx.createCallExpression(
-      ctx.createMemberExpression([
-        base,
-        ctx.createIdentifier("concat")
-      ]),
-      children
-    );
+    return item.type === "CallExpression" || item.type === "ConditionalExpression" || item.isFragmentVNode;
+  });
+  if (num > 1) {
+    childNods.newLine = true;
   }
   if (children.length > 1) {
-    let childNods = ctx.createArrayExpression(children);
     data.hasMultipleChildNodes = true;
-    childNods.newLine = children.some((item) => item.type === "CallExpression");
-    return childNods;
   }
-  return children[0];
+  return childNods;
 }
 function hasForAttrDirective(stack) {
   if (stack.directives && stack.directives.length > 0) {
@@ -11559,7 +11577,44 @@ function createKeyPropertyNode(ctx, stack) {
   );
 }
 function isPureStaticChild(children) {
-  return children.every((item) => !!(item.type === "Literal" || item.isMergeStringNode && !item.isExpressionContainer || item.pureStaticChild));
+  return children.every((item) => !!(item.type === "Literal" || item.pureStaticChild));
+}
+function createDirectiveElementNode2(ctx, stack, children) {
+  const openingElement = stack.openingElement;
+  const name = openingElement.name.value().toLowerCase();
+  switch (name) {
+    case "custom":
+    case "show":
+      return children;
+    case "if":
+    case "elseif": {
+      const condition = ctx.createToken(stack.attributes[0].parserAttributeValueStack());
+      const node = ctx.createNode("ConditionalExpression");
+      node.test = condition;
+      node.consequent = children;
+      return node;
+    }
+    case "else":
+      return children;
+    case "for":
+    case "each": {
+      const attrs = stack.openingElement.attributes;
+      const argument = {};
+      attrs.forEach((attr) => {
+        if (attr.name.value() === "name") {
+          argument["refs"] = ctx.createToken(attr.parserAttributeValueStack());
+        } else {
+          argument[attr.name.value()] = ctx.createIdentifier(attr.value.value());
+        }
+      });
+      let item = argument.item || ctx.createIdentifier("item");
+      let key = argument.key || ctx.createIdentifier("key");
+      let node = name === "for" ? createForMapNode(ctx, argument.refs, children, item, key, argument.index, stack) : createForEachNode(ctx, argument.refs, children, item, key, stack);
+      node.isForNode = true;
+      return createFragmentVNode2(ctx, node);
+    }
+  }
+  return null;
 }
 function createElement2(ctx, stack) {
   let data = {
@@ -11589,11 +11644,12 @@ function createElement2(ctx, stack) {
       if (data.hasMultipleChildNodes) {
         let hasKey = children.every((item) => !!item.hasKeyAttribute);
         return createFragmentVNode2(ctx, childNodes, null, hasKey ? ELEMENT_KEYED_FRAGMENT : ELEMENT_UNKEYED_FRAGMENT);
+      } else if (childNodes.type === "ArrayExpression") {
+        return childNodes.elements[0];
       }
     }
     return childNodes;
   }
-  let isInheritComponentDirective = false;
   if (stack.parentStack && stack.parentStack.isDirective) {
     let dName = stack.parentStack.openingElement.name.value().toLowerCase();
     if (dName === "show") {
@@ -11606,7 +11662,7 @@ function createElement2(ctx, stack) {
         )
       );
     } else if (dName === "custom") {
-      isInheritComponentDirective = createCustomDirectiveProperties(ctx, stack.parentStack, data, (prop) => {
+      createCustomDirectiveProperties(ctx, stack.parentStack, data, (prop) => {
         if (prop.isInheritDirectiveProp) {
           data.keyProps.push(ctx.createLiteral(prop.key.value));
           addPatchFlag(data, ELEMENT_PROPS);
@@ -11614,7 +11670,7 @@ function createElement2(ctx, stack) {
       });
     }
   } else {
-    isInheritComponentDirective = createComponentDirectiveProperties(ctx, stack.parentStack, data, (prop) => {
+    createComponentDirectiveProperties(ctx, stack.parentStack, data, (prop) => {
       if (prop.isInheritDirectiveProp) {
         data.keyProps.push(ctx.createLiteral(prop.key.value));
         addPatchFlag(data, ELEMENT_PROPS);
@@ -11626,35 +11682,6 @@ function createElement2(ctx, stack) {
       createAttributes2(ctx, stack, data);
     }
   }
-  let normalDirectives = [];
-  if (data.directives && data.directives.length > 0) {
-    normalDirectives = data.directives.filter((dire) => !dire.isInheritComponentDirective);
-    if (normalDirectives.length > 0) {
-      addPatchFlag(data, ELEMENT_NEED_PATCH);
-    }
-  }
-  if (!hasDynamicSlots) {
-    hasDynamicSlots = isWebComponent && (ps.isSlotScope || ps.isAttributeSlotScope || isForDirective(stack) || hasForAttrDirective(stack.parentStack));
-  }
-  let pureStaticChild = data.pureStaticAttributes && data.pureStaticChild && isPureStaticChild(children);
-  let isBlock = hasDynamicSlots || isOpenBlock(stack, children.length) || isInheritComponentDirective;
-  let isStaticHoisted = !(stack.isComponent || stack.isDirective || stack.isSlot || isBlock || normalDirectives.length > 0) && pureStaticChild;
-  if (!stack.isWebComponent) {
-    if (data.ref && data.hasMultipleChildNodes) {
-      addPatchFlag(data, ELEMENT_NEED_PATCH, true);
-    }
-    if (!isStaticHoisted && !data.hasMultipleChildNodes && childNodes && childNodes.isExpressionContainer) {
-      if (childNodes.isMergeStringNode || childNodes.isScalarType) {
-        addPatchFlag(data, ELEMENT_TEXT);
-      }
-    }
-  }
-  if (isStaticHoisted) {
-    addPatchFlag(data, ELEMENT_HOISTED);
-  }
-  if (hasDynamicSlots) {
-    addPatchFlag(data, ELEMENT_DYNAMIC_SLOTS);
-  }
   if (isWebComponent && !(stack.isDirective || stack.isSlot)) {
     let properties2 = [];
     if (childNodes) {
@@ -11663,9 +11690,6 @@ function createElement2(ctx, stack) {
         if (fullname === "web.components.KeepAlive") {
           hasDynamicSlots = true;
         }
-      }
-      if (!data.hasMultipleChildNodes && childNodes.type !== "ArrayExpression") {
-        childNodes = ctx.createArrayExpression([childNodes]);
       }
       properties2.push(ctx.createProperty(
         ctx.createIdentifier("default"),
@@ -11690,24 +11714,48 @@ function createElement2(ctx, stack) {
       childNodes = ctx.createObjectExpression(properties2);
     }
   }
-  if (stack.isSlot) {
-    if (childNodes && !data.hasMultipleChildNodes && childNodes.type !== "ArrayExpression") {
-      childNodes = ctx.createArrayExpression([childNodes]);
+  let normalDirectives = [];
+  if (data.directives && data.directives.length > 0) {
+    normalDirectives = data.directives.filter((dire) => !dire.isInheritComponentDirective);
+    if (normalDirectives.length > 0) {
+      addPatchFlag(data, ELEMENT_NEED_PATCH);
     }
+  }
+  if (!hasDynamicSlots) {
+    hasDynamicSlots = isWebComponent && (ps.isSlotScope || ps.isAttributeSlotScope || isForDirective(stack) || hasForAttrDirective(stack.parentStack));
+  }
+  let pureStaticChild = data.pureStaticAttributes && data.pureStaticChild && isPureStaticChild(children);
+  let isBlock = hasDynamicSlots || isOpenBlock(stack);
+  let isStaticHoisted = !(stack.isDirective || stack.isSlot || isBlock || normalDirectives.length > 0) && pureStaticChild;
+  if (!stack.isWebComponent) {
+    if (data.ref && data.hasMultipleChildNodes) {
+      addPatchFlag(data, ELEMENT_NEED_PATCH, true);
+    }
+  }
+  if (isStaticHoisted) {
+    addPatchFlag(data, ELEMENT_HOISTED);
+  }
+  if (hasDynamicSlots) {
+    addPatchFlag(data, ELEMENT_DYNAMIC_SLOTS);
+  }
+  if (stack.isSlot) {
     nodeElement = createSlotElementNode(ctx, stack, childNodes);
   } else if (stack.isDirective) {
-    if (childNodes && data.hasMultipleChildNodes) {
-      nodeElement = createFragmentVNode2(
-        ctx,
-        childNodes,
-        ctx.createObjectExpression([createKeyPropertyNode(ctx, stack)]),
-        ELEMENT_STABLE_FRAGMENT,
-        false
-      );
-      nodeElement.hasKeyAttribute = true;
-      childNodes = nodeElement;
+    if (childNodes) {
+      if (data.hasMultipleChildNodes) {
+        nodeElement = createFragmentVNode2(
+          ctx,
+          childNodes,
+          ctx.createObjectExpression([createKeyPropertyNode(ctx, stack)]),
+          ELEMENT_STABLE_FRAGMENT,
+          false
+        );
+        childNodes = nodeElement;
+      } else if (childNodes.type === "ArrayExpression") {
+        childNodes = childNodes.elements[0];
+      }
     }
-    nodeElement = createDirectiveElementNode(ctx, stack, childNodes);
+    nodeElement = createDirectiveElementNode2(ctx, stack, childNodes);
   } else {
     if (stack.isJSXFragment || isRoot && !isWebComponent && stack.openingElement.name.value() === "root") {
       if (data.hasMultipleChildNodes) {
@@ -11726,6 +11774,7 @@ function createElement2(ctx, stack) {
   }
   if (nodeElement && data.directives && data.directives.length > 0) {
     nodeElement = createWithDirectives(ctx, nodeElement, data.directives);
+    nodeElement.isElementVNode = true;
   }
   nodeElement.pureStaticChild = pureStaticChild;
   nodeElement.hasKeyAttribute = !!data.key;
@@ -12601,8 +12650,8 @@ var package_default = {
     run: "jasmine babel-node ./test/.output/Index.js",
     test: "npm run dev & npm run run",
     build: "npm run manifest && node ./scripts/build.js",
-    karma: "karma start",
-    webpack: "webpack-dev-server --hot",
+    karma: "node ./scripts/build.js && karma start",
+    webpack: "node ./scripts/build.js && webpack-dev-server --hot",
     manifest: "esc -o lib/types -f lib/types/index.d.es --manifest --scope es-vue --inherit es-javascript"
   },
   repository: {
