@@ -11792,6 +11792,17 @@ function createElement2(ctx, stack) {
           }
         }
         if (properties2.length > 0) {
+          if ((data.patchFlag & ELEMENT_DYNAMIC_SLOTS) === ELEMENT_DYNAMIC_SLOTS) {
+            properties2.push(ctx.createProperty(
+              ctx.createIdentifier("_"),
+              ctx.createLiteral(2)
+            ));
+          } else {
+            properties2.push(ctx.createProperty(
+              ctx.createIdentifier("_"),
+              ctx.createLiteral(1)
+            ));
+          }
           childNodes = ctx.createObjectExpression(properties2);
         }
       } else if (children.length > 0) {
