@@ -8,39 +8,53 @@
     @define(slot,'default')
     declare class Transition extends Component{
         /**
-        * 用于自动生成 CSS 过渡类名。例如：name: 'fade' 将自动拓展为 .fade-enter，.fade-enter-active 等。默认类名为 "v"
+        * 用于自动生成过渡 CSS class 名。
+        * 例如 `name: 'fade'` 将自动扩展为 `.fade-enter`、
+        * `.fade-enter-active` 等。
         */
-        name:string
+        name?: string
         /**
-        * 是否在初始渲染时使用过渡。默认为 false
+        * 是否应用 CSS 过渡 class。
+        * 默认：true
         */
-        appear:boolean = false
+        css?: boolean
         /**
-        * 是否使用 CSS 过渡类。默认为 true。如果设置为 false，将只通过组
+        * 指定要等待的过渡事件类型
+        * 来确定过渡结束的时间。
+        * 默认情况下会自动检测
+        * 持续时间较长的类型。
         */
-        css:boolean = true
+        type?: 'transition' | 'animation'
         /**
-        * 指定过渡事件类型，侦听过渡何时结束。有效值为 "transition" 和 "animation"。默认将自动检测出持续时间长的为过渡事件类型。
+        * 显式指定过渡的持续时间。
+        * 默认情况下是等待过渡效果的根元素的第一个 `transitionend`
+        * 或`animationend`事件。
         */
-        type:"transition" | "animation"
+        duration?: number | { enter: number; leave: number }
         /**
-        * 控制离开/进入过渡的时间序列
+        * 控制离开/进入过渡的时序。
+        * 默认情况下是同时的。
         */
-        mode:"out-in" | "in-out"
+        mode?: 'in-out' | 'out-in' | 'default'
         /**
-        * 指定过渡的持续时间。默认情况下会等待过渡所在根元素的第一个 transitionend 或 animationend 事件
+        * 是否对初始渲染使用过渡。
+        * 默认：false
         */
-        duration:number | {enter: number, leave: number}
+        appear?: boolean
 
-        enterClass:string
-        leaveClass:string
-        appearClass:string
-        enterToClass:string
-        leaveToClass:string
-        appearToClass:string
-        enterActiveClass:string
-        leaveActiveClass:string
-        appearActiveClass:string
+        /**
+        * 用于自定义过渡 class 的 prop。
+        * 在模板中使用短横线命名，例如：enter-from-class="xxx"
+        */
+        enterFromClass?: string
+        enterActiveClass?: string
+        enterToClass?: string
+        appearFromClass?: string
+        appearActiveClass?: string
+        appearToClass?: string
+        leaveFromClass?: string
+        leaveActiveClass?: string
+        leaveToClass?: string
     }
 
  }

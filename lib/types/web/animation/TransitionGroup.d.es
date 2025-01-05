@@ -9,7 +9,14 @@
     * 如果 CSS transform property 是“可过渡”property，当应用移动类时，将会使用 FLIP 技术使元素流畅地到达动画终点。
     */
     declare class TransitionGroup extends Transition{
-        tag:string= 'span'
-        moveClass:string
+        /**
+        * 如果未定义，则渲染为片段 (fragment)。
+        */
+        tag?: string
+        /**
+        * 用于自定义过渡期间被应用的 CSS class。
+        * 在模板中使用 kebab-case，例如 move-class="xxx"
+        */
+        moveClass?: string
     }
  }

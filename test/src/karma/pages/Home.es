@@ -131,6 +131,7 @@ class Home extends Component{
                         </s:content>
                         
                   </local:Slot>
+
                   <local:Directive></local:Directive>
 
                    <div>

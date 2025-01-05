@@ -181,7 +181,7 @@ class List extends Component{
         console.log(  this.formData.infiniteCount , '---------infiniteCount-------------');
 
         return <div xmlns:d="@directives" xmlns:dc="@directives::custom" xmlns:s="@slots" xmlns:ui="web.ui">
-                <ui:Button type="primary" ><ui:Icon><plus /></ui:Icon> button <ui:Icon name="Plus"/> </ui:Button>
+                <ui:Button type="primary" ><ui:Icon></ui:Icon> button <ui:Icon name="Plus"/> </ui:Button>
                 <ui:Table data = {this.items}>
                     <ui:TableColumn prop = "name" label = "姓名"></ui:TableColumn>
                     <ui:TableColumn prop = "phone" label = "手机号"></ui:TableColumn>
