@@ -1,9 +1,10 @@
 const fs = require('fs')
 const path = require('path')
 const compiler = require("./compiler");
+const creator = new compiler.Creator();
 
 describe('compile file', function() {
-    const creator = new compiler.Creator();
+   
     let compilation = null;
     let errors = [];
     let module = null;
@@ -32,7 +33,6 @@ describe('compile file', function() {
 
 
 describe('compile file', function() {
-    const creator = new compiler.Creator();
     let compilation = null;
     let errors = [];
     let module = null;
@@ -60,7 +60,6 @@ describe('compile file', function() {
 });
 
 describe('compile file', function() {
-    const creator = new compiler.Creator();
     let compilation = null;
     let errors = [];
     let module = null;

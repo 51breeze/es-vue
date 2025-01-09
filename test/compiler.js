@@ -27,7 +27,6 @@ class Creator {
             version:3,
             // format:'vue-template',//vue-jsx vue-template
             srcCSS:false,
-            optimize:true,
             sourceMaps:true,
             useAbsolutePathImport:true,
             vue:{
