@@ -73,14 +73,10 @@ package web{
             const states = this.getStorage();
             const getters = {};
             const actions = {};
+            if(!descriptor){
+                throw new Error("Invalid this object");
+            }
             const members:MemberDescriptor[] = descriptor.members;
-
-
-            console.log( members ,"=========members===============" )
-
-
-
-
             const bindMethods = {};
             const selfMethods = ['setState','getState','whenPropertyNotExists','getOptions','getStorage'];
             const selfProperties = ['storeInstance','key','storeProxy'];

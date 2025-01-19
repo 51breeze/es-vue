@@ -9691,6 +9691,14 @@ var Context2 = class extends Context_default {
     }
     return source;
   }
+  createDefaultRoutePathNode(module2) {
+    if (import_Utils22.default.isModule(module2)) {
+      return this.createLiteral(
+        this.plugin.makeCode.getDefaultRoutePath(module2)
+      );
+    }
+    return null;
+  }
 };
 var Context_default2 = Context2;
 
@@ -11797,6 +11805,7 @@ var import_dotenv_expand2 = __toESM(require("dotenv-expand"));
 var import_Utils26 = __toESM(require("easescript/lib/core/Utils"));
 var MakeCode = class extends Token_default {
   #plugin = null;
+  #resolvePageDir = void 0;
   constructor(plugin2) {
     super();
     this.#plugin = plugin2;
@@ -11812,6 +11821,19 @@ var MakeCode = class extends Token_default {
   }
   get token() {
     return this.#plugin.context.token;
+  }
+  getPageDir() {
+    let pageDir = this.#resolvePageDir;
+    if (pageDir !== void 0)
+      return pageDir;
+    pageDir = this.options.pageDir;
+    if (pageDir) {
+      pageDir = this.compiler.resolveManager.resolveSource(pageDir);
+    } else {
+      pageDir = null;
+    }
+    this.#resolvePageDir = pageDir;
+    return pageDir;
   }
   getProjectConfig() {
     const projectConfigFile = this.options.projectConfigFile;
@@ -11871,7 +11893,7 @@ var MakeCode = class extends Token_default {
         });
       }
     };
-    const dir = import_path7.default.isAbsolute(pageDir) ? pageDir : this.compiler.resolveManager.resolveSource(pageDir);
+    const dir = this.getPageDir();
     if (!dir) {
       console.error(`[ES-VUE] Not resolved page dir the "${pageDir}"`);
     }
@@ -11964,6 +11986,18 @@ ${top}]`;
     });
     return `${imports.join("")}export default ${code};`;
   }
+  getDefaultRoutePath(module2) {
+    const pageDir = this.getPageDir();
+    let name = "/" + module2.getName("/");
+    if (pageDir) {
+      let baseName = "/" + import_path7.default.basename(pageDir) + "/";
+      if (name.includes(baseName)) {
+        let [_, last] = name.split(baseName, 2);
+        return "/" + last;
+      }
+    }
+    return name;
+  }
   getModuleRoute(module2, isPage = false) {
     if (!module2)
       return [];
@@ -11973,18 +12007,19 @@ ${top}]`;
     if (routes && routes.length > 0)
       return routes;
     if (!isPage) {
-      const pageExcludeRegular = this.options.pageExcludeRegular;
-      let isExclude = pageExcludeRegular ? pageExcludeRegular.test(module2.file) : false;
-      const pageDir = this.options.pageDir;
-      if (pageDir && !isExclude) {
-        const dir = import_path7.default.isAbsolute(pageDir) ? pageDir : this.compiler.resolveManager.resolveSource(pageDir);
-        isPage = module2.file.includes(this.compiler.normalizePath(dir));
+      const pageDir = this.getPageDir();
+      if (pageDir) {
+        const pageExcludeRegular = this.options.pageExcludeRegular;
+        let isExclude = pageExcludeRegular ? pageExcludeRegular.test(module2.file) : false;
+        if (!isExclude) {
+          isPage = module2.file.includes(pageDir);
+        }
       }
     }
     if (isPage) {
       const name = module2.getName("/");
       return [{
-        path: "/" + name,
+        path: this.getDefaultRoutePath(module2),
         name
       }];
     }
@@ -12374,7 +12409,7 @@ var package_default = {
     build: "npm run manifest && node ./scripts/build.js",
     karma: "node ./scripts/build.js && karma start",
     webpack: "node ./scripts/build.js && webpack-dev-server --hot",
-    manifest: "esc -o lib/types -f lib/types/index.d.es --manifest --scope es-vue --inherit es-javascript"
+    manifest: "esc -o lib/types -f lib/types/index.d.es --manifest --scope es-vue --inherit @easescript/es-javascript"
   },
   repository: {
     type: "git",

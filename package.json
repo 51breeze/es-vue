@@ -12,7 +12,7 @@
     "build": "npm run manifest && node ./scripts/build.js",
     "karma": "node ./scripts/build.js && karma start",
     "webpack": "node ./scripts/build.js && webpack-dev-server --hot",
-    "manifest": "esc -o lib/types -f lib/types/index.d.es --manifest --scope es-vue --inherit es-javascript"
+    "manifest": "esc -o lib/types -f lib/types/index.d.es --manifest --scope es-vue --inherit @easescript/es-javascript"
   },
   "repository": {
     "type": "git",
