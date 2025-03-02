@@ -4469,7 +4469,21 @@ var Context = class _Context extends Token_default {
     if (!options.delimiter) {
       options.delimiter = "/";
     }
+    if (typeof file === "string") {
+      file = this.replaceImportSource(file);
+    }
     return this.resolveImportSource(file, options);
+  }
+  replaceImportSource(source) {
+    if (source.startsWith("${__filename}")) {
+      let target = this.target;
+      if (isVModule(target)) {
+        target = target.bindModule || target;
+      }
+      let owner = import_Utils4.default.isModule(target) ? target.compilation : target;
+      source = source.replace("${__filename}", import_Utils4.default.normalizePath(owner.file));
+    }
+    return source;
   }
   getSourceFileMappingFolder(file, flag) {
     const result = this.resolveSourceFileMappingPath(file, "folders");
@@ -4496,12 +4510,11 @@ var Context = class _Context extends Token_default {
   getModuleImportSource(source, context, sourceId = null) {
     const config = this.options;
     const isString = typeof source === "string";
+    if (isString) {
+      source = this.replaceImportSource(source);
+    }
     if (isString && isExternalDependency(this.options.dependency.externals, source, context)) {
       return source;
-    }
-    if (isString && source.includes("${__filename}")) {
-      const owner = import_Utils4.default.isModule(context) ? context.compilation : context;
-      source = source.replace("${__filename}", import_Utils4.default.isCompilation(owner) ? owner.file : this.target.file);
     }
     if (isString && source.includes("/node_modules/")) {
       if (import_path2.default.isAbsolute(source))
@@ -9418,6 +9431,7 @@ function createBuildContext(plugin2, records2 = /* @__PURE__ */ new Map()) {
 }
 
 // node_modules/@easescript/transform/lib/core/Polyfill.js
+var import_Utils21 = __toESM(require("easescript/lib/core/Utils"));
 var import_fs5 = __toESM(require("fs"));
 var import_path5 = __toESM(require("path"));
 var TAGS_REGEXP = /(?:[\r\n]+|^)\/\/\/(?:\s+)?<(references|namespaces|export|import|createClass)\s+(.*?)\/>/g;
@@ -9495,7 +9509,7 @@ function parsePolyfillModule(file, createVModule) {
   } else {
     vm.addExport("default", vm.id);
   }
-  vm.file = file;
+  vm.file = import_Utils21.default.normalizePath(file);
   vm.setContent(content);
 }
 function createPolyfillModule(dirname, createVModule) {
@@ -9679,15 +9693,15 @@ var Plugin = class _Plugin extends import_events.default {
 var Plugin_default = Plugin;
 
 // lib/core/Builder.js
-var import_Utils25 = __toESM(require("easescript/lib/core/Utils"));
+var import_Utils26 = __toESM(require("easescript/lib/core/Utils"));
 
 // lib/core/Context.js
-var import_Utils22 = __toESM(require("easescript/lib/core/Utils"));
+var import_Utils23 = __toESM(require("easescript/lib/core/Utils"));
 
 // lib/core/Common.js
-var import_Utils21 = __toESM(require("easescript/lib/core/Utils"));
+var import_Utils22 = __toESM(require("easescript/lib/core/Utils"));
 function hasStyleScoped(compilation) {
-  if (!import_Utils21.default.isCompilation(compilation))
+  if (!import_Utils22.default.isCompilation(compilation))
     return false;
   return compilation.jsxStyles.some((style) => {
     return style.openingElement.attributes.some((attr) => {
@@ -9724,7 +9738,7 @@ var Context2 = class extends Context_default {
   }
   getAvailableOriginType(type) {
     if (type) {
-      const originType = import_Utils22.default.getOriginType(type);
+      const originType = import_Utils23.default.getOriginType(type);
       switch (originType.id) {
         case "String":
         case "Number":
@@ -9773,7 +9787,7 @@ var Context2 = class extends Context_default {
     return source;
   }
   createDefaultRoutePathNode(module2) {
-    if (import_Utils22.default.isModule(module2)) {
+    if (import_Utils23.default.isModule(module2)) {
       return this.createLiteral(
         this.plugin.makeCode.getDefaultRoutePath(module2)
       );
@@ -9795,7 +9809,7 @@ __export(tokens_exports2, {
 var ClassBuilder_default2 = ClassBuilder_default;
 
 // lib/core/ESXClassBuilder.js
-var import_Utils23 = __toESM(require("easescript/lib/core/Utils"));
+var import_Utils24 = __toESM(require("easescript/lib/core/Utils"));
 var hotRecords = /* @__PURE__ */ new Map();
 var removeNewlineRE = /[\r\n\t]/g;
 var ESXClassBuilder = class extends ClassBuilder_default2 {
@@ -10359,7 +10373,7 @@ var ESXClassBuilder = class extends ClassBuilder_default2 {
           ctx.createProperty(
             ctx.createIdentifier("__ssrContext"),
             ctx.createLiteral(
-              import_Utils23.default.normalizePath(file)
+              import_Utils24.default.normalizePath(file)
             )
           )
         );
@@ -10512,7 +10526,7 @@ function ClassDeclaration_default2(ctx, stack) {
 
 // lib/core/ESXOptimize.js
 var import_Namespace9 = __toESM(require("easescript/lib/core/Namespace"));
-var import_Utils24 = __toESM(require("easescript/lib/core/Utils"));
+var import_Utils25 = __toESM(require("easescript/lib/core/Utils"));
 var Cache2 = getCacheManager("common");
 var hasStyleScopedKey = Symbol("hasStyleScoped");
 var ELEMENT_TEXT = 1;
@@ -10556,7 +10570,7 @@ function isOpenBlock(stack) {
     const desc = stack.descriptor();
     if (desc) {
       const type = desc.type();
-      if (import_Utils24.default.isModule(type)) {
+      if (import_Utils25.default.isModule(type)) {
         return import_Namespace9.default.globals.get("web.components.Fragment").is(type);
       }
     }
@@ -11192,7 +11206,7 @@ function makeElementVNode(ctx, stack, data, childNodes, isBlock) {
   let desc = null;
   if (isComponent) {
     desc = stack.descriptor();
-    if (import_Utils24.default.isModule(desc)) {
+    if (import_Utils25.default.isModule(desc)) {
       ctx.addDepend(desc);
       name = ctx.createIdentifier(
         ctx.getModuleReferenceName(desc, stack.module)
@@ -11424,7 +11438,7 @@ function createElement2(ctx, stack) {
       return children[0];
     }
   }
-  if (isWebComponent && import_Utils24.default.isModule(desc)) {
+  if (isWebComponent && import_Utils25.default.isModule(desc)) {
     let fullname = desc.getName();
     if (fullname === "web.components.KeepAlive") {
       hasDynamicSlots = true;
@@ -11817,7 +11831,7 @@ function createBuildContext2(plugin2, records2 = /* @__PURE__ */ new Map()) {
     const deps = /* @__PURE__ */ new Set();
     ctx.dependencies.forEach((dataset) => {
       dataset.forEach((dep) => {
-        if (import_Utils25.default.isModule(dep)) {
+        if (import_Utils26.default.isModule(dep)) {
           if (!dep.isStructTable && dep.isDeclaratorModule) {
             dep = ctx.getVModule(dep.getName());
             if (dep) {
@@ -11828,7 +11842,7 @@ function createBuildContext2(plugin2, records2 = /* @__PURE__ */ new Map()) {
           }
         } else if (isVModule(dep)) {
           deps.add(dep);
-        } else if (import_Utils25.default.isCompilation(dep)) {
+        } else if (import_Utils26.default.isCompilation(dep)) {
           deps.add(dep);
         }
       });
@@ -11883,7 +11897,7 @@ var import_dotenv2 = __toESM(require("dotenv"));
 var import_fs6 = __toESM(require("fs"));
 var import_path7 = __toESM(require("path"));
 var import_dotenv_expand2 = __toESM(require("dotenv-expand"));
-var import_Utils26 = __toESM(require("easescript/lib/core/Utils"));
+var import_Utils27 = __toESM(require("easescript/lib/core/Utils"));
 var MakeCode = class extends Token_default {
   #plugin = null;
   #resolvePageDir = void 0;
@@ -12223,7 +12237,7 @@ export default __$$metadata;`;
     if (!module2) {
       module2 = Array.from(compilation.modules.values()).find((m) => m.getName() === query.id && m.isModule && m.isClass && !m.isDeclaratorModule);
     }
-    if (import_Utils26.default.isModule(module2)) {
+    if (import_Utils27.default.isModule(module2)) {
       return this.makeModuleMetadata(module2);
     }
     return `export default {};`;

@@ -28,6 +28,7 @@ const plugins=[
         enable:true,
         inlineStyleLoader:['style-loader','css-loader']
       },
+      //emitFile:false,
       outDir:build,
       sourceMaps:true,
       version:3,
