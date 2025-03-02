@@ -18,7 +18,7 @@ class Creator {
         this._compiler = compiler;
         this.plugin = plugin({
             emitFile:true,
-            module:'esm',
+            module:'cjs',
             outExt:'.js',
             outDir:'test/.output',
             mode:'development',
