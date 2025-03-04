@@ -10199,19 +10199,17 @@ var ESXClassBuilder = class extends ClassBuilder_default2 {
       this.#injectProperties.length = 0;
       construct.body.body.push(...injectAndProvide);
     }
-    this.#exportVueComponentNode = ctx.createExpressionStatement(
-      this.createCreateVueComponentNode(
-        ctx,
-        "createComponent",
-        [
-          ctx.createIdentifier(this.getModuleDeclarationId(module2)),
-          this.createVueComponentOptionsNode(
-            ctx,
-            module2.id,
-            module2
-          )
-        ]
-      )
+    this.#exportVueComponentNode = this.createCreateVueComponentNode(
+      ctx,
+      "createComponent",
+      [
+        ctx.createIdentifier(this.getModuleDeclarationId(module2)),
+        this.createVueComponentOptionsNode(
+          ctx,
+          module2.id,
+          module2
+        )
+      ]
     );
   }
   getCodeSections(compilation) {
@@ -10503,10 +10501,30 @@ var ESXClassBuilder = class extends ClassBuilder_default2 {
   createExport(ctx, module2) {
     if (this.stack.compilation.mainModule === module2) {
       let id = this.getModuleDeclarationId(module2);
-      this.createHMRHotAcceptNode(ctx, id);
+      let opts = ctx.plugin.options;
+      let isHot = true;
+      let exportNode = this.#exportVueComponentNode || ctx.createIdentifier(id);
+      if (!opts.hot || opts.mode === "production") {
+        isHot = false;
+      }
+      if (isHot) {
+        let exportName = ctx.getGlobalRefName(null, "_export_" + id);
+        ctx.afterBody.push(
+          ctx.createVariableDeclaration("const", [
+            ctx.createVariableDeclarator(
+              ctx.createIdentifier(exportName),
+              exportNode
+            )
+          ])
+        );
+        this.createHMRHotAcceptNode(ctx, exportName);
+        exportNode = ctx.createIdentifier(exportName);
+      } else {
+        exportNode = ctx.createExpressionStatement(exportNode);
+      }
       ctx.addExport(
         "default",
-        this.#exportVueComponentNode || ctx.createIdentifier(id)
+        exportNode
       );
     }
   }
