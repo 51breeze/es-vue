@@ -1942,15 +1942,20 @@ function createESMExports(ctx, exportManage, graph) {
   });
   return { imports, exports: exports2, declares };
 }
+function checkMatchStringOfRule(rule, source, ...args) {
+  if (rule == null)
+    return true;
+  if (typeof rule === "function") {
+    return rule(source, ...args);
+  } else if (rule instanceof RegExp) {
+    return rule.test(source);
+  }
+  return rule === source;
+}
 function isExternalDependency(externals, source, module2 = null) {
   if (Array.isArray(externals) && externals.length > 0) {
     return externals.some((rule) => {
-      if (typeof rule === "function") {
-        return rule(source, module2);
-      } else if (rule instanceof RegExp) {
-        return rule.test(source);
-      }
-      return rule === source;
+      return rule == null ? false : checkMatchStringOfRule(rule, source, module2);
     });
   }
   return false;
@@ -1958,12 +1963,7 @@ function isExternalDependency(externals, source, module2 = null) {
 function isExcludeDependency(excludes2, source, module2 = null) {
   if (Array.isArray(excludes2) && excludes2.length > 0) {
     return excludes2.some((rule) => {
-      if (typeof rule === "function") {
-        return rule(source, module2);
-      } else if (rule instanceof RegExp) {
-        return rule.test(source);
-      }
-      return rule === source;
+      return rule == null ? false : checkMatchStringOfRule(rule, source, module2);
     });
   }
   return false;
@@ -4532,8 +4532,8 @@ var Context = class _Context extends Token_default {
     }
     return isString ? source : this.getModuleResourceId(source);
   }
-  getModuleResourceId(module2, query = {}) {
-    return this.compiler.parseResourceId(module2, query);
+  getModuleResourceId(module2, query = {}, extformat = null) {
+    return this.compiler.parseResourceId(module2, query, extformat);
   }
   resolveSourceFileMappingPath(file, group, delimiter = "/") {
     return this.resolveSourceId(file, group, delimiter);
@@ -5216,7 +5216,7 @@ function getAssetsManager(AssetFactory) {
     }
     let asset = records2.get(key);
     if (!asset) {
-      records2.set(sourceFile, asset = new AssetFactory(sourceFile, type, id));
+      records2.set(key, asset = new AssetFactory(sourceFile, type, id));
     }
     return asset;
   }
@@ -9698,7 +9698,6 @@ var import_Utils26 = __toESM(require("easescript/lib/core/Utils"));
 // lib/core/Context.js
 var import_Namespace9 = __toESM(require("easescript/lib/core/Namespace"));
 var import_Utils23 = __toESM(require("easescript/lib/core/Utils"));
-var import_path7 = __toESM(require("path"));
 
 // lib/core/Common.js
 var import_Utils22 = __toESM(require("easescript/lib/core/Utils"));
@@ -9756,6 +9755,9 @@ var Context2 = class extends Context_default {
     return null;
   }
   isWebComponent(module2) {
+    if (import_Utils23.default.isCompilation(module2)) {
+      module2 = module2.mainModule;
+    }
     if (!import_Utils23.default.isModule(module2))
       return false;
     if (module2.isWebComponent())
@@ -9768,43 +9770,25 @@ var Context2 = class extends Context_default {
     const Application = import_Namespace9.default.globals.get("web.Application");
     return Application.is(module2);
   }
-  getModuleResourceId(module2, query = {}) {
-    const importSourceQuery = this.options.importSourceQuery;
-    if (importSourceQuery.enabled && this.isWebComponent(module2)) {
-      const isString = typeof module2 === "string";
-      const test = importSourceQuery.test;
-      let result = true;
-      if (test) {
-        let file = isString ? module2 : import_path7.default.dirname(module2.file) + "." + module2.id + import_path7.default.extname(module2.file);
-        let ns = !isString && import_Utils23.default.isModule(module2) ? module2.getName() : null;
-        if (test instanceof RegExp) {
-          result = test.test(file);
-          if (!result)
-            result = test.test(ns);
-        } else {
-          result = file === test || test === ns;
-        }
+  getModuleResourceId(module2, query = {}, extformat = null) {
+    const options = this.options.importFormation || {};
+    const importQuery = options.query;
+    const ext = options.ext;
+    const needFormat = extformat == null && ext.enabled && ext.suffix;
+    const needQuery = importQuery.enabled && importQuery.attrs;
+    if ((needFormat || needQuery) && this.isWebComponent(module2)) {
+      if (needFormat && checkMatchStringOfRule(ext.test, module2.file, module2)) {
+        extformat = ext.suffix;
       }
-      if (result) {
-        const typeName = query.type === "style" ? "styles" : "component";
-        if (typeName) {
-          result = importSourceQuery.types.includes(typeName);
-        }
-        if (!result || !typeName) {
-          result = importSourceQuery.types.includes("*");
-        }
-      }
-      if (result && importSourceQuery.query) {
-        Object.keys(importSourceQuery.query).forEach((key) => {
+      if (needQuery && checkMatchStringOfRule(importQuery.test, module2.file, module2)) {
+        Object.keys(importQuery.attrs).forEach((key) => {
           if (query[key] === void 0) {
-            query[key] = importSourceQuery.query[key];
+            query[key] = importQuery.attrs[key];
           }
         });
       }
-      if (query.vue != null)
-        query.vue = "";
     }
-    return super.getModuleResourceId(module2, query);
+    return super.getModuleResourceId(module2, query, extformat);
   }
   resolveImportSource(id, ctx = {}) {
     const ui = this.options.ui;
@@ -10370,26 +10354,18 @@ var ESXClassBuilder = class extends ClassBuilder_default2 {
         )
       );
     }
-    if (makeOptions.vccOpts) {
-      properties2.push(
-        ctx.createProperty(
-          ctx.createIdentifier("__vccOpts"),
-          ctx.createLiteral(true)
-        )
-      );
-    }
-    if (makeOptions.asyncSetup) {
-      const asyncSetup = makeOptions.asyncSetup;
+    if (makeOptions.async) {
+      const async = makeOptions.async;
       const ssr = !!options.ssr;
-      if (asyncSetup.mode !== "none") {
-        let enable = asyncSetup.mode === "all" || ssr && asyncSetup.mode === "ssr" || !ssr && asyncSetup.mode === "nossr";
-        if (enable && asyncSetup.filter && typeof asyncSetup.filter === "function") {
-          enable = asyncSetup.filter(module2.getName(), this.compilation.file);
+      if (async.mode !== "none") {
+        let enable = async.mode === "all" || ssr && async.mode === "ssr" || !ssr && async.mode === "nossr";
+        if (enable && async.filter && typeof async.filter === "function") {
+          enable = async.filter({ module: module2, compilation: this.compilation, ssr });
         }
         if (enable) {
           properties2.push(
             ctx.createProperty(
-              ctx.createIdentifier("__asyncSetup"),
+              ctx.createIdentifier("__async"),
               ctx.createLiteral(true)
             )
           );
@@ -10417,12 +10393,20 @@ var ESXClassBuilder = class extends ClassBuilder_default2 {
         )
       );
     }
-    if (options.ssr && makeOptions.ssrContext !== false) {
+    if (makeOptions.exportClass === false) {
+      properties2.push(
+        ctx.createProperty(
+          ctx.createIdentifier("__exportClass"),
+          ctx.createLiteral(false)
+        )
+      );
+    }
+    if (options.ssr && makeOptions.ssrCtx !== false) {
       const file = ctx.compiler.getRelativeWorkspace(this.compilation.file);
       if (file) {
         properties2.push(
           ctx.createProperty(
-            ctx.createIdentifier("__ssrContext"),
+            ctx.createIdentifier("__ssrCtx"),
             ctx.createLiteral(
               import_Utils24.default.normalizePath(file)
             )
@@ -10557,7 +10541,7 @@ var ESXClassBuilder = class extends ClassBuilder_default2 {
       let opts = ctx.plugin.options;
       let isHot = true;
       let exportNode = this.#exportVueComponentNode || ctx.createIdentifier(id);
-      if (!opts.hot || opts.mode === "production") {
+      if (opts.ssr || !opts.hot || opts.mode === "production") {
         isHot = false;
       }
       if (isHot) {
@@ -11966,7 +11950,7 @@ function createBuildContext2(plugin2, records2 = /* @__PURE__ */ new Map()) {
 // lib/core/MakeCode.js
 var import_dotenv2 = __toESM(require("dotenv"));
 var import_fs6 = __toESM(require("fs"));
-var import_path8 = __toESM(require("path"));
+var import_path7 = __toESM(require("path"));
 var import_dotenv_expand2 = __toESM(require("dotenv-expand"));
 var import_Utils27 = __toESM(require("easescript/lib/core/Utils"));
 var MakeCode = class extends Token_default {
@@ -12046,7 +12030,7 @@ var MakeCode = class extends Token_default {
         items.forEach((file) => {
           if (file === "." || file === "..")
             return;
-          let filepath2 = import_path8.default.join(dir2, file);
+          let filepath2 = import_path7.default.join(dir2, file);
           if (import_fs6.default.statSync(filepath2).isDirectory()) {
             readdir(filepath2);
           } else if (this.compiler.checkFileExt(filepath2)) {
@@ -12090,13 +12074,13 @@ var MakeCode = class extends Token_default {
         return routesData[pid];
       }
       if (pid && !pageCxts.includes(pid) && pageCxts.some((ctx) => pid.includes(ctx))) {
-        return getParentRoute(import_path8.default.dirname(pid));
+        return getParentRoute(import_path7.default.dirname(pid));
       }
       return null;
     };
     const metadata = /* @__PURE__ */ new Map();
     pages.forEach((pageModule) => {
-      const pid = import_path8.default.dirname(pageModule.file).toLowerCase();
+      const pid = import_path7.default.dirname(pageModule.file).toLowerCase();
       const id = (pid + "/" + pageModule.id).toLowerCase();
       let routes = this.getModuleRoute(pageModule, true);
       let metakey = "__meta" + metadata.size;
@@ -12156,7 +12140,7 @@ ${top}]`;
     const pageDir = this.getPageDir();
     let name = "/" + module2.getName("/");
     if (pageDir) {
-      let baseName = "/" + import_path8.default.basename(pageDir) + "/";
+      let baseName = "/" + import_path7.default.basename(pageDir) + "/";
       if (name.includes(baseName)) {
         let [_, last] = name.split(baseName, 2);
         return "/" + last;
@@ -12316,7 +12300,7 @@ export default __$$metadata;`;
 };
 
 // lib/core/Plugin.js
-var import_path9 = __toESM(require("path"));
+var import_path8 = __toESM(require("path"));
 var import_Compilation2 = __toESM(require("easescript/lib/core/Compilation"));
 function defineError2(complier) {
   if (defineError2.loaded || !complier || !complier.diagnostic)
@@ -12426,7 +12410,7 @@ var Plugin2 = class extends Plugin_default {
     defineError2(this.complier);
     this.#context = createBuildContext2(this, this.records);
     createPolyfillModule(
-      import_path9.default.join(__dirname, "./polyfills"),
+      import_path8.default.join(__dirname, "./polyfills"),
       this.#context.virtuals.createVModule
     );
     if (this.options.ui.fully) {
@@ -12560,8 +12544,8 @@ function getOptions(...options) {
 // package.json
 var package_default = {
   name: "@easescript/es-vue",
-  version: "0.0.1",
-  description: "Code Transform To VUE For EaseScript Plugin",
+  version: "0.0.2",
+  description: "EaseScript Code Transformation Plugin For Vue",
   main: "dist/index.js",
   typings: "dist/types/typings.json",
   scripts: {
@@ -12707,11 +12691,14 @@ var defaultConfig2 = {
     optimize: true,
     makeOptions: {
       file: false,
-      ssrContext: true,
-      vccOpts: false,
-      asyncSetup: {
-        mode: "none",
+      ssrCtx: false,
+      //if set to false, export the class component, otherwise export the vue-options.
+      exportClass: true,
+      //use async steup
+      async: {
         //none ssr nossr all,
+        mode: "none",
+        //function({module,compilation,ssr}):boolean; 
         filter: null
       }
     },
@@ -12721,12 +12708,18 @@ var defaultConfig2 = {
       exposeFilter: (name) => !["window", "document"].includes(name)
     }
   },
-  importSourceQuery: {
-    enabled: false,
-    test: null,
-    types: ["component", "styles"],
+  importFormation: {
     query: {
-      vue: ""
+      enabled: false,
+      test: null,
+      attrs: {
+        vue: ""
+      }
+    },
+    ext: {
+      enabled: false,
+      test: null,
+      suffix: "{extname}.vue"
     }
   }
 };

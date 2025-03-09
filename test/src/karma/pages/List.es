@@ -478,7 +478,7 @@ class List extends Component{
                             <ui:Button type="primary" on:click={saveEdit.bind(this)}>确 定</ui:Button>
                     </div>
                 </ui:Dialog>
-
+                <div class="bg">666</div>
         </div>
 
 
@@ -488,6 +488,10 @@ class List extends Component{
 
 
 <style type='scss'>
+    .bg{
+        background-color: rgb(229, 161, 14);
+        height: 50px;
+    }
     :deep(.infinite-footer){
         background: #ccc;
     }
