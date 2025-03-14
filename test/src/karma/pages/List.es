@@ -177,7 +177,7 @@ class List extends Component{
 
     @Override
     render(){
-
+        const _cache = 1;
         console.log(  this.formData.infiniteCount , '---------infiniteCount-------------');
 
         return <div xmlns:d="@directives" xmlns:dc="@directives::custom" xmlns:s="@slots" xmlns:ui="web.ui">
@@ -478,7 +478,7 @@ class List extends Component{
                             <ui:Button type="primary" on:click={saveEdit.bind(this)}>确 定</ui:Button>
                     </div>
                 </ui:Dialog>
-                <div class="bg">666</div>
+                <div class="bg">66666</div>
         </div>
 
 
@@ -487,7 +487,7 @@ class List extends Component{
 }
 
 
-<style type='scss'>
+<style type='scss' scoped>
     .bg{
         background-color: rgb(229, 161, 14);
         height: 50px;

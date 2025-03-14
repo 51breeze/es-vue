@@ -22,3 +22,24 @@ class DirectiveTop extends Component {
     }
 
 }
+
+<style type='scss' scoped>
+    .infinite-list {
+        height: 300px;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+    }
+    .infinite-list .infinite-list-item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 50px;
+        background: #ccc;
+        margin: 10px;
+        color: #000;
+    }
+    .infinite-list .infinite-list-item + .list-item {
+        margin-top: 10px;
+    }
+</style>

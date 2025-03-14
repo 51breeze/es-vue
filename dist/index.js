@@ -37,6 +37,7 @@ module.exports = __toCommonJS(lib_exports);
 
 // node_modules/@easescript/transform/lib/core/Plugin.js
 var import_Compilation = __toESM(require("easescript/lib/core/Compilation"));
+var import_Diagnostic = __toESM(require("easescript/lib/core/Diagnostic"));
 var import_path6 = __toESM(require("path"));
 
 // node_modules/@easescript/transform/lib/core/Builder.js
@@ -1756,10 +1757,14 @@ function createCJSExports(ctx, exportManage, graph) {
           );
         }
       } else if (spec.type === "default") {
+        let local = spec.local;
+        if (spec.local.type === "ExpressionStatement") {
+          local = spec.local.expression;
+        }
         properties2.push(
           ctx.createProperty(
             ctx.createIdentifier("default"),
-            spec.local,
+            local,
             spec.stack
           )
         );
@@ -9531,20 +9536,18 @@ function createPolyfillModule(dirname, createVModule) {
 
 // node_modules/@easescript/transform/lib/core/Plugin.js
 var import_events = __toESM(require("events"));
-function defineError(complier) {
-  if (defineError.loaded || !complier || !complier.diagnostic)
-    return;
-  defineError.loaded = true;
-  let define = complier.diagnostic.defineError;
-  define(1e4, "", [
+import_Diagnostic.default.register("transform", (definer) => {
+  definer(
+    1e4,
     "\u7ED1\u5B9A\u7684\u5C5E\u6027(%s)\u5FC5\u987B\u662F\u4E00\u4E2A\u53EF\u8D4B\u503C\u7684\u6210\u5458\u5C5E\u6027",
     "Binding the '%s' property must be an assignable members property"
-  ]);
-  define(10101, "", [
+  );
+  definer(
+    10101,
     "\u8DEF\u7531\u53C2\u6570(%s)\u7684\u9ED8\u8BA4\u503C\u53EA\u80FD\u662F\u4E00\u4E2A\u6807\u91CF",
     "Route params the '%s' defalut value can only is a literal type."
-  ]);
-}
+  );
+});
 var plugins = /* @__PURE__ */ new Set();
 var processing = /* @__PURE__ */ new Map();
 async function execute(compilation, asyncBuildHook) {
@@ -9637,7 +9640,6 @@ var Plugin = class _Plugin extends import_events.default {
       return;
     this.#initialized = true;
     this.#complier = complier;
-    defineError(complier);
     await this.init();
     if (this.options.mode === "development") {
       this.watch();
@@ -9717,6 +9719,7 @@ function hasStyleScoped(compilation) {
 
 // lib/core/Context.js
 var EXCLUDE_STYLE_RE = /[\\\/]style[\\\/](css|index)$/i;
+var emptyObject2 = {};
 var Context2 = class extends Context_default {
   #staticHoisted = /* @__PURE__ */ new Set();
   addStaticHoisted(node) {
@@ -9736,6 +9739,39 @@ var Context2 = class extends Context_default {
   }
   get staticHoistedItems() {
     return Array.from(this.#staticHoisted.values());
+  }
+  #cacheRecords = null;
+  getRenderContextForVNode(jsxElement) {
+    if (!jsxElement)
+      return emptyObject2;
+    let root = jsxElement.jsxRootElement;
+    if (!root)
+      return emptyObject2;
+    let cacheRecords = this.#cacheRecords || (this.#cacheRecords = /* @__PURE__ */ new Map());
+    let records2 = cacheRecords.get(root);
+    if (!records2) {
+      let method = root.getParentStack((parent) => parent.isMethodDefinition);
+      let refs = "_cache";
+      if (method && method.isMethodDefinition) {
+        refs = this.getLocalRefName(method, "_cache", method);
+      }
+      cacheRecords.set(root, records2 = { method, refs, count: 0 });
+    }
+    return records2;
+  }
+  #cacheIndex = 0;
+  createCacheForVNode(jsxElement, vnode) {
+    let ctx = this.getRenderContextForVNode(jsxElement);
+    let { method, refs } = ctx;
+    if (!method)
+      return vnode;
+    ctx.count++;
+    let index = this.#cacheIndex++;
+    let object = this.createComputeMemberExpression([this.createIdentifier(refs), this.createLiteral(index)]);
+    let node = this.createLogicalExpression(object, this.createParenthesizedExpression(
+      this.createAssignmentExpression(object, vnode)
+    ), "||");
+    return node;
   }
   getAvailableOriginType(type) {
     if (type) {
@@ -10848,7 +10884,7 @@ function createAttributes2(ctx, stack, data) {
       name = String(name);
       name = name.includes(":") ? ctx.createLiteral(name) : ctx.createIdentifier(name);
     }
-    let property = ctx.createProperty(name, node);
+    let property = ctx.createProperty(name, ctx.createCacheForVNode(stack, node));
     if (property.key.computed) {
       property.computed = true;
       property.key.computed = false;
@@ -11329,7 +11365,11 @@ function createNormalVNode(ctx, childNode, toTextNode = false, disableHoisted = 
     node.isElementVNode = true;
   }
   if (!disableHoisted && node && node.pureStaticChild && !node.isStaticHoistedNode) {
-    node = ctx.addStaticHoisted(node);
+    if (node.isTextVNode) {
+      node = ctx.addStaticHoisted(node);
+    } else {
+      node = ctx.createCacheForVNode(stack, node);
+    }
   }
   return node;
 }
@@ -11617,7 +11657,7 @@ function createElement2(ctx, stack) {
             childNodes = makeChildrenNodes(ctx, children, true, pureStaticChild, stack);
           }
           if (childNodes && !isStaticHoisted && childNodes.pureStaticChild) {
-            childNodes = ctx.addStaticHoisted(childNodes);
+            childNodes = ctx.createCacheForVNode(stack, childNodes);
           }
         }
       }
@@ -11631,6 +11671,28 @@ function createElement2(ctx, stack) {
   }
   nodeElement.pureStaticChild = isStaticHoisted;
   nodeElement.hasKeyAttribute = !!data.key;
+  if (isRoot) {
+    let { method, refs, count } = ctx.getRenderContextForVNode(stack);
+    if (count > 0) {
+      let methodBlock = ctx.getNode(method.body);
+      if (methodBlock) {
+        let createCache2 = ctx.createVariableDeclaration("const", [
+          ctx.createVariableDeclarator(
+            ctx.createIdentifier(refs),
+            ctx.createCallExpression(
+              ctx.createMemberExpression([
+                ctx.createThisExpression(),
+                ctx.createIdentifier("getCacheForVNode")
+              ])
+            )
+          )
+        ]);
+        methodBlock.body.unshift(createCache2);
+      } else {
+        console.error("[ESX] Not found method body in element context");
+      }
+    }
+  }
   return nodeElement;
 }
 
@@ -12287,10 +12349,10 @@ export default __$$metadata;`;
 // lib/core/Plugin.js
 var import_path8 = __toESM(require("path"));
 var import_Compilation2 = __toESM(require("easescript/lib/core/Compilation"));
-function defineError2(complier) {
-  if (defineError2.loaded || !complier || !complier.diagnostic)
+function defineError(complier) {
+  if (defineError.loaded || !complier || !complier.diagnostic)
     return;
-  defineError2.loaded = true;
+  defineError.loaded = true;
   let define = complier.diagnostic.defineError;
   define(11e3, "", [
     '\u5BF9\u975E\u5143\u7D20\u6839\u8282\u70B9\u7684\u7EC4\u4EF6\u4F7F\u7528"show"\u6307\u4EE4\u65F6\uFF0C\u65E0\u6CD5\u6309\u9884\u671F\u8FD0\u884C\u3002',
@@ -12392,7 +12454,7 @@ var Plugin2 = class extends Plugin_default {
     return makeCode;
   }
   init() {
-    defineError2(this.complier);
+    defineError(this.complier);
     this.#context = createBuildContext2(this, this.records);
     createPolyfillModule(
       import_path8.default.join(__dirname, "./polyfills"),
@@ -12594,6 +12656,7 @@ var package_default = {
     "easescript-cli": "latest",
     "element-plus": "^2.4.1",
     "es-loader": "latest",
+    "esbuild-plugin-copy": "^2.1.1",
     "file-loader": "^6.2.0",
     "html-webpack-plugin": "^5.5.0",
     i18n: "^0.15.1",
@@ -12676,7 +12739,7 @@ var defaultConfig2 = {
     optimize: true,
     makeOptions: {
       file: false,
-      ssrCtx: false,
+      ssrCtx: void 0,
       //if set to false, export the class component, otherwise export the vue-options.
       exportClass: true,
       //use async steup
@@ -12709,10 +12772,16 @@ var defaultConfig2 = {
   }
 };
 function plugin(options = {}) {
+  options = getOptions2(options);
+  if (options.ssr) {
+    if (options.vue.makeOptions.ssrCtx !== false) {
+      options.vue.makeOptions.ssrCtx = true;
+    }
+  }
   return new Plugin_default2(
     package_default.esconfig.scope,
     package_default.version,
-    getOptions2(options)
+    options
   );
 }
 function getOptions2(...options) {

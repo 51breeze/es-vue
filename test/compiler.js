@@ -25,6 +25,7 @@ class Creator {
             hot:true,
             babel:false,
             version:3,
+            ssr:true,
             // format:'vue-template',//vue-jsx vue-template
             srcCSS:false,
             sourceMaps:true,

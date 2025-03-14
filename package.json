@@ -65,6 +65,7 @@
     "easescript-cli": "latest",
     "element-plus": "^2.4.1",
     "es-loader": "latest",
+    "esbuild-plugin-copy": "^2.1.1",
     "file-loader": "^6.2.0",
     "html-webpack-plugin": "^5.5.0",
     "i18n": "^0.15.1",

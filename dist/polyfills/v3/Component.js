@@ -14,6 +14,8 @@
 ///<references from='web.events.ComponentEvent' name='ComponentEvent' />
 ///<namespaces name='web.components' />
 
+const { ca } = require("element-plus/es/locale/index.mjs");
+
 function copyObject(target, deep){
     if( target && typeof target ==='object' ){
         if( Object.prototype.toString.call(target) === '[object Object]' ){
@@ -57,6 +59,7 @@ function Component(props){
             vueContext:null,
             children:[],
             injecteds:[],
+            renderCached:null,
             propsUpdating:false,
             provides:emtyObject,
             preventedProps:Object.create(null),
@@ -350,6 +353,19 @@ Object.defineProperty( proto, 'removeEventListener', {value:function removeEvent
 
 Object.defineProperty( proto, 'hasEventListener', {value:function hasEventListener(type, listener){
     return EventDispatcher.prototype.hasEventListener.call(this,type, listener);
+}});
+
+Object.defineProperty( proto, 'getCacheForVNode', {value:function getCacheForVNode(){
+    const target = this[privateKey];
+    if(!target.renderCached){
+        target.renderCached  = [];
+    }
+    return target.renderCached;
+}});
+
+Object.defineProperty( proto, 'setCacheForVNode', {value:function setCacheForVNode(cached){
+    const target = this[privateKey];
+    return target.renderCached=cached;
 }});
 
 Object.defineProperty( proto, 'on', {value:function on(type, listener){
@@ -818,8 +834,9 @@ Object.defineProperty( Component, 'createComponent', {value:function createCompo
             }
             return [esInstance, exposes, initialized];
         }else{
-            return [esInstance, function(){
-                return esInstance.render( _createVNode );
+            return [esInstance, function(ctx, cached){
+                esInstance.setCacheForVNode(cached)
+                return esInstance.render(_createVNode);
             }, initialized];
         }
     }
