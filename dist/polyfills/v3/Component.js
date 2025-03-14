@@ -14,8 +14,6 @@
 ///<references from='web.events.ComponentEvent' name='ComponentEvent' />
 ///<namespaces name='web.components' />
 
-const { ca } = require("element-plus/es/locale/index.mjs");
-
 function copyObject(target, deep){
     if( target && typeof target ==='object' ){
         if( Object.prototype.toString.call(target) === '[object Object]' ){
@@ -681,10 +679,15 @@ Object.defineProperty( Component, 'createComponent', {value:function createCompo
     const esHandle = options.esHandle || 'esInstance';
     const esPrivateKey = options.esPrivateKey;
     const ssrCtx = options.__ssrCtx;
+    const ssrRender = options.__ssrRender;
     const asyncSetup = options.__async;
     const exportClass = options.__exportClass;
     const classDescriptor = Class.getClassDescriptor(constructor);
     options.props = options.props || {};
+    if(ssrRender){
+        //options.__ssrInlineRender = true;
+    }
+
     if(classDescriptor){
         let inheritClass = classDescriptor;
         while(inheritClass && (inheritClass = inheritClass.inherit) && inheritClass !== Component ){
@@ -717,6 +720,7 @@ Object.defineProperty( Component, 'createComponent', {value:function createCompo
         delete options.esPrivateKey;
         delete options.exposes;
     }
+    delete options.__ssrRender;
     delete options.__ssrCtx;
     delete options.__exportClass;
     delete options.__async;
