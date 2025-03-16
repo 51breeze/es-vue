@@ -9746,14 +9746,28 @@ var Context2 = class extends Context_default {
     if (!root)
       return emptyObject2;
     let cacheRecords = this.#cacheRecords || (this.#cacheRecords = /* @__PURE__ */ new Map());
-    let records2 = cacheRecords.get(root);
+    let method = root.getParentStack((parent) => parent.isMethodDefinition);
+    if (!method || !method.isMethodDefinition) {
+      return emptyObject2;
+    }
+    let records2 = cacheRecords.get(method);
     if (!records2) {
-      let method = root.getParentStack((parent) => parent.isMethodDefinition);
-      let refs = "_cache";
-      if (method && method.isMethodDefinition) {
-        refs = this.getLocalRefName(method, "_cache", method);
-      }
-      cacheRecords.set(root, records2 = { method, refs, count: 0 });
+      let refs = this.getLocalRefName(method, "_cache", method);
+      let added = false;
+      cacheRecords.set(
+        method,
+        records2 = {
+          method,
+          refs,
+          count: 0,
+          created: () => {
+            if (added)
+              return true;
+            added = true;
+            return false;
+          }
+        }
+      );
     }
     return records2;
   }
@@ -11670,8 +11684,8 @@ function createElement2(ctx, stack) {
   nodeElement.pureStaticChild = isStaticHoisted;
   nodeElement.hasKeyAttribute = !!data.key;
   if (isRoot) {
-    let { method, refs, count } = ctx.getRenderContextForVNode(stack);
-    if (count > 0) {
+    let { method, refs, count, created } = ctx.getRenderContextForVNode(stack);
+    if (count > 0 && !created()) {
       let methodBlock = ctx.getNode(method.body);
       if (methodBlock) {
         let createCache2 = ctx.createVariableDeclaration("const", [
