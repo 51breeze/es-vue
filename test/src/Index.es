@@ -5,8 +5,6 @@ import Test;
 import web.components.Router;
 import web.components.Viewport;
 import Person;
-import MyView;
-import MySkin;
 import web.components.Component;
 import web.Application;
 
@@ -25,20 +23,25 @@ class Index extends Application{
         return <Test />;
     }
 
-    get router(){
-        return new Router({
-                mode:'hash',
-                routes:[
-                    {
-                        path:"/index",
-                        component:Person
-                    },
-                    {
-                        path:"/test",
-                        component:PersonSkin
-                    }
-                ]
-        });
+    get routes(){
+        console.log( super.routes )
+        return super.routes;
     }
+
+    // get router(){
+    //     return new Router({
+    //             mode:'hash',
+    //             routes:[
+    //                 {
+    //                     path:"/index",
+    //                     component:Person
+    //                 },
+    //                 {
+    //                     path:"/test",
+    //                     component:PersonSkin
+    //                 }
+    //             ]
+    //     });
+    // }
 
 }

@@ -80,26 +80,27 @@ class Index extends Application{
 
         const ro = super.routes;
         console.log( ro )
+        return ro;
 
-        return [
-            {
-                path:"/",
-                name:'default',
-                redirect:'/home',
-            },
-            {
-                path:"/home",
-                name:'Home',
-                meta:{title:"Home"},
-                component:Home
-            },
-            {
-                path:"/list",
-                name:'List',
-                meta:{title:"List"},
-                component:List
-            }
-        ]
+        // return [
+        //     {
+        //         path:"/",
+        //         name:'default',
+        //         redirect:'/home',
+        //     },
+        //     {
+        //         path:"/home",
+        //         name:'Home',
+        //         meta:{title:"Home"},
+        //         component:Home
+        //     },
+        //     {
+        //         path:"/list",
+        //         name:'List',
+        //         meta:{title:"List"},
+        //         component:List
+        //     }
+        // ]
     }
 
     get locale(){

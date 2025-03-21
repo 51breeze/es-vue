@@ -7,8 +7,6 @@ package{
     import web.ui.Select;
     import web.ui.Option;
     import web.ui.Notification;
-    import web.Skin;
-    import MySkin;
     import web.components.Viewport
     import web.components.Link;
     import web.animation.Transition;
@@ -117,7 +115,7 @@ package{
 
                         {this.label}
 
-                        <Link to='/test'>测试页面</Link>
+                        <Link to='/pages/Address'>测试页面</Link>
                         <br />
                         <Link to='/index'>首页面</Link>
                         <div>
