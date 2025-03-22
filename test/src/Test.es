@@ -27,8 +27,6 @@ package{
 
             console.log('====onInitialized========')
             super.onInitialized()
-
-           
         }
 
         @Override

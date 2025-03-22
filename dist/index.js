@@ -968,11 +968,16 @@ function createRouteInstance(ctx, module2, owner, path9, method, meta = null, pa
   if (!pathName.startsWith("/")) {
     pathName = "/" + pathName;
   }
+  let fullname = module2.getName("/");
+  if (action) {
+    fullname += "/" + action;
+  }
   let data = {
     isRoute: true,
     isWebComponent,
     isRouterModule,
     path: pathName,
+    name: fullname,
     action,
     params,
     defaultValue,
@@ -1258,10 +1263,15 @@ function getModuleRedirectNode(ctx, module2) {
         if (annotParamStack.isAssignmentPattern) {
           if (annotParamStack.right.isIdentifier || annotParamStack.right.isLiteral) {
             params[name] = annotParamStack.right.value();
+            if (annotParamStack.right.isIdentifier) {
+              params[name] = ctx.createIdentifier(params[name]);
+            } else {
+              params[name] = ctx.createLiteral(params[name]);
+            }
           } else {
             const gen = new Generator();
             gen.make(this.createToken(annotParamStack.right));
-            params[name] = gen.toString();
+            params[name] = ctx.createChunkExpression(gen.toString(), false);
           }
         }
       });
@@ -1274,7 +1284,7 @@ function getModuleRedirectNode(ctx, module2) {
           if (route.params.length > 0) {
             let properties2 = Object.keys(params).map((key) => ctx.createProperty(
               ctx.createIdentifier(key),
-              ctx.createChunkExpression(params[key], false)
+              params[key]
             ));
             paramNode = properties2.length > 0 ? ctx.createObjectExpression(properties2) : null;
           }
@@ -1535,6 +1545,22 @@ function createRouteCompletePathNode(ctx, route, param = null, stack = null) {
     stack
   );
 }
+function getPageRoutePath(ctx, route) {
+  let routeParamFormat = ctx.options?.formation?.routeParamFormat;
+  let routePath = route.path;
+  if (route.params.length > 0) {
+    properties = [];
+    let segments = route.params.map((item) => {
+      let name = item.name;
+      if (routeParamFormat) {
+        return routeParamFormat(name, item.optional);
+      }
+      return item.optional ? `:${name}?` : `:${name}`;
+    });
+    routePath = [routePath, ...segments].join("/");
+  }
+  return routePath;
+}
 function parseRouteCompletePath(ctx, route, paramArg = null) {
   let routePath = route.path;
   let properties2 = null;
@@ -1622,7 +1648,7 @@ function createRouteConfigNodeForHttpRequest(ctx, route, paramArg) {
   Object.keys(route.defaultValue).forEach((key) => {
     defaultParams.push(ctx.createProperty(
       ctx.createIdentifier(key),
-      ctx.createChunkExpression(route.defaultValue[key], false)
+      Node_default.is(route.defaultValue[key]) ? route.defaultValue[key] : ctx.createChunkExpression(route.defaultValue[key], false)
     ));
   });
   if (route.params.length > 0) {
@@ -12020,12 +12046,13 @@ var MakeCode = class extends Token_default {
     pages.forEach((pageModule) => {
       const pid = import_path7.default.dirname(pageModule.file).toLowerCase();
       const id = (pid + "/" + pageModule.id).toLowerCase();
-      let routes = this.getModuleRoute(ctx, pageModule, true);
+      let routes = this.getModuleRoute(ctx, pageModule);
       let metakey = "__meta" + metadata.size;
       metadata.set(pageModule, metakey);
       routes.forEach((route) => {
+        let routePath = getPageRoutePath(ctx, route);
         let item = {
-          path: route.path || "/" + pageModule.getName("/"),
+          path: routePath || "/" + pageModule.getName("/"),
           name: route.name || pageModule.getName("/"),
           meta: metakey,
           redirect: getModuleRedirectNode(ctx, pageModule),
@@ -12068,7 +12095,7 @@ ${top}]`;
     };
     const code = make(Object.values(routesData));
     const gen = new Generator_default();
-    ctx.createModuleDependencies(contextModule);
+    ctx.createAllDependencies();
     let importNodes = null;
     if (ctx.options.module === "cjs") {
       importNodes = createCJSImports(ctx, ctx.imports);
@@ -12097,17 +12124,10 @@ ${top}]`;
     return name;
   }
   getModuleRoute(ctx, module2) {
-    if (!module2)
-      return [];
-    if (!module2.isModule || !module2.isClass || module2.isDeclaratorModule)
-      return [];
-    let routes = getModuleRoutes(ctx, module2);
-    if (routes && routes.length > 0)
-      return routes;
-    return [];
+    return getModuleRoutes(ctx, module2);
   }
-  makeModuleMetadata(module2) {
-    const ctx = this.plugin.context.makeContext(module2);
+  makeModuleMetadata(module2, compilation) {
+    const ctx = this.plugin.context.makeContext(compilation);
     const metadataAnnot = getModuleAnnotations(module2, ["metadata"])[0];
     const imports = /* @__PURE__ */ new Set();
     const body = [];
@@ -12182,11 +12202,10 @@ ${top}]`;
     }
     if (imports.size > 0) {
       imports.forEach((stack) => {
-        console.log(stack.source?.value());
-        const node = ctx.createToken(stack);
+        ctx.createToken(stack);
       });
     }
-    ctx.createModuleDependencies(module2);
+    ctx.createAllDependencies();
     let importNodes = null;
     if (ctx.options.module === "cjs") {
       importNodes = createCJSImports(ctx, ctx.imports);
@@ -12225,7 +12244,7 @@ export default __$$metadata;`;
       module2 = Array.from(compilation.modules.values()).find((m) => m.getName() === query.id && m.isModule && m.isClass && !m.isDeclaratorModule);
     }
     if (import_Utils25.default.isModule(module2)) {
-      return this.makeModuleMetadata(module2);
+      return this.makeModuleMetadata(module2, compilation);
     }
     return `export default {};`;
   }
@@ -12706,7 +12725,6 @@ var defaultConfig2 = {
   pageDir: "pages",
   localeDir: "locales",
   pageExcludeRegular: null,
-  routePathWithNamespace: true,
   projectConfigFile: ".env",
   webpack: {
     enable: false,

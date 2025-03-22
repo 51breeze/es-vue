@@ -34,8 +34,10 @@ class Creator {
                 optimize:true,
             },
             metadata:{
-                env:process.env,
-                //platform:'server'
+                env:{
+                    ...process.env,
+                    platform: 'server' ,
+                }
             },
         });
     }
