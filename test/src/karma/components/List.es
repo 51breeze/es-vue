@@ -44,6 +44,10 @@ class List extends Component {
         console.log( this.getAttribute('config') )
         console.log('---List Component----onMounted-----', this.title, this.items);
     }
+
+    onClick(){
+
+    }
    
     @Override
     render(){
@@ -73,12 +77,12 @@ class List extends Component {
 
             <div class='for-way4'>
                 <d:each name="items" item="item" key="key" >
-                    <span>{item.label}-{key}</span>
+                    <span on:click={onClick}>{item.label}-{key}</span>
                 </d:each>
             </div>
 
             <div class='from-data'>
-                <div d:for="(item,key) in fromData" class={key}>
+                <div d:for="(item,key) in fromData" class={key} on:click={onClick}>
                     {key}:{item}
                 </div>
             </div>

@@ -84,6 +84,17 @@ package{
             return this.reactive('children');
         }
 
+        getNavs(){
+            const getItem = (val)=>{
+                return <div on:click={this.tips}>{val}</div>
+            }
+            return [1,2].map(item=>getItem(item))
+        }
+
+        getNodes(){
+            return <div on:click={tips}></div>
+        }
+
         private  label='9999999'
 
         @override
@@ -116,6 +127,8 @@ package{
                         <Link to='/pages/Address'>测试页面</Link>
                         <br />
                         <Link to='/index'>首页面</Link>
+
+                        <div d:each="(item,i) in [1,2,3]" on:click={tips} >{item}</div>
                         <div>
                             <Viewport />
                         </div>

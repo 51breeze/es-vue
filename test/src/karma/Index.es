@@ -4,6 +4,7 @@ import web.components.Router;
 import web.components.Viewport;
 import karma.pages.Home;
 import karma.pages.List;
+import karma.pages.design.Home as DesignHome;
 import web.components.Component;
 import web.events.ComponentEvent;
 import web.Application;
@@ -77,30 +78,31 @@ class Index extends Application{
 
     
     get routes(){
-
-        const ro = super.routes;
-        console.log( ro )
-        return ro;
-
-        // return [
-        //     {
-        //         path:"/",
-        //         name:'default',
-        //         redirect:'/home',
-        //     },
-        //     {
-        //         path:"/home",
-        //         name:'Home',
-        //         meta:{title:"Home"},
-        //         component:Home
-        //     },
-        //     {
-        //         path:"/list",
-        //         name:'List',
-        //         meta:{title:"List"},
-        //         component:List
-        //     }
-        // ]
+        return [
+            {
+                path:"/",
+                name:'default',
+                redirect:'/home',
+            },
+            {
+                path:"/home",
+                name:'Home',
+                meta:{title:"Home"},
+                component:Home
+            },
+            {
+                path:"/list",
+                name:'List',
+                meta:{title:"List"},
+                component:List
+            },
+            {
+                path:"/design",
+                name:'design',
+                meta:{title:"design"},
+                component:DesignHome
+            }
+        ]
     }
 
     get locale(){

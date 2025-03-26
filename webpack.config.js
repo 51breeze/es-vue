@@ -35,13 +35,15 @@ const plugins=[
       uiFully:true,
       mode:'development',
       srcCSS:false,
-      optimize:true,
       projectConfigFile:'.env',
       //pageDir:'pages',
       pageDir:false,
       hmrHandler:'import.meta.webpackHot',
       metadata:{
-        env:process.env,
+        env:{
+          ...process.env,
+          //testframework:"karma"
+        },
         //platform:'server'
       },
       vue:{

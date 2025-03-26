@@ -177,7 +177,6 @@ class List extends Component{
 
     @Override
     render(){
-        const _cache = 1;
         console.log(  this.formData.infiniteCount , '---------infiniteCount-------------');
 
         return <div xmlns:d="@directives" xmlns:dc="@directives::custom" xmlns:s="@slots" xmlns:ui="web.ui">
