@@ -11542,6 +11542,9 @@ function createAttributes2(ctx, stack, data) {
   }
   if (!data.key) {
     data.key = createElementKeyPropertyNode(ctx, stack);
+    if (data.key && data.key.type !== "Literal") {
+      pureStaticAttributes = false;
+    }
   }
   data.pureStaticAttributes = pureStaticAttributes;
 }
