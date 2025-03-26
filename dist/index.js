@@ -10916,11 +10916,8 @@ var ELEMENT_NEED_PATCH = 512;
 var ELEMENT_DYNAMIC_SLOTS = 1024;
 var ELEMENT_HOISTED = -1;
 var ELEMENT_BAIL = -2;
-function addPatchFlag(data, flag, isProps = false) {
+function addPatchFlag(data, flag) {
   if ((data.patchFlag & flag) !== flag) {
-    if (data.hasDynamicKeys && isProps && flag !== ELEMENT_FULL_PROPS) {
-      return;
-    }
     if (flag === ELEMENT_HOISTED) {
       data.patchFlag = ELEMENT_HOISTED;
     } else if (flag === ELEMENT_BAIL) {
@@ -10963,8 +10960,8 @@ function createDirectiveDescriptor(ctx, stack, child, prev = null) {
   if (!child)
     return null;
   let hasKeyAttribute = child.hasKeyAttribute;
-  let isPureStaticChild2 = child.isPureStaticChild;
-  if (stack.isJSXExpressionContainer && child.type === "CallExpression") {
+  let pureStaticChild = child.pureStaticChild;
+  if (stack.isJSXExpressionContainer && !child.isExplicitVNode && child.type === "CallExpression") {
     let origin = stack.expression.type();
     if (origin && origin.isTupleType) {
       child = createFragmentVNode2(ctx, child, null, hasKeyAttribute ? ELEMENT_KEYED_FRAGMENT : ELEMENT_UNKEYED_FRAGMENT, true);
@@ -11025,7 +11022,7 @@ function createDirectiveDescriptor(ctx, stack, child, prev = null) {
     } else if (name === "if") {
       child = ctx.createConditionalExpression(ctx.createToken(valueArgument.expression), child);
       child.hasKeyAttribute = hasKeyAttribute;
-      child.isPureStaticChild = isPureStaticChild2;
+      child.pureStaticChild = pureStaticChild;
       cmd.push(name);
     } else if (name === "elseif") {
       if (!prev || !(prev.cmd.includes("if") || prev.cmd.includes("elseif"))) {
@@ -11035,7 +11032,7 @@ function createDirectiveDescriptor(ctx, stack, child, prev = null) {
       }
       child = ctx.createConditionalExpression(ctx.createToken(valueArgument.expression), child);
       child.hasKeyAttribute = hasKeyAttribute;
-      child.isPureStaticChild = isPureStaticChild2;
+      child.pureStaticChild = pureStaticChild;
     } else if (name === "else") {
       if (!prev || !(prev.cmd.includes("if") || prev.cmd.includes("elseif"))) {
         directive.name.error(1114, name);
@@ -11938,7 +11935,7 @@ function getElementStats(ctx, stack, data, children, isRoot = false) {
   }
   children.forEach((child) => {
     hasKeys = !!child.hasKeyAttribute;
-    pureStaticChild = data.pureStaticChild && pureStaticAttributes ? isPureStaticChild(child) : false;
+    pureStaticChild = data.pureStaticChild ? isPureStaticChild(child) : false;
     if (child.isForVNode || child.hasForNode) {
       hasForNode = true;
       if (isWebComponent) {
@@ -12071,7 +12068,7 @@ function createElement2(ctx, stack) {
           }
         }
         if (properties2.length > 0) {
-          if ((data.patchFlag & ELEMENT_DYNAMIC_SLOTS) === ELEMENT_DYNAMIC_SLOTS) {
+          if (data.patchFlag & ELEMENT_DYNAMIC_SLOTS) {
             properties2.push(ctx.createProperty(
               ctx.createIdentifier("_"),
               ctx.createLiteral(2)
@@ -12085,15 +12082,7 @@ function createElement2(ctx, stack) {
           childNodes = ctx.createObjectExpression(properties2);
         }
       } else if (children.length > 0) {
-        if (children.length > 1 || !isStaticHoisted) {
-          childNodes = makeChildrenNodes(ctx, children, true, pureStaticChild, stack);
-        } else {
-          if (children[0] && children[0].type === "Literal") {
-            childNodes = children[0];
-          } else {
-            childNodes = makeChildrenNodes(ctx, children, true, pureStaticChild, stack);
-          }
-        }
+        childNodes = makeChildrenNodes(ctx, children, true, pureStaticChild, stack);
       }
       nodeElement = makeElementVNode(ctx, stack, data, childNodes, isBlock);
     }
