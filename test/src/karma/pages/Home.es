@@ -11,6 +11,11 @@ import web.Lang;
 import VList from '../vue/list.es';
 
 
+function Fun(){
+
+}
+
+@Fun
 @Define(emits, close, start, end=ending)
 @Define(options, emits, open)
 @Define(options, file, true, type='--literal')
@@ -41,6 +46,7 @@ class Home extends Component{
             return this._title;
       }
 
+      @Fun
       addItem(item:{label:string}){
             this.list.push( item );
       }
