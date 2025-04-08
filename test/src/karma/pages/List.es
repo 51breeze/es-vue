@@ -369,6 +369,7 @@ class List extends Component{
                     Open Drawer
                 </ui:Button>
                 <ui:Drawer
+                    __SSID__
                     bind:value={this.formData.drawer}
                     title="I am the title"
                     direction="rtl"
@@ -487,6 +488,7 @@ class List extends Component{
 
 
 <style type='scss' scoped>
+
     .bg{
         background-color: rgb(229, 161, 14);
         height: 50px;

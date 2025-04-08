@@ -5923,19 +5923,20 @@ function CallExpression_default(ctx, stack) {
   const module2 = stack.module;
   const isChainExpression = stack.parentStack.isChainExpression;
   if (stack.callee.isSuperExpression) {
+    let useClass = ctx.useClassConstructor(module2);
+    const parent = module2 && module2.inherit;
+    if (parent) {
+      if (!ctx.isActiveModule(parent, stack.module, true) || !useClass && ctx.isES6ClassModule(parent)) {
+        return null;
+      }
+      ctx.addDepend(parent, module2);
+    }
     if (ctx.useClassConstructor(module2)) {
       return ctx.createCallExpression(
         ctx.createSuperExpression(void 0, stack.callee),
         stack.arguments.map((item) => ctx.createToken(item)),
         stack
       );
-    }
-    const parent = module2 && module2.inherit;
-    if (parent) {
-      ctx.addDepend(parent, module2);
-      if (!ctx.isActiveModule(parent, stack.module, true) || ctx.isES6ClassModule(parent)) {
-        return null;
-      }
     }
   }
   if (isMember && !isChainExpression && (!desc || desc.isType && desc.isAnyType)) {
@@ -6189,11 +6190,11 @@ var ClassBuilder = class {
   }
   createImplements(ctx, module2, stack = null) {
     let iteratorModule = null;
-    this.implements = module2.implements.map((impModule, index) => {
+    this.implements = module2.implements.map((impModule) => {
       if (impModule.isInterface && ctx.isActiveModule(impModule, module2, true)) {
-        ctx.addDepend(impModule, module2);
         iteratorModule = iteratorModule || import_Namespace3.default.globals.get("Iterator");
         if (iteratorModule !== impModule) {
+          ctx.addDepend(impModule, module2);
           let refs = null;
           if (impModule.isDeclaratorModule) {
             let impStack = stack.implements.find((imp) => imp.type() === impModule);
@@ -6351,11 +6352,16 @@ var ClassBuilder = class {
     construct.key = this.getModuleIdNode();
     if (this.checkNeedInitPrivateNode()) {
       let body = construct.body.body;
-      let appendAt = module2.inherit ? 1 : 0;
-      let els = [
-        ...this.initProperties,
-        this.appendDefinePrivatePropertyNode(ctx, ...this.privateProperties)
-      ];
+      let hasInherit = module2.inherit && this.inherit;
+      let appendAt = hasInherit ? 1 : 0;
+      let els = [];
+      if (hasInherit && construct.isDefaultConstructMethod && !construct.hasCallSupper) {
+        appendAt = 0;
+        els.push(this.createCallSuperNode(ctx));
+        construct.hasCallSupper = true;
+      }
+      els.push(...this.initProperties);
+      els.push(this.appendDefinePrivatePropertyNode(ctx, ...this.privateProperties));
       body.splice(appendAt, 0, ...els);
     }
   }
@@ -6463,44 +6469,70 @@ var ClassBuilder = class {
     }
     return node;
   }
+  createCallSuperNode(ctx, params = []) {
+    let refs = null;
+    let inheritStack = this.stack.inherit;
+    let inherit = this.module.inherit;
+    if (inherit.isDeclaratorModule && import_Utils10.default.isStack(inheritStack) && inheritStack.isIdentifier) {
+      let desc = inheritStack.description();
+      if (import_Utils10.default.isStack(desc) && desc.isDeclarator) {
+        refs = inheritStack.value();
+      }
+    }
+    if (!refs) {
+      refs = ctx.getModuleReferenceName(inherit, this.module);
+    }
+    let args = null;
+    if (this.inherit && this.stack.isModuleForWebComponent(this.module.inherit)) {
+      const propsNode = ctx.createMemberExpression([
+        ctx.createIdentifier("arguments"),
+        ctx.createLiteral(0)
+      ]);
+      propsNode.computed = true;
+      args = propsNode;
+    } else {
+      args = params.length > 0 ? params : ctx.createIdentifier("arguments");
+    }
+    if (this.useClassConstructor) {
+      let _args2 = Array.isArray(args) ? args : args.value === "arguments" ? [ctx.createSpreadElement(args)] : [args];
+      return ctx.createCallExpression(
+        ctx.createSuperExpression(),
+        _args2
+      );
+    }
+    let _args = Array.isArray(args) ? ctx.createArrayExpression(args) : args.value === "arguments" ? args : ctx.createArrayExpression([args]);
+    return ctx.createCallExpression(
+      ctx.createMemberExpression(
+        [
+          ctx.createIdentifier(refs),
+          ctx.createIdentifier("apply")
+        ]
+      ),
+      [
+        ctx.createThisExpression(),
+        _args
+      ]
+    );
+  }
   createDefaultConstructor(ctx, id, inherit = null, params = []) {
     const block = ctx.createBlockStatement();
-    if (inherit && !this.useClassConstructor && !ctx.isES6ClassModule(inherit)) {
-      let refs = null;
-      let inheritStack = this.stack.inherit;
-      if (inherit.isDeclaratorModule && import_Utils10.default.isStack(inheritStack) && inheritStack.isIdentifier) {
-        let desc = inheritStack.description();
-        if (import_Utils10.default.isStack(desc) && desc.isDeclarator) {
-          refs = inheritStack.value();
-        }
-      }
-      if (!refs) {
-        refs = ctx.getModuleReferenceName(inherit, this.module);
-      }
-      const se = ctx.createSuperExpression(refs);
-      const args = params.length > 0 ? ctx.createArrayExpression(params) : ctx.createIdentifier("arguments");
+    let hasCallSupper = false;
+    if (inherit && this.inherit && !(this.useClassConstructor || ctx.isES6ClassModule(inherit))) {
+      hasCallSupper = true;
       block.body.push(
         ctx.createExpressionStatement(
-          ctx.createCallExpression(
-            ctx.createMemberExpression(
-              [
-                se,
-                ctx.createIdentifier("apply")
-              ]
-            ),
-            [
-              ctx.createThisExpression(),
-              args
-            ]
-          )
+          this.createCallSuperNode(ctx, params)
         )
       );
     }
-    return ctx.createMethodDefinition(
+    const node = ctx.createMethodDefinition(
       id,
       block,
       params
     );
+    node.hasCallSupper = hasCallSupper;
+    node.isDefaultConstructMethod = true;
+    return node;
   }
   createMemberDescriptor(ctx, node) {
     if (node.dynamic && node.type === "PropertyDefinition") {
@@ -8556,6 +8588,9 @@ function createSlotElementNode(ctx, stack, children) {
 function createDirectiveElementNode(ctx, stack, children) {
   const openingElement = stack.openingElement;
   const name = openingElement.name.value().toLowerCase();
+  if (!children) {
+    children = createCommentVNode(ctx, "child is null");
+  }
   switch (name) {
     case "custom":
     case "show":
@@ -8722,10 +8757,10 @@ function createElement(ctx, stack) {
     nodeElement = createSlotElementNode(ctx, stack, childNodes);
   } else if (stack.isDirective) {
     if (childNodes && childNodes.type == "ArrayExpression") {
-      if (childNodes.elements.length === 1) {
-        childNodes = childNodes.elements[0];
-      } else {
+      if (childNodes.elements.length > 1) {
         childNodes = createFragmentVNode(ctx, childNodes);
+      } else {
+        childNodes = childNodes.elements[0];
       }
     }
     nodeElement = createDirectiveElementNode(ctx, stack, childNodes);
@@ -10317,6 +10352,7 @@ function getOptions(...options) {
 var tokens_exports2 = {};
 __export(tokens_exports2, {
   ClassDeclaration: () => ClassDeclaration_default2,
+  JSXAttribute: () => JSXAttribute_default2,
   JSXElement: () => JSXElement2,
   JSXFragment: () => JSXFragment_default2
 });
@@ -10349,7 +10385,6 @@ var ESXClassBuilder = class extends ClassBuilder_default2 {
   #provideProperties = [];
   #privateReactives = [];
   #exportVueComponentNode = null;
-  #styleScopeId = void 0;
   #props = [];
   createInitMemberProperty(ctx, node, stack, staticFlag = false) {
     const reactiveAnnotation = !staticFlag && node.modifier === "private" && getMethodAnnotations(stack, ["reactive"])[0];
@@ -10660,65 +10695,20 @@ var ESXClassBuilder = class extends ClassBuilder_default2 {
     node.required = required;
     return node;
   }
-  createDefaultConstructor(ctx, methodName, inherit = null, params = []) {
-    if (this.isSkinClass) {
-      return super.createDefaultConstructor(ctx, methodName, inherit, params);
-    }
-    const block = ctx.createBlockStatement();
-    if (inherit) {
-      let refs = null;
-      let inheritStack = this.stack.inherit;
-      if (inherit.isDeclaratorModule && import_Utils25.default.isStack(inheritStack) && inheritStack.isIdentifier) {
-        let desc = inheritStack.description();
-        if (import_Utils25.default.isStack(desc) && desc.isDeclarator) {
-          refs = inheritStack.value();
-        }
-      }
-      if (!refs) {
-        refs = ctx.getModuleReferenceName(inherit, this.module);
-      }
-      if (this.stack.isModuleForWebComponent(inherit)) {
-        const propsNode = ctx.createMemberExpression([
-          ctx.createIdentifier("arguments"),
-          ctx.createLiteral(0)
-        ]);
-        propsNode.computed = true;
-        params = [propsNode];
-      }
-      let callSupper = null;
-      if (ctx.useClassConstructor(this.module)) {
-        callSupper = ctx.createCallExpression(
-          ctx.createSuperExpression(),
-          params
-        );
-      } else {
-        callSupper = ctx.createCallExpression(
-          ctx.createMemberExpression(
-            [
-              ctx.createIdentifier(refs),
-              ctx.createIdentifier("call")
-            ]
-          ),
-          [
-            ctx.createThisExpression()
-          ].concat(params)
-        );
-      }
-      block.body.push(
-        ctx.createExpressionStatement(callSupper)
-      );
-    }
-    const node = ctx.createMethodDefinition(methodName, block);
-    node.isDefaultConstructMethod = true;
-    return node;
-  }
   checkNeedInitPrivateNode() {
     if (this.#privateReactives.length > 0) return true;
     return super.checkNeedInitPrivateNode();
   }
   checkConstructor(ctx, construct, module2) {
     super.checkConstructor(ctx, construct, module2);
+    const checkSupper = () => {
+      if (this.inherit && module2.inherit && construct.isDefaultConstructMethod && !construct.hasCallSupper) {
+        construct.body.body.unshift(this.createCallSuperNode(ctx));
+        construct.hasCallSupper = true;
+      }
+    };
     if (this.#privateReactives.length > 0) {
+      checkSupper();
       let privateName = this.createPrivateRefsName(ctx);
       const privateNode = ctx.createComputeMemberExpression([
         ctx.createThisExpression(),
@@ -10742,6 +10732,7 @@ var ESXClassBuilder = class extends ClassBuilder_default2 {
     }
     const injectAndProvide = this.#provideProperties.concat(this.#injectProperties);
     if (injectAndProvide.length > 0) {
+      checkSupper();
       this.#provideProperties.length = 0;
       this.#injectProperties.length = 0;
       construct.body.body.push(...injectAndProvide);
@@ -10936,15 +10927,7 @@ var ESXClassBuilder = class extends ClassBuilder_default2 {
     return ctx.createObjectExpression(properties2);
   }
   getStyleScopeId(ctx) {
-    let present = this.#styleScopeId;
-    if (present === void 0) {
-      if (hasStyleScoped(this.compilation)) {
-        present = this.#styleScopeId = ctx.getHashId();
-      } else {
-        present = this.#styleScopeId = null;
-      }
-    }
-    return present;
+    return ctx.getStyleScopeId(this.compilation);
   }
   getModuleDefineOptions(ctx, module2) {
     const results = /* @__PURE__ */ Object.create(null);
@@ -11083,6 +11066,22 @@ function ClassDeclaration_default2(ctx, stack) {
     const builder = new ClassBuilder_default2(stack);
     return builder.create(ctx);
   }
+}
+
+// lib/tokens/JSXAttribute.js
+function JSXAttribute_default2(ctx, stack) {
+  if (!stack.hasNamespaced && !stack.value && stack.name.value() === "__SSID__") {
+    const scopeId = ctx.getStyleScopeId(stack.compilation);
+    if (!scopeId) return null;
+    const options = ctx.plugin.options;
+    const vueOpts = options.vue || {};
+    const node = ctx.createNode(stack);
+    node.namespace = null;
+    node.name = ctx.createLiteral((vueOpts.scopePrefix || "") + scopeId);
+    node.value = ctx.createLiteral("");
+    return node;
+  }
+  return JSXAttribute_default(ctx, stack);
 }
 
 // lib/core/ESXOptimize.js
@@ -11964,6 +11963,9 @@ function createDirectiveElementNode2(ctx, stack, children, hasKeys, hasChildForN
   const openingElement = stack.openingElement;
   const name = openingElement.name.value().toLowerCase();
   let childNodes = children[0];
+  if (!childNodes) {
+    childNodes = createCommentVNode(ctx, "child is null");
+  }
   if (children.length > 1) {
     childNodes = createFragmentVNode2(
       ctx,
@@ -12676,6 +12678,18 @@ var import_Utils28 = __toESM(require("easescript/lib/core/Utils"));
 var EXCLUDE_STYLE_RE = /[\\\/]style[\\\/](css|index)$/i;
 var emptyObject2 = {};
 var Context2 = class extends Context_default {
+  #styleScopeId = void 0;
+  getStyleScopeId(compilation) {
+    let present = this.#styleScopeId;
+    if (present === void 0) {
+      if (hasStyleScoped(compilation)) {
+        present = this.#styleScopeId = this.getHashId();
+      } else {
+        present = this.#styleScopeId = null;
+      }
+    }
+    return present;
+  }
   #staticHoisted = /* @__PURE__ */ new Set();
   addStaticHoisted(node) {
     if (node) {

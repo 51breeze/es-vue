@@ -419,28 +419,26 @@ Object.defineProperty( proto, 'emit', {value:function emit(type){
 
 Object.defineProperty( proto, 'watch', {value:function watch(name, callback, options){
     const target = this[privateKey].instance;
-    if( target ){
-        const segs = String(name).split('.');
-        const first = segs[0].trim();
+    if(target){
+        const segs = String(name).split('.').map(val=>val.trim());
+        const first = segs.shift();
         const descriptor = Reflect.getDescriptor(this,first);
         options = options === true ? {deep:true} : options;
-        if( descriptor ){
-            if( descriptor.modifier === Reflect.MODIFIER_PRIVATE ){
-                const _privateKey = descriptor.privateKey;
+        if(descriptor && descriptor.isMemberDescriptor){
+            const isProperty = (descriptor.isAccessor() && descriptor.getter) || descriptor.isProperty();
+            if(!isProperty){
+                throw new Error(`Watching '${name}' is not readable property.`)
+            }else{
                 name = ()=>{
-                    var obj = this[_privateKey];
+                    var obj = descriptor.isProperty() ? descriptor.getPropertyValue() : descriptor.invokeGetter(this);
                     for (var i = 0; i < segs.length; i++) {
                         if (!obj) { return }
                         obj = obj[ segs[i] ];
                     }
                     return obj;
                 };
+                return target.proxy.$watch(name, callback, options);
             }
-            const isProperty = (descriptor.type ===Reflect.MEMBERS_ACCESSOR && descriptor.get) || (descriptor.type === Reflect.MEMBERS_PROPERTY);
-            if( !isProperty ){
-                throw new Error(`Watching '${name}' is not member properties.`)
-            }
-            return target.proxy.$watch(name, callback, options);
         }else{
             throw new Error(`Watching property '${name}' is not exists.`)
         }
