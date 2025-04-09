@@ -311,7 +311,16 @@ const config = {
 
             'css-loader',
 
-            'sass-loader'
+            {
+                loader: "sass-loader",
+                options: {
+                  // api: "modern",
+                    sassOptions: {
+                        silenceDeprecations:['legacy-js-api']
+                      // Your sass options
+                    },
+                },
+            }
           ]
       },
       {

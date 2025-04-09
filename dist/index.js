@@ -13166,8 +13166,8 @@ var defaultConfig2 = {
   },
   ui: {
     fully: false,
-    //none sass css
-    style: "sass",
+    //none scss css
+    style: "scss",
     //esm cjs
     module: "cjs"
   },

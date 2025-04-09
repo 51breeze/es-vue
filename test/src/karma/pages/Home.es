@@ -7,7 +7,7 @@ import karma.asserts.HomeAssertVue;
 import stores.UserStore;
 import web.Store;
 import web.Lang;
-
+import "element-plus/theme-chalk/src/button.scss"
 import VList from '../vue/list.es';
 
 
@@ -126,6 +126,7 @@ class Home extends Component{
                   <local:List ref='list' {...spreadData} ></local:List>
                   <local:Slot ref="slot-component-1" items = {list}>
                         <div>footer default children</div>
+                        <s:buttonText>buttonText def</s:buttonText>
                   </local:Slot>
                   <local:Slot ref="slot-component-2" items = {list}>
                         <s:head>

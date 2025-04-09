@@ -23,6 +23,11 @@ class Slot extends Component {
                     <div d:for="(item,index) in items" ref='item'>default: {item.label}</div>
                 </s:content>
             </div>
+            <div>
+                <ui:Button>
+                    <s:buttonText></s:buttonText>
+                </ui:Button>
+            </div>
             <div class='footer'><s:default /></div>
         </div>
     }
