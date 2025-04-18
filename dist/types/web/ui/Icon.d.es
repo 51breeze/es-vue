@@ -14,5 +14,9 @@ declare final class Icon extends Component{
 
     //图标名称
     name:string;
+
+    //图标文件源，指定此属性时将会忽略name属性
+    @Hook('compiling:resolve-import-assets')
+    src:string;
 }
 

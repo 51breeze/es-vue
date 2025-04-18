@@ -10,6 +10,7 @@ import 'element-plus/lib/components/image/style/css'
 /** Image Component */
 declare final class Image extends Component {
   /** Image source */
+  @Hook('compiling:resolve-import-assets')
   src: string
 
   /** Indicate how the image should be resized to fit its container, same as native 'object-fit' */

@@ -48,15 +48,34 @@ const Icon = Vue.defineComponent({
     props: {
         size:{type:[Number, String]},
         color:{type:String},
-        name:{type:String}
+        name:{type:String},
+        src:{type:String}
     },
     setup(props, context) {
-        let {size,color,name} = Vue.toRefs(props);
+        let {size,color,name,src} = Vue.toRefs(props);
         name = Vue.unref(name);
+        src = Vue.unref(src);
         return (_ctx, _cache) => {
             return Vue.h(ElIcon, {...context.attrs,size:Vue.unref(size),color:Vue.unref(color)}, {
                 default:Vue.withCtx(()=>{
-                    if(name && !_ctx.$slots.default ){
+                    if((name || src) && !_ctx.$slots.default ){
+                        if(src){
+                            src = String(src).trim();
+                            if(src){
+                                if(src.startsWith('data:image/svg+xml;base64,')){
+                                    src = src.substring('data:image/svg+xml;base64,'.length);
+                                    if(typeof atob==='function'){
+                                        src = atob(src);
+                                    }else{
+                                        src = Buffer.from(src, 'base64').toString();
+                                    }
+                                    return [Vue.createStaticVNode(src)];
+                                }else if(src.charCodeAt(0) === 60 && src.charCodeAt(src.length-1)===62){
+                                    return [Vue.createStaticVNode(src)];
+                                }
+                                return [Vue.h('img', {src, style:"width:100%;height:100%"})];
+                            }
+                        }
                         return [resolveComponent(name)];
                     }else {
                         let children = null;

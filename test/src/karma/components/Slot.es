@@ -11,14 +11,14 @@ class Slot extends Component {
     @Override
     render(){
         console.log('---Slot Component----render11-----', this.title, this.items);
-        return <div class="slot" xmlns:ui="web.ui" xmlns:d="@directives" xmlns:s="@slots">
+        return <div class="slot" xmlns:ui="web.ui" xmlns:d="@directives" xmlns:s="@slots"> 
             <div class='head'>
                 <s:head>
                     <h3>Slot component: {this.title}</h3>
                 </s:head>
             </div>
             <div class='content'>
-                <p>Content: </p>
+                <p>Content:  </p>
                 <s:content items={items}>
                     <div d:for="(item,index) in items" ref='item'>default: {item.label}</div>
                 </s:content>
