@@ -25,7 +25,7 @@ function Application( options ){
         _mixins:Object.create(null),
         _plugins:[],
         _children:[],
-        _options:options
+        _options:options||{}
     });
     System.setConfig('#global#application#instance#',this)
 }
@@ -77,9 +77,11 @@ Object.defineProperty(Application.prototype,'render',{value:function render(){
 Object.defineProperty(Application.prototype,'router',{get:function router(){
     const routes = this.routes;
     if( routes && routes.length === 0 )return null;
-    const router = this[privateKey]._router;
+    const target = this[privateKey];
+    const router = target._router;
     if( router )return router;
-    return this[privateKey]._router = new Router({
+    return target._router = new Router({
+        mode:target._options?.routeMode,
         routes:this.routes
     });
 }});

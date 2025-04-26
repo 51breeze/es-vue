@@ -22,13 +22,15 @@ declare final class Popover extends Component {
   width: string | number
 
   /** Popover placement */
-  placement: 'top' | 'top-start' | 'top-end' | 'bottom' | 'bottom-start' | 'bottom-end' | 'left' | 'left-start' | 'left-end' | 'right' | 'right-start' | 'right-end'
+  placement: 'top' | 'top-start' | 'top-end' | 'bottom' | 'bottom-start' | 'bottom-end' | 'left' | 'left-start' | 'left-end' | 'right' | 'right-start' | 'right-end' | "auto" | "auto-start" | "auto-end";
 
   /** Whether Popover is disabled */
   disabled: boolean
 
-  /** Whether popover is visible */
-  value: boolean
+  showArrow:boolean;
+
+  @Bindding('modelValue')
+  visible:boolean
 
   showPopper:boolean
 
@@ -37,9 +39,6 @@ declare final class Popover extends Component {
 
   /** Popover transition animation */
   transition: string
-
-  /** Whether a tooltip arrow is displayed or not. For more info, please refer to Vue-popper */
-  visibleArrow: boolean
 
   /** Parameters for popper.js */
   popperOptions: object

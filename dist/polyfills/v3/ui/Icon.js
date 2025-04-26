@@ -52,12 +52,12 @@ const Icon = Vue.defineComponent({
         src:{type:String}
     },
     setup(props, context) {
-        let {size,color,name,src} = Vue.toRefs(props);
-        name = Vue.unref(name);
-        src = Vue.unref(src);
+        let {size,color} = Vue.toRefs(props);
         return (_ctx, _cache) => {
             return Vue.h(ElIcon, {...context.attrs,size:Vue.unref(size),color:Vue.unref(color)}, {
                 default:Vue.withCtx(()=>{
+                    let name = Vue.unref(props.name);
+                    let src = Vue.unref(props.src);
                     if((name || src) && !_ctx.$slots.default ){
                         if(src){
                             src = String(src).trim();

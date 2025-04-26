@@ -67,7 +67,9 @@ package web{
                     let name = file.path.slice(index+1);
                     if(file.isFile) {
                         name = name.slice(0,name.lastIndexOf('.'))
-                        this.add(group ? group+'.'+name : name, file.content)
+                        if(typeof file.content === 'object'){
+                            this.add(group ? group+'.'+name : name, file.content as any)
+                        }
                     }else if( file.children && file.children.length>0 ){
                         every(file.children, group ? group+'.'+name : name)
                     }

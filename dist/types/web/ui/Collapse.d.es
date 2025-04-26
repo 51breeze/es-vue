@@ -10,5 +10,6 @@ declare final class Collapse extends Component {
   accordion: boolean
 
   /** Currently active panel */
-  value: string | number | string[] | number[]
+  @Alias('modelValue')
+  value: string | number | (string | number)[]
 }

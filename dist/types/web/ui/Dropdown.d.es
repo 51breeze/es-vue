@@ -31,7 +31,7 @@ declare final class Dropdown extends Component {
   size: 'large' | 'medium' | 'small' | 'mini'
 
   /** Placement of the menu */
-  placement: 'top' | 'top-start' | 'top-end' | 'bottom' | 'bottom-start' | 'bottom-end'
+  placement: 'top' | 'top-start' | 'top-end' | 'bottom' | 'bottom-start' | 'bottom-end' | 'left' | 'left-start' | 'left-end' | 'right' | 'right-start' | 'right-end' | "auto" | "auto-start" | "auto-end";
 
   /** How to trigger */
   trigger: 'hover' | 'click'

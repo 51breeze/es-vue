@@ -565,7 +565,8 @@ var annotationIndexers = {
   alias: ["name", "version"],
   hook: ["type", "version"],
   url: ["source"],
-  embed: ["path"]
+  embed: ["path"],
+  bindding: ["event", "alias"]
 };
 var compareOperatorMaps = {
   ">=": "egt",
@@ -2253,6 +2254,9 @@ function createESMExports(ctx, exportManage, graph) {
             return spec.local.declarations.map((decl) => {
               return ctx.createExportSpecifier(decl.id, decl.id, decl.stack);
             });
+          } else if (spec.local.type === "FunctionDeclaration" && spec.local.key) {
+            declares.push(spec.local);
+            return [ctx.createExportSpecifier(spec.local.key, spec.local.key, spec.stack)];
           }
           return [ctx.createExportSpecifier(spec.local, spec.exported, spec.stack)];
         }).flat()
@@ -3374,10 +3378,14 @@ var Generator2 = class {
             if (property.type === "RestElement") {
               this.make(property);
             } else {
-              this.make(property.key);
-              if (property.init && (property.init.type === "AssignmentPattern" || property.key.value !== property.init.value)) {
-                this.withColon();
+              if (property.init && property.init.type === "AssignmentPattern") {
                 this.make(property.init);
+              } else {
+                this.make(property.key);
+                if (property.init && property.key.value !== property.init.value) {
+                  this.withColon();
+                  this.make(property.init);
+                }
               }
             }
             if (index < token.properties.length - 1) {
@@ -4394,12 +4402,16 @@ var Context = class _Context extends Token_default {
         }
       }
       if (!name) {
-        name = context.getReferenceNameByModule(module2);
+        name = context.getReferenceNameByModule(module2, true);
+        if (name) {
+          return name;
+        }
       }
     } else if (import_Utils5.default.isCompilation(context)) {
-      name = context.getReferenceName(module2);
+      name = context.getReferenceName(module2, null, true);
+      if (name) return name;
     }
-    if (this.hasDeclareModule(module2)) {
+    if (name && this.hasDeclareModule(module2)) {
       return name;
     }
     if (!name) {
@@ -8120,8 +8132,8 @@ function getBinddingEventName(stack) {
   const bindding = getMethodAnnotations(stack, ["bindding"]);
   if (bindding.length > 0) {
     const [annot] = bindding;
-    const args = annot.getArguments();
-    return getAnnotationArgumentValue(args[0]);
+    const [args, result] = parseAnnotationArguments(annot.getArguments(), annotationIndexers.bindding);
+    return result;
   }
   return null;
 }
@@ -8329,15 +8341,25 @@ function createAttributes(ctx, stack, data) {
         }
       }
     }
+    let binddingEventName = null;
     if (item.isMemberProperty) {
-      if (ns === "@binding" && attrLowerName === "value") {
-        data.props.push(
-          createPropertyNode(
-            propName,
-            propValue
-          )
-        );
-        propName = "modelValue";
+      if (ns === "@binding") {
+        const bindding = getBinddingEventName(item.description());
+        if (bindding) {
+          if (bindding.alias) {
+            propName = bindding.alias;
+          }
+          binddingEventName = toCamelCase(bindding.event);
+        } else if (attrLowerName === "value") {
+          bindValuePropName = propName;
+          data.props.push(
+            createPropertyNode(
+              propName,
+              propValue
+            )
+          );
+          propName = "modelValue";
+        }
       }
       if (!isDOMAttribute) {
         data.props.push(
@@ -8374,14 +8396,11 @@ function createAttributes(ctx, stack, data) {
           ...createBinddingParams(!stack.isWebComponent)
         ), "on");
       } else if ((stack.isWebComponent || afterDirective) && binddingModelValue) {
-        let eventName = propName;
-        if (propName === "modelValue") {
-          eventName = "update:modelValue";
-        }
-        if (item.isMemberProperty) {
-          let _name = getBinddingEventName(item.description());
-          if (_name) {
-            eventName = toCamelCase(_name);
+        let eventName = binddingEventName;
+        if (!eventName) {
+          eventName = propName;
+          if (propName === "modelValue") {
+            eventName = "update:modelValue";
           }
         }
         pushEvent(
@@ -9844,7 +9863,7 @@ async function buildProgram(ctx, compilation, graph, generatorClass = Generator_
     }
   }
   imports.push(...importNodes, ...exportNodes.imports);
-  body.push(...exportNodes.declares);
+  externals.push(...exportNodes.declares);
   exports2.push(...exportNodes.exports);
   let layouts = ctx.getLayouts(imports, body, externals, exports2);
   if (layouts.length > 0) {
@@ -9927,8 +9946,10 @@ function createBuildContext(plugin2, records2 = /* @__PURE__ */ new Map()) {
   }
   async function build(compiOrVModule) {
     if (records2.has(compiOrVModule)) {
+      plugin2.complier.printLogInfo(`[build-cached] file:${compiOrVModule.file || compiOrVModule.getName()}`, "es-transform");
       return records2.get(compiOrVModule);
     }
+    plugin2.complier.printLogInfo(`[build] file:${compiOrVModule.file || compiOrVModule.getName()}`, "es-transform");
     let ctx = makeContext(compiOrVModule);
     let buildGraph = ctx.getBuildGraph(compiOrVModule);
     records2.set(compiOrVModule, buildGraph);
@@ -9951,8 +9972,10 @@ function createBuildContext(plugin2, records2 = /* @__PURE__ */ new Map()) {
   }
   async function buildDeps(compiOrVModule) {
     if (records2.has(compiOrVModule)) {
+      plugin2.complier.printLogInfo(`[build-deps-cached] file:${compiOrVModule.file || compiOrVModule.getName()}`, "es-transform");
       return records2.get(compiOrVModule);
     }
+    plugin2.complier.printLogInfo(`[build-deps] file:${compiOrVModule.file || compiOrVModule.getName()}`, "es-transform");
     let ctx = makeContext(compiOrVModule);
     let buildGraph = ctx.getBuildGraph(compiOrVModule);
     records2.set(compiOrVModule, buildGraph);
@@ -10316,6 +10339,7 @@ var Plugin = class _Plugin extends import_events.default {
   }
   clear(compilation) {
     if (this.#initialized) {
+      this.complier.printLogInfo(`[clear-build-cache] file:${compilation.file}`, "es-transform");
       this.records.delete(compilation);
       const cache = this.context.cache;
       if (cache) {
@@ -11674,6 +11698,9 @@ function createAttributes2(ctx, stack, data) {
     if (propValue && propValue.isExpressionContainer && propValue.type !== "Literal") {
       pureStaticAttributes = false;
     }
+    if (propValue && propValue.hasInvokeHook) {
+      pureStaticAttributes = false;
+    }
     if (ns === "@events" || ns === "@natives") {
       pureStaticAttributes = false;
       name = getDefinedEmitName(name);
@@ -11718,17 +11745,26 @@ function createAttributes2(ctx, stack, data) {
         }
       }
     }
-    let bindValuePropName = null;
+    let bindValuePropName2 = null;
+    let binddingEventName = null;
     if (item.isMemberProperty) {
-      if (ns === "@binding" && attrLowerName === "value") {
-        bindValuePropName = propName;
-        data.props.push(
-          createPropertyNode(
-            propName,
-            propValue
-          )
-        );
-        propName = "modelValue";
+      if (ns === "@binding") {
+        const bindding = getBinddingEventName(item.description());
+        if (bindding) {
+          if (bindding.alias) {
+            propName = bindding.alias;
+          }
+          binddingEventName = toCamelCase(bindding.event);
+        } else if (attrLowerName === "value") {
+          bindValuePropName2 = propName;
+          data.props.push(
+            createPropertyNode(
+              propName,
+              propValue
+            )
+          );
+          propName = "modelValue";
+        }
       }
       if (!isDOMAttribute) {
         data.props.push(
@@ -11740,8 +11776,8 @@ function createAttributes2(ctx, stack, data) {
       }
     }
     if (propValue && propValue.type != "Literal" && (ns !== "@binding" || item.isMemberProperty || propValue.isExpressionContainer)) {
-      if (bindValuePropName) {
-        data.keyProps.push(ctx.createLiteral(bindValuePropName));
+      if (bindValuePropName2) {
+        data.keyProps.push(ctx.createLiteral(bindValuePropName2));
       }
       data.keyProps.push(ctx.createLiteral(propName));
       addPatchFlag(data, ELEMENT_PROPS, true);
@@ -11776,14 +11812,11 @@ function createAttributes2(ctx, stack, data) {
           ...createBinddingParams(!stack.isWebComponent)
         ), "on");
       } else if ((stack.isWebComponent || afterDirective) && binddingModelValue) {
-        let eventName = propName;
-        if (propName === "modelValue") {
-          eventName = "update:modelValue";
-        }
-        if (item.isMemberProperty) {
-          let _name = getBinddingEventName(item.description());
-          if (_name) {
-            eventName = toCamelCase(_name);
+        let eventName = binddingEventName;
+        if (!eventName) {
+          eventName = propName;
+          if (propName === "modelValue") {
+            eventName = "update:modelValue";
           }
         }
         pushEvent(
@@ -12057,6 +12090,7 @@ function makePatchFlagNode(ctx, patchFlag) {
   return ctx.createChunkExpression(patchFlag + [" /*", comments.join(", "), "*/"].join(""), false);
 }
 function createNormalVNode(ctx, childNode, toTextNode = false, disableHoisted = false, stack = null) {
+  if (!childNode) return createCommentVNode(ctx, "is null");
   let node = childNode;
   if (childNode.type === "Literal") {
     if (toTextNode) {
@@ -12555,6 +12589,10 @@ var MakeCode = class extends Token_default {
     }
     return "export default {};";
   }
+  #pageFiles = [];
+  getRouteFiles() {
+    return [this.#resolvePageDir, this.#pageFiles];
+  }
   async getPageRoutes() {
     const pageDir = this.options.pageDir;
     if (!pageDir) {
@@ -12591,6 +12629,7 @@ var MakeCode = class extends Token_default {
       return "export default [];";
     }
     readdir(dir);
+    this.#pageFiles = files;
     const pagesModule = /* @__PURE__ */ new Set();
     const routesData = {};
     await callAsyncSequence(files, async (file) => {
@@ -13146,6 +13185,9 @@ var Plugin2 = class extends Plugin {
     Object.keys(folders).forEach((key) => {
       glob2.addRuleGroup(key, folders[key], "folders");
     });
+  }
+  getRouteFiles() {
+    return this.makeCode.getRouteFiles();
   }
   async resolveRoutes(compilation) {
     if (!import_Compilation2.default.is(compilation)) {
