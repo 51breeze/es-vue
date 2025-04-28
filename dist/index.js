@@ -88,6 +88,7 @@ var Token = class {
     if (type === "NewDefinition") return null;
     if (type === "CallDefinition") return null;
     if (type === "TypeDefinition") return null;
+    if (type === "TypeTupleDefinition") return null;
     if (type === "TypeGenericDefinition") return null;
     if (type === "DeclaratorDeclaration") return null;
     return this.token.create(this, stack, type);
@@ -4380,7 +4381,7 @@ var Context = class _Context extends Token_default {
       throw new Error("Invalid target");
     }
   }
-  getModuleReferenceName(module2, context = null) {
+  getModuleReferenceName(module2, context = null, stack = null) {
     let name = null;
     if (isVModule(module2)) {
       let m = module2.bindModule;
@@ -4417,7 +4418,7 @@ var Context = class _Context extends Token_default {
     if (!name) {
       name = module2.getName("_");
     }
-    return this.getGlobalRefName(null, name);
+    return this.getGlobalRefName(stack, name);
   }
   isDeclaratorModuleDependency(module2, isExtend = false) {
     if (!import_Utils5.default.isClassType(module2)) return false;
@@ -5981,36 +5982,50 @@ function AwaitExpression_default(ctx, stack) {
 
 // node_modules/@easescript/transform/lib/tokens/BinaryExpression.js
 var import_Utils9 = __toESM(require("easescript/lib/core/Utils"));
+var import_Namespace3 = __toESM(require("easescript/lib/core/Namespace"));
 function BinaryExpression_default(ctx, stack) {
   let operator = stack.operator;
   let node = ctx.createNode(stack);
   let right = ctx.createToken(stack.right);
   if (operator === "is" || operator === "instanceof") {
     let type = stack.right.type();
+    let origin = type;
+    let objectType = null;
     if (operator === "is") {
-      if (type.id === "string" || type.id === "number" || type.id === "object" || type.id === "function") {
+      if (type.id === "string" || type.id === "number" || type.id === "object" || type.id === "function" || type.id === "boolean" || type.id === "symbol") {
         node.left = ctx.createUnaryExpression(ctx.createToken(stack.left), "typeof", true);
         node.right = ctx.createLiteral(String(type.id).toLowerCase());
         node.operator = "===";
         return node;
       }
-      if (import_Utils9.default.isModule(type)) {
+      if (import_Namespace3.default.globals.get("Function") === type) {
+        objectType = ctx.createIdentifier("Function");
+      } else if (type.isClassGenericType && type.isClassType || import_Namespace3.default.globals.get("Class") === type) {
+        return ctx.createCallExpression(
+          createStaticReferenceNode(ctx, stack, "System", "isClass"),
+          [
+            ctx.createToken(stack.left)
+          ],
+          stack
+        );
+      } else if (import_Utils9.default.isModule(type)) {
         if (type.isDeclaratorModule && !ctx.isVModule(type) && !ctx.isDeclaratorModuleDependency(type)) {
-          return ctx.createLiteral(true);
+          objectType = ctx.createIdentifier("Object");
         }
       } else {
-        return ctx.createLiteral(true);
+        origin = import_Utils9.default.getOriginType(type);
       }
     }
-    if (!stack.right.hasLocalDefined()) {
-      let origin = !import_Utils9.default.isModule(type) ? import_Utils9.default.getOriginType(type) : type;
+    if (objectType) {
+      right = objectType;
+    } else if (origin && !stack.right.hasLocalDefined()) {
       ctx.addDepend(origin, stack.module);
       right = ctx.createIdentifier(
-        ctx.getGlobalRefName(
-          stack,
-          ctx.getModuleReferenceName(origin, stack.module)
-        )
+        ctx.getModuleReferenceName(origin, stack.module, stack)
       );
+    }
+    if (!right) {
+      right = ctx.createIdentifier("Object");
     }
     if (operator === "is") {
       return ctx.createCallExpression(
@@ -6163,7 +6178,7 @@ function ChainExpression_default(ctx, stack) {
 
 // node_modules/@easescript/transform/lib/core/ClassBuilder.js
 var import_Utils11 = __toESM(require("easescript/lib/core/Utils"));
-var import_Namespace3 = __toESM(require("easescript/lib/core/Namespace"));
+var import_Namespace4 = __toESM(require("easescript/lib/core/Namespace"));
 var modifierMaps = {
   "public": MODIFIER_PUBLIC,
   "protected": MODIFIER_PROTECTED,
@@ -6341,7 +6356,7 @@ var ClassBuilder = class {
     let iteratorModule = null;
     this.implements = module2.implements.map((impModule) => {
       if (impModule.isInterface && ctx.isActiveModule(impModule, module2, true)) {
-        iteratorModule = iteratorModule || import_Namespace3.default.globals.get("Iterator");
+        iteratorModule = iteratorModule || import_Namespace4.default.globals.get("Iterator");
         if (iteratorModule !== impModule) {
           ctx.addDepend(impModule, module2);
           let refs = null;
@@ -6364,7 +6379,7 @@ var ClassBuilder = class {
     }).filter(Boolean);
   }
   createIteratorMethodNode(ctx, module2) {
-    const iteratorType = import_Namespace3.default.globals.get("Iterator");
+    const iteratorType = import_Namespace4.default.globals.get("Iterator");
     if (module2.implements.includes(iteratorType)) {
       const block = ctx.createBlockStatement();
       block.body.push(
@@ -7043,7 +7058,7 @@ function EmptyStatement_default() {
 }
 
 // node_modules/@easescript/transform/lib/core/EnumBuilder.js
-var import_Namespace4 = __toESM(require("easescript/lib/core/Namespace.js"));
+var import_Namespace5 = __toESM(require("easescript/lib/core/Namespace.js"));
 var EnumBuilder = class extends ClassBuilder_default {
   create(ctx) {
     ctx.setNode(this.stack, this);
@@ -7145,7 +7160,7 @@ var EnumBuilder = class extends ClassBuilder_default {
       }
     }
     if (!this.inherit) {
-      const inherit2 = import_Namespace4.default.globals.get("Enumeration");
+      const inherit2 = import_Namespace5.default.globals.get("Enumeration");
       ctx.addDepend(inherit2, stack.module);
       this.inherit = ctx.createIdentifier(
         ctx.getModuleReferenceName(inherit2, module2)
@@ -7395,10 +7410,7 @@ function Identifier_default(ctx, stack) {
     ctx.addDepend(desc, stack.module);
     if (!stack.hasLocalDefined()) {
       return ctx.createIdentifier(
-        ctx.getGlobalRefName(
-          stack,
-          ctx.getModuleReferenceName(desc, module2)
-        ),
+        ctx.getModuleReferenceName(desc, module2, stack),
         stack
       );
     }
@@ -7566,7 +7578,7 @@ function InterfaceDeclaration_default(ctx, stack) {
 }
 
 // node_modules/@easescript/transform/lib/tokens/JSXAttribute.js
-var import_Namespace5 = __toESM(require("easescript/lib/core/Namespace"));
+var import_Namespace6 = __toESM(require("easescript/lib/core/Namespace"));
 function JSXAttribute_default(ctx, stack) {
   let ns = null;
   if (stack.hasNamespaced) {
@@ -7609,7 +7621,7 @@ function JSXAttribute_default(ctx, stack) {
           expression = expression.left;
         }
         if (expression.isMemberExpression) {
-          const objectType = import_Namespace5.default.globals.get("Object");
+          const objectType = import_Namespace6.default.globals.get("Object");
           has = objectType && objectType.is(expression.object.type());
         }
       }
@@ -7648,7 +7660,7 @@ function JSXClosingFragment_default(ctx, stack) {
 }
 
 // node_modules/@easescript/transform/lib/core/ESX.js
-var import_Namespace6 = __toESM(require("easescript/lib/core/Namespace"));
+var import_Namespace7 = __toESM(require("easescript/lib/core/Namespace"));
 var import_Utils14 = __toESM(require("easescript/lib/core/Utils"));
 function createFragmentVNode(ctx, children, props = null) {
   const items = [
@@ -7787,7 +7799,7 @@ function getComponentDirectiveAnnotation(module2) {
 var directiveInterface = null;
 function isDirectiveInterface(module2) {
   if (!import_Utils14.default.isModule(module2)) return false;
-  directiveInterface = directiveInterface || import_Namespace6.default.globals.get("web.components.Directive");
+  directiveInterface = directiveInterface || import_Namespace7.default.globals.get("web.components.Directive");
   if (directiveInterface && directiveInterface.isInterface) {
     return directiveInterface.type().isof(module2);
   }
@@ -8110,18 +8122,6 @@ function createAttributeBindingEventNode(ctx, attribute, valueTokenNode) {
           );
           valueTokenNode.disableCacheForVNode = disableCacheForVNode;
           return valueTokenNode;
-        }
-      } else if (expr.isMemberExpression || expr.isIdentifier) {
-        const desc = expr.description();
-        const isMethod = desc && (desc.isMethodDefinition && !desc.isAccessor);
-        if (isMethod) {
-          return ctx.createCallExpression(
-            ctx.createMemberExpression([
-              valueTokenNode,
-              ctx.createIdentifier("bind")
-            ]),
-            [ctx.createThisExpression()]
-          );
         }
       }
     }
@@ -8951,7 +8951,7 @@ function JSXEmptyExpression_default(ctx, stack) {
 }
 
 // node_modules/@easescript/transform/lib/tokens/JSXExpressionContainer.js
-var import_Namespace7 = __toESM(require("easescript/lib/core/Namespace"));
+var import_Namespace8 = __toESM(require("easescript/lib/core/Namespace"));
 var import_Utils15 = __toESM(require("easescript/lib/core/Utils"));
 function checkVNodeType(type) {
   if (!type || type.isAnyType) return false;
@@ -8960,7 +8960,7 @@ function checkVNodeType(type) {
   }
   let origin = import_Utils15.default.getOriginType(type);
   if (origin && import_Utils15.default.isModule(origin)) {
-    if (origin.isWebComponent() || import_Namespace7.default.globals.get("VNode").is(origin)) {
+    if (origin.isWebComponent() || import_Namespace8.default.globals.get("VNode").is(origin)) {
       return true;
     }
   }
@@ -8971,14 +8971,18 @@ function JSXExpressionContainer_default(ctx, stack) {
     const desc = stack.expression.descriptor();
     if (desc && (!desc.isAccessor && desc.isMethodDefinition)) {
       let object = ctx.createToken(stack.expression);
-      return ctx.createCallExpression(
+      const node2 = ctx.createCallExpression(
         ctx.createMemberExpression([
           object,
           ctx.createIdentifier("bind")
         ]),
-        [ctx.createThisExpression()],
+        [object.type === "MemberExpression" ? object.object : ctx.createThisExpression()],
         stack
       );
+      node2.isExplicitVNode = false;
+      node2.isScalarType = false;
+      node2.isExpressionContainer = true;
+      return node2;
     }
   }
   let node = ctx.createToken(stack.expression);
@@ -9483,12 +9487,12 @@ function StructTableKeyDefinition_default(ctx, stack) {
 }
 
 // node_modules/@easescript/transform/lib/tokens/StructTableMethodDefinition.js
-var import_Namespace8 = __toESM(require("easescript/lib/core/Namespace"));
+var import_Namespace9 = __toESM(require("easescript/lib/core/Namespace"));
 function createNode(ctx, item, isKey = false, toLower = false, type = null) {
   if (!item) return null;
   if (type === "enum") {
     if (item.isIdentifier || item.isMemberExpression) {
-      const type2 = import_Namespace8.default.globals.get(item.value());
+      const type2 = import_Namespace9.default.globals.get(item.value());
       const list = [];
       if (type2 && type2.isModule && type2.isEnum) {
         Array.from(type2.descriptors.keys()).forEach((key) => {
@@ -10696,14 +10700,14 @@ var ESXClassBuilder = class extends ClassBuilder_default2 {
       const provider = getMethodAnnotations(stack, ["provider"])[0];
       if (provider) {
         const args = provider.getArguments();
-        this.#provideProperties.push(this.createAddProviderNode(ctx, args[0] ? args[0].value : node.key.value, node.key.value, true));
+        this.#provideProperties.push(this.createAddProviderNode(ctx, args[0] ? args[0].value : node.key.value, node.key.value, true, import_Utils27.default.isModifierPrivate(stack)));
         node.provider = true;
       }
     } else if (stack.isMethodGetterDefinition || stack.isPropertyDefinition) {
       const provider = getMethodAnnotations(stack, ["provider"])[0];
       if (provider) {
         const args = provider.getArguments();
-        this.#provideProperties.push(this.createAddProviderNode(ctx, args[0] ? args[0].value : node.key.value, node.key.value, false));
+        this.#provideProperties.push(this.createAddProviderNode(ctx, args[0] ? args[0].value : node.key.value, node.key.value, false, import_Utils27.default.isModifierPrivate(stack)));
         node.provider = true;
       }
     }
@@ -10746,12 +10750,16 @@ var ESXClassBuilder = class extends ClassBuilder_default2 {
       )
     );
   }
-  createAddProviderNode(ctx, key, name, isMethod) {
-    const target = isMethod ? ctx.createMemberExpression([
+  createAddProviderNode(ctx, key, name, isMethod, isPrivate = false) {
+    const thisObj = isPrivate ? ctx.createComputeMemberExpression([
       ctx.createThisExpression(),
+      ctx.createIdentifier(this.createPrivateRefsName(ctx))
+    ]) : ctx.createThisExpression();
+    const target = isMethod ? ctx.createMemberExpression([
+      thisObj,
       ctx.createIdentifier(name)
     ]) : ctx.createArrowFunctionExpression(ctx.createMemberExpression([
-      ctx.createThisExpression(),
+      thisObj,
       ctx.createIdentifier(name)
     ]));
     return ctx.createExpressionStatement(
@@ -11264,7 +11272,7 @@ function JSXAttribute_default2(ctx, stack) {
 }
 
 // lib/core/ESXOptimize.js
-var import_Namespace9 = __toESM(require("easescript/lib/core/Namespace"));
+var import_Namespace10 = __toESM(require("easescript/lib/core/Namespace"));
 var import_Utils28 = __toESM(require("easescript/lib/core/Utils"));
 var Cache2 = getCacheManager("common");
 var hasStyleScopedKey = Symbol("hasStyleScoped");
@@ -11312,7 +11320,7 @@ function isOpenBlock(stack) {
   } else {
     const type = stack.type();
     if (import_Utils28.default.isModule(type)) {
-      return import_Namespace9.default.globals.get("web.components.Fragment").is(type);
+      return import_Namespace10.default.globals.get("web.components.Fragment").is(type);
     }
   }
   return false;
@@ -11632,6 +11640,7 @@ function createAttributes2(ctx, stack, data) {
   let binddingModelValue = null;
   let afterDirective = null;
   let custom = null;
+  let inFor = !!stack.scope.isForContext;
   if (nodeType === "input") {
     afterDirective = "vModelText";
   } else if (nodeType === "select") {
@@ -11639,7 +11648,6 @@ function createAttributes2(ctx, stack, data) {
   } else if (nodeType === "textarea") {
     afterDirective = "vModelText";
   }
-  const inFor = !!stack.scope.isForContext;
   const descModule = stack.isWebComponent ? stack.description() : null;
   const definedEmits = getComponentEmitAnnotation(descModule);
   const getDefinedEmitName = (name) => {
@@ -11842,9 +11850,12 @@ function createAttributes2(ctx, stack, data) {
       }
       return;
     }
-    if (!ns && attrLowerName === "ref") {
+    if (!ns && (attrLowerName === "ref" || attrLowerName === "refs")) {
       pureStaticAttributes = false;
       name = propName = "ref";
+      if (attrLowerName === "refs" && !isDOMAttribute) {
+        inFor = true;
+      }
     }
     if (name === "class" || name === "staticClass") {
       if (propValue && propValue.type !== "Literal") {
@@ -12371,97 +12382,97 @@ function createElement2(ctx, stack) {
     nodeElement.hasForNode = hasForNode;
     nodeElement.hasKeyAttribute = hasKeys;
     nodeElement.pureStaticChild = false;
-    return nodeElement;
-  }
-  if (hasUseDirective || data.ref) {
-    addPatchFlag(data, ELEMENT_NEED_PATCH);
-  }
-  if (isStaticHoisted) {
-    addPatchFlag(data, ELEMENT_HOISTED);
-  }
-  if (hasDynamicSlots) {
-    addPatchFlag(data, ELEMENT_DYNAMIC_SLOTS);
-  }
-  if (stack.isSlot) {
-    nodeElement = createSlotElementNode2(
-      ctx,
-      stack,
-      makeChildrenNodes(ctx, children, true, isStaticHoisted, stack),
-      isStaticHoisted
-    );
-  } else if (stack.isDirective) {
-    nodeElement = createDirectiveElementNode2(ctx, stack, children, hasKeys, hasForNode);
-    if (nodeElement.isForVNode) {
-      hasForNode = true;
-    }
   } else {
-    if (stack.isJSXFragment || isRoot && !isWebComponent && stack.openingElement.name.value() === "root") {
-      if (children.length > 1) {
-        nodeElement = createFragmentVNode2(
-          ctx,
-          makeChildrenNodes(ctx, children, true, false, stack),
-          null,
-          ELEMENT_STABLE_FRAGMENT,
-          false
-        );
-      } else {
-        nodeElement = createNormalVNode(ctx, children[0], false, true, stack);
+    if (hasUseDirective || data.ref) {
+      addPatchFlag(data, ELEMENT_NEED_PATCH);
+    }
+    if (isStaticHoisted) {
+      addPatchFlag(data, ELEMENT_HOISTED);
+    }
+    if (hasDynamicSlots) {
+      addPatchFlag(data, ELEMENT_DYNAMIC_SLOTS);
+    }
+    if (stack.isSlot) {
+      nodeElement = createSlotElementNode2(
+        ctx,
+        stack,
+        makeChildrenNodes(ctx, children, true, isStaticHoisted, stack),
+        isStaticHoisted
+      );
+    } else if (stack.isDirective) {
+      nodeElement = createDirectiveElementNode2(ctx, stack, children, hasKeys, hasForNode);
+      if (nodeElement.isForVNode) {
+        hasForNode = true;
       }
     } else {
-      let childNodes = null;
-      if (isWebComponent) {
-        let properties2 = [];
-        if (children.length > 0) {
-          let slotFn = ctx.createArrowFunctionExpression(
-            makeChildrenNodes(ctx, children, true, pureStaticChild, stack)
+      if (stack.isJSXFragment || isRoot && !isWebComponent && stack.openingElement.name.value() === "root") {
+        if (children.length > 1) {
+          nodeElement = createFragmentVNode2(
+            ctx,
+            makeChildrenNodes(ctx, children, true, false, stack),
+            null,
+            ELEMENT_STABLE_FRAGMENT,
+            false
           );
-          if (pureStaticChild) {
-            slotFn = ctx.addStaticHoisted(slotFn);
-          }
-          properties2.push(ctx.createProperty(
-            ctx.createIdentifier("default"),
-            createWithCtxNode(ctx, slotFn)
-          ));
+        } else {
+          nodeElement = createNormalVNode(ctx, children[0], false, true, stack);
         }
-        if (data.slots) {
-          for (let key in data.slots) {
-            properties2.push(
-              ctx.createProperty(
-                ctx.createIdentifier(key),
-                data.slots[key]
-              )
+      } else {
+        let childNodes = null;
+        if (isWebComponent) {
+          let properties2 = [];
+          if (children.length > 0) {
+            let slotFn = ctx.createArrowFunctionExpression(
+              makeChildrenNodes(ctx, children, true, pureStaticChild, stack)
             );
-          }
-        }
-        if (properties2.length > 0) {
-          if (data.patchFlag & ELEMENT_DYNAMIC_SLOTS) {
+            if (pureStaticChild) {
+              slotFn = ctx.addStaticHoisted(slotFn);
+            }
             properties2.push(ctx.createProperty(
-              ctx.createIdentifier("_"),
-              ctx.createLiteral(2)
-            ));
-          } else {
-            properties2.push(ctx.createProperty(
-              ctx.createIdentifier("_"),
-              ctx.createLiteral(1)
+              ctx.createIdentifier("default"),
+              createWithCtxNode(ctx, slotFn)
             ));
           }
-          childNodes = ctx.createObjectExpression(properties2);
+          if (data.slots) {
+            for (let key in data.slots) {
+              properties2.push(
+                ctx.createProperty(
+                  ctx.createIdentifier(key),
+                  data.slots[key]
+                )
+              );
+            }
+          }
+          if (properties2.length > 0) {
+            if (data.patchFlag & ELEMENT_DYNAMIC_SLOTS) {
+              properties2.push(ctx.createProperty(
+                ctx.createIdentifier("_"),
+                ctx.createLiteral(2)
+              ));
+            } else {
+              properties2.push(ctx.createProperty(
+                ctx.createIdentifier("_"),
+                ctx.createLiteral(1)
+              ));
+            }
+            childNodes = ctx.createObjectExpression(properties2);
+          }
+        } else if (children.length > 0) {
+          childNodes = makeChildrenNodes(ctx, children, true, pureStaticChild, stack);
         }
-      } else if (children.length > 0) {
-        childNodes = makeChildrenNodes(ctx, children, true, pureStaticChild, stack);
+        nodeElement = makeElementVNode(ctx, stack, data, childNodes, isBlock);
       }
-      nodeElement = makeElementVNode(ctx, stack, data, childNodes, isBlock);
     }
+    if (nodeElement && data.directives && data.directives.length > 0) {
+      nodeElement = createWithDirectives(ctx, nodeElement, data.directives);
+      nodeElement.isWithDirective = true;
+    }
+    nodeElement.hasForNode = hasForNode;
+    nodeElement.hasDynamicSlots = hasDynamicSlots;
+    nodeElement.pureStaticChild = isStaticHoisted;
+    nodeElement.hasKeyAttribute = !!data.key;
+    nodeElement.isElementVNode = true;
   }
-  if (nodeElement && data.directives && data.directives.length > 0) {
-    nodeElement = createWithDirectives(ctx, nodeElement, data.directives);
-    nodeElement.isWithDirective = true;
-  }
-  nodeElement.hasForNode = hasForNode;
-  nodeElement.hasDynamicSlots = hasDynamicSlots;
-  nodeElement.pureStaticChild = isStaticHoisted;
-  nodeElement.hasKeyAttribute = !!data.key;
-  nodeElement.isElementVNode = true;
   if (isRoot) {
     let { method, refs, count, created } = ctx.getRenderContextForVNode(stack);
     if (count > 0 && !created()) {
@@ -12867,7 +12878,7 @@ export default __$$metadata;`;
 };
 
 // lib/core/Context.js
-var import_Namespace10 = __toESM(require("easescript/lib/core/Namespace"));
+var import_Namespace11 = __toESM(require("easescript/lib/core/Namespace"));
 var import_Utils30 = __toESM(require("easescript/lib/core/Utils"));
 var EXCLUDE_STYLE_RE = /[\\\/]style[\\\/](css|index)$/i;
 var emptyObject2 = {};
@@ -12990,7 +13001,7 @@ var Context2 = class extends Context_default {
   }
   isApplication(module2) {
     if (!module2 || !module2.isModule || module2.isDeclaratorModule) return false;
-    const Application = import_Namespace10.default.globals.get("web.Application");
+    const Application = import_Namespace11.default.globals.get("web.Application");
     return Application.is(module2);
   }
   getModuleResourceId(module2, query = {}, extformat = null) {
