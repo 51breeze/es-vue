@@ -49,7 +49,7 @@ var import_Diagnostic = __toESM(require("easescript/lib/core/Diagnostic"));
 var import_path6 = __toESM(require("path"));
 
 // node_modules/@easescript/transform/lib/core/Builder.js
-var import_Utils25 = __toESM(require("easescript/lib/core/Utils"));
+var import_Utils27 = __toESM(require("easescript/lib/core/Utils"));
 
 // node_modules/@easescript/transform/lib/core/Context.js
 var import_path2 = __toESM(require("path"));
@@ -2446,28 +2446,6 @@ function createCommentsNode(ctx, stack) {
   if (stack.module && (enable || manifests.comments)) {
     const result = stack.parseComments("Block");
     if (result) {
-      if (manifests.comments && result.meta) {
-        let kind = "class";
-        if (stack.isMethodSetterDefinition) {
-          kind = "setter";
-        } else if (stack.isMethodGetterDefinition) {
-          kind = "getter";
-        } else if (stack.isMethodDefinition) {
-          kind = "method";
-        } else if (stack.isPropertyDefinition) {
-          kind = "property";
-        }
-        const vm = ctx.getVModule("manifest.Comments");
-        if (vm) {
-          let id = stack.module.getName();
-          ctx.addDepend(vm);
-          let key = stack.value() + ":" + kind;
-          if (kind === "class") key = "top";
-          vm.append(ctx, {
-            [id]: { [key]: result.meta }
-          });
-        }
-      }
       if (enable && result.comments.length > 0) {
         return ctx.createChunkExpression(["/**", ...result.comments, "**/"].join("\n"), true);
       }
@@ -2528,7 +2506,7 @@ var ImportManage = class {
       const source = this.#locals.get(local);
       if (source) {
         if (source !== importSource) {
-          throw new Error(`declare '${local}' is not redefined`);
+          throw new Error(`declare '${local}' is redefined`);
         }
       } else {
         this.#locals.set(local, importSource);
@@ -2998,7 +2976,7 @@ var Generator2 = class {
             if (token.semicolon && index < lines.length) {
               this.withSemicolon();
             }
-            if (index < lines.length && token.newLine !== false) {
+            if (index < lines.length - 1) {
               this.newLine();
             }
           });
@@ -4391,6 +4369,10 @@ var Context = class _Context extends Token_default {
       }
       return this.target.importModuleNameds.has(module2);
     } else if (import_Utils7.default.isModule(this.target)) {
+      const compi = this.target.compilation;
+      if (compi && compi.modules.has(module2.getName())) {
+        return true;
+      }
       const vm = this.getVModule(this.target.getName());
       if (vm) {
         return !!vm.getReferenceName(module2.getName());
@@ -5685,38 +5667,142 @@ var TableBuilder = class {
   #records = /* @__PURE__ */ new Map();
   constructor(plugin2) {
     this.#plugin = plugin2;
-    this.#plugin.on("compilation:changed", (compilation) => {
+    const rebuild = (compilation) => {
+      if (!compilation) return;
+      let has = false;
       compilation.modules.forEach((module2) => {
         if (module2.isStructTable) {
-          this.removeTable(module2.id);
+          has = true;
+          this.removeTable(module2.getName());
         }
       });
+      if (has) {
+        plugin2.clear(compilation);
+        plugin2.build(compilation);
+      }
+    };
+    plugin2.on("compilation:changed", (compilation) => {
+      if (compilation) {
+        compilation.once("onParseDone", () => {
+          rebuild(compilation);
+        });
+      }
+    });
+    plugin2.on("compilation:refresh", (compilations) => {
+      if (Array.isArray(compilations)) {
+        compilations.forEach(rebuild);
+      }
     });
   }
   createTable(ctx, stack) {
-    if (!stack.body.length) return false;
     const module2 = stack.module;
-    if (this.hasTable(module2.id)) return false;
+    const defineAnnotations = getModuleAnnotations(module2, ["define"], false);
+    for (let defineAnnotation of defineAnnotations) {
+      const data = parseDefineAnnotation(defineAnnotation);
+      if (data.sql === false) {
+        return;
+      }
+    }
+    const key = module2.getName();
+    if (this.hasTable(key)) return false;
     const node = ctx.createNode(stack);
     node.id = ctx.createIdentifier("`" + normalName(stack.id.value()) + "`", stack.id);
     node.properties = [];
     node.body = [];
-    stack.body.forEach((item) => {
-      const token = createIdentNode(ctx, item);
-      if (token) {
-        if (item.isStructTablePropertyDefinition) {
-          node.properties.push(token);
-        } else {
-          node.body.push(token);
+    const cacheColumn = {};
+    const cacheOption = {};
+    const keys2 = [];
+    const make = (stack2) => {
+      const module3 = stack2.module;
+      stack2.body.forEach((item) => {
+        const token = createIdentNode(ctx, item);
+        if (item.isStructTableColumnDefinition) {
+          const key2 = item.key.value();
+          if (cacheColumn[key2] === true) {
+            return;
+          }
+          cacheColumn[key2] = true;
         }
+        if (token) {
+          if (item.isStructTableColumnDefinition) {
+            const methodNode = token.properties[0];
+            if (methodNode && methodNode.type === "StructTableMethodDefinition") {
+              if (methodNode.key && methodNode.params) {
+                const value = String(methodNode.key.value).toLowerCase();
+                if (value === "email" || value === "range") {
+                  methodNode.key.value = "varchar";
+                  if (value === "range") {
+                    const params = methodNode.params;
+                    if (params.length > 1) {
+                      methodNode.params = [params[params.length - 1]];
+                    }
+                  }
+                }
+              }
+            }
+          }
+          if (item.key && item.key.isIdentifier) {
+            const key2 = String(item.raw()).replace(/\s\t\r\n/g, "").toLowerCase();
+            if (cacheOption[key2] === true) {
+              return;
+            }
+            cacheOption[key2] = true;
+          }
+          if (item.isStructTablePropertyDefinition) {
+            node.properties.push(token);
+          } else {
+            if (item.isStructTableKeyDefinition) {
+              keys2.push(token);
+            } else {
+              node.body.push(token);
+            }
+          }
+        }
+      });
+      if (Array.isArray(module3.extends)) {
+        module3.extends.forEach((module4) => {
+          module4 = module4.type();
+          if (module4.isStructTable) {
+            module4.getStacks().forEach((stack3) => {
+              if (stack3.isStructTableDeclaration) {
+                make(stack3);
+              }
+            });
+          }
+        });
       }
-    });
+    };
+    make(stack);
+    const minValue = -9999;
+    const maxValue = 9999;
+    const defaultValue = 999;
+    const getOrder = (value) => {
+      if (value === "first") {
+        return minValue - 1;
+      } else if (value === "last") {
+        return maxValue + 1;
+      }
+      value = parseInt(value);
+      if (isNaN(value)) return defaultValue;
+      return Math.max(Math.min(value, maxValue), minValue);
+    };
+    const sroter = (a, b) => {
+      let a1 = getOrder(a.order || defaultValue);
+      let b1 = getOrder(b.order || defaultValue);
+      return a1 - b1;
+    };
+    node.body.sort(sroter);
+    keys2.sort(sroter);
+    node.body.push(...keys2);
     let gen = new Generator_default();
     gen.make(node);
-    this.#records.set(module2.id, gen.toString());
+    this.#records.set(key, gen.toString());
     this.#changed = true;
     this.build(ctx);
     return true;
+  }
+  get plugin() {
+    return this.#plugin;
   }
   get type() {
     return "";
@@ -6273,6 +6359,7 @@ var ClassBuilder = class {
     ctx.setNode(this.stack, this);
     const module2 = this.module;
     const stack = this.stack;
+    const classComments = createCommentsNode(ctx, stack);
     this.useClassConstructor = ctx.useClassConstructor(module2);
     this.setModuleIdNode(ctx.createIdentifier(this.getModuleDeclarationId(module2), stack.id));
     this.createInherit(ctx, module2, stack);
@@ -6283,7 +6370,7 @@ var ClassBuilder = class {
     const creator = this.createCreator(
       ctx,
       this.getModuleIdNode(),
-      this.createClassDescriptor(ctx, module2, methods, members)
+      this.createClassDescriptor(ctx, module2, methods, members, classComments)
     );
     ctx.crateModuleAssets(module2);
     ctx.createModuleImportReferences(module2);
@@ -6296,7 +6383,6 @@ var ClassBuilder = class {
     }
     if (this.construct) {
       let exists = this.construct.comments;
-      let classComments = createCommentsNode(ctx, stack);
       if (!exists) {
         this.construct.comments = classComments;
       } else if (exists && classComments) {
@@ -6397,7 +6483,7 @@ var ClassBuilder = class {
   createImplements(ctx, module2, stack = null) {
     let iteratorModule = null;
     this.implements = module2.implements.map((impModule) => {
-      if (impModule.isInterface && ctx.isActiveModule(impModule, module2, true)) {
+      if (impModule.isInterface && !impModule.isStructTable && ctx.isActiveModule(impModule, module2, true)) {
         iteratorModule = iteratorModule || import_Namespace4.default.globals.get("Iterator");
         if (iteratorModule !== impModule) {
           ctx.addDepend(impModule, module2);
@@ -6823,7 +6909,10 @@ var ClassBuilder = class {
     let decorators = node.decorators;
     if (node.isAccessor) {
       decorators = [];
+      let getComments = null;
+      let setComments = null;
       if (node.get) {
+        getComments = node.get.comments;
         if (node.get.isConfigurable) isConfigurable = true;
         node.get.disabledNewLine = true;
         delete node.get.static;
@@ -6833,6 +6922,7 @@ var ClassBuilder = class {
         }
       }
       if (node.set) {
+        setComments = node.set.comments;
         if (node.set.isConfigurable) isConfigurable = true;
         node.set.disabledNewLine = true;
         delete node.set.static;
@@ -6841,10 +6931,43 @@ var ClassBuilder = class {
           decorators.push(...node.set.decorators);
         }
       }
+      if (getComments || setComments) {
+        const commentsProperties = [];
+        if (getComments) {
+          commentsProperties.push(
+            ctx.createProperty(
+              ctx.createIdentifier("get"),
+              ctx.createChunkExpression(JSON.stringify(getComments.value), false)
+            )
+          );
+        }
+        if (setComments) {
+          commentsProperties.push(
+            ctx.createProperty(
+              ctx.createIdentifier("set"),
+              ctx.createChunkExpression(JSON.stringify(setComments.value), false)
+            )
+          );
+        }
+        properties2.push(
+          ctx.createProperty(
+            ctx.createIdentifier("comments"),
+            ctx.createObjectExpression(commentsProperties)
+          )
+        );
+      }
     } else {
+      if (node.comments) {
+        properties2.push(
+          ctx.createProperty(
+            ctx.createIdentifier("comments"),
+            ctx.createChunkExpression(JSON.stringify(node.comments.value), false)
+          )
+        );
+      }
       if (node.type === "PropertyDefinition") {
         if (node.init) {
-          properties2.push(createProperty("value", node.init, node));
+          properties2.push(createProperty("value", node.init));
         }
       } else {
         properties2.push(createProperty("value", node));
@@ -6858,17 +6981,20 @@ var ClassBuilder = class {
         )
       );
     }
-    return ctx.createProperty(
+    const confitNode = ctx.createObjectExpression(properties2);
+    const propertyNode = ctx.createProperty(
       key,
-      this.createMemberDecorator(
+      decorators && decorators.length > 0 ? this.createMemberDecorator(
         ctx,
         decorators,
         ctx.createLiteral(key.value),
-        ctx.createObjectExpression(properties2)
-      )
+        confitNode
+      ) : confitNode
     );
+    propertyNode.comments = node.comments;
+    return propertyNode;
   }
-  createClassDescriptor(ctx, module2, methods, members) {
+  createClassDescriptor(ctx, module2, methods, members, classComments) {
     const properties2 = [];
     let kind = module2.isEnum ? KIND_CLASS : module2.isStructTable ? KIND_STRUCT : module2.isInterface ? KIND_INTERFACE : KIND_CLASS;
     kind |= MODIFIER_PUBLIC;
@@ -6887,6 +7013,14 @@ var ClassBuilder = class {
         ctx.createLiteral(kind)
       )
     );
+    if (classComments && classComments.value) {
+      properties2.push(
+        ctx.createProperty(
+          ctx.createIdentifier("comments"),
+          ctx.createChunkExpression(JSON.stringify(classComments.value), false)
+        )
+      );
+    }
     const ns = module2.namespace && module2.namespace.toString();
     if (ns) {
       properties2.push(
@@ -7531,6 +7665,7 @@ function ImportSpecifier_default(ctx, stack) {
 }
 
 // node_modules/@easescript/transform/lib/core/InterfaceBuilder.js
+var import_Utils16 = __toESM(require("easescript/lib/core/Utils.js"));
 var modifierMaps2 = {
   "public": MODIFIER_PUBLIC,
   "protected": MODIFIER_PROTECTED,
@@ -7581,14 +7716,60 @@ var InterfaceBuilder = class extends ClassBuilder_default {
     this.createMemebers(ctx, stack);
     this.construct = this.createDefaultConstructor(ctx, module2.id, module2.inherit);
   }
+  createInitMemberProperty() {
+  }
   createMemeber(ctx, stack, staticFlag = false) {
     if (this.isStructTable) {
       if (stack.isStructTableColumnDefinition) {
         const node = ctx.createNode(stack, "PropertyDefinition");
+        const typeName = import_Utils16.default.getStructTableMethodTypeName(stack.typename?.value() || "varchar");
+        let defaultValue = null;
+        if (stack.properties) {
+          const defaultProperty = stack.properties.find((prop) => {
+            if (!prop.isStructTablePropertyDefinition) return false;
+            return prop.key.isIdentifier && prop.init && String(prop.key.value()).toLowerCase() === "default";
+          });
+          if (defaultProperty) {
+            const initStack = defaultProperty.init;
+            if (initStack.isMemberExpression) {
+              const desc = initStack.description();
+              if (desc && desc.isEnumProperty) {
+                defaultValue = ctx.createLiteral(String(desc.init.value()));
+              }
+            } else if (initStack.isLiteral) {
+              defaultValue = ctx.createToken(initStack);
+            }
+          }
+        }
         node.modifier = "public";
         node.kind = "column";
         node.key = ctx.createIdentifier(stack.key.value(), stack.key);
         node.comments = createCommentsNode(ctx, stack);
+        node.question = !!stack.question;
+        node.init = defaultValue || ctx.createLiteral(typeName === "string" ? "" : null);
+        let format = "* @Formal(varchar,255)";
+        let defaultV = defaultValue && defaultValue.type === "Literal" ? defaultValue.value : null;
+        if (stack.typename) {
+          const formatNode = ctx.createToken(stack.typename);
+          const generator = new Generator_default();
+          if (formatNode.type === "StructTableMethodDefinition") {
+            generator.withSequence([formatNode.key, ...formatNode.params]);
+          } else {
+            generator.make(formatNode);
+          }
+          format = `* @Formal(${generator.toString()})`;
+        }
+        let comments = [stack.question ? "* @Optional" : "* @Requred", format];
+        if (defaultV) {
+          comments.push('* @Default "' + String(defaultV) + '"');
+        }
+        if (node.comments) {
+          const lines = String(node.comments.value).split(/[\r\n]+/);
+          lines.splice(lines.length - 2, 0, ...comments);
+          node.comments.value = lines.join("\n");
+        } else {
+          node.comments = ctx.createChunkExpression(["/**", ...comments, "**/"].join("\n"));
+        }
         return node;
       }
       return null;
@@ -7627,27 +7808,85 @@ var InterfaceBuilder = class extends ClassBuilder_default {
       )
     );
     if (node.isAccessor) {
+      let getComments = null;
+      let setComments = null;
       if (node.get) {
-        properties2.push(
-          ctx.createProperty(
-            ctx.createIdentifier("get"),
-            ctx.createLiteral(true)
-          )
-        );
+        getComments = node.get.comments;
+        properties2.push(ctx.createProperty(
+          ctx.createIdentifier("get"),
+          ctx.createLiteral(true)
+        ));
       }
       if (node.set) {
+        setComments = node.get.comments;
+        properties2.push(ctx.createProperty(
+          ctx.createIdentifier("set"),
+          ctx.createLiteral(true)
+        ));
+      }
+      if (getComments || setComments) {
+        const commentsProperties = [];
+        if (getComments) {
+          commentsProperties.push(
+            ctx.createProperty(
+              ctx.createIdentifier("get"),
+              ctx.createChunkExpression(JSON.stringify(getComments.value), false)
+            )
+          );
+        }
+        if (setComments) {
+          commentsProperties.push(
+            ctx.createProperty(
+              ctx.createIdentifier("set"),
+              ctx.createChunkExpression(JSON.stringify(setComments.value), false)
+            )
+          );
+        }
         properties2.push(
           ctx.createProperty(
-            ctx.createIdentifier("set"),
-            ctx.createLiteral(true)
+            ctx.createIdentifier("comments"),
+            ctx.createObjectExpression(commentsProperties)
           )
         );
       }
+    } else {
+      if (node.comments) {
+        properties2.push(
+          ctx.createProperty(
+            ctx.createIdentifier("comments"),
+            ctx.createChunkExpression(JSON.stringify(node.comments.value), false)
+          )
+        );
+      }
+      if (this.isStructTable) {
+        if (node.type === "PropertyDefinition") {
+          properties2.push(
+            ctx.createProperty(
+              ctx.createIdentifier("writable"),
+              ctx.createLiteral(true)
+            )
+          );
+          properties2.push(
+            ctx.createProperty(
+              ctx.createIdentifier("enumerable"),
+              ctx.createLiteral(true)
+            )
+          );
+          if (node.init) {
+            properties2.push(ctx.createProperty(
+              ctx.createIdentifier("value"),
+              node.init
+            ));
+          }
+        }
+      }
     }
-    return ctx.createProperty(
+    const propertyNode = ctx.createProperty(
       key,
       ctx.createObjectExpression(properties2)
     );
+    propertyNode.comments = node.comments;
+    return propertyNode;
   }
 };
 var InterfaceBuilder_default = InterfaceBuilder;
@@ -7742,7 +7981,7 @@ function JSXClosingFragment_default(ctx, stack) {
 
 // node_modules/@easescript/transform/lib/core/ESX.js
 var import_Namespace7 = __toESM(require("easescript/lib/core/Namespace"));
-var import_Utils16 = __toESM(require("easescript/lib/core/Utils"));
+var import_Utils17 = __toESM(require("easescript/lib/core/Utils"));
 function createFragmentVNode(ctx, children, props = null) {
   const items = [
     ctx.createIdentifier(ctx.getVNodeApi("Fragment")),
@@ -7863,7 +8102,7 @@ function createForEachNode(ctx, refs, element, item, key, stack) {
   return node;
 }
 function getComponentDirectiveAnnotation(module2) {
-  if (!import_Utils16.default.isModule(module2)) return null;
+  if (!import_Utils17.default.isModule(module2)) return null;
   const annots = getModuleAnnotations(module2, ["define"]);
   for (let annot of annots) {
     const args = annot.getArguments();
@@ -7879,7 +8118,7 @@ function getComponentDirectiveAnnotation(module2) {
 }
 var directiveInterface = null;
 function isDirectiveInterface(module2) {
-  if (!import_Utils16.default.isModule(module2)) return false;
+  if (!import_Utils17.default.isModule(module2)) return false;
   directiveInterface = directiveInterface || import_Namespace7.default.globals.get("web.components.Directive");
   if (directiveInterface && directiveInterface.isInterface) {
     return directiveInterface.type().isof(module2);
@@ -7887,7 +8126,7 @@ function isDirectiveInterface(module2) {
   return false;
 }
 function getComponentEmitAnnotation(module2) {
-  if (!import_Utils16.default.isModule(module2)) return null;
+  if (!import_Utils17.default.isModule(module2)) return null;
   const dataset2 = /* @__PURE__ */ Object.create(null);
   const annots = getModuleAnnotations(module2, ["define"]);
   annots.forEach((annot) => {
@@ -8247,7 +8486,7 @@ function createElementPropsNode(ctx, data, stack, excludes2 = null) {
   const props = items.length > 0 ? ctx.createObjectExpression(items) : null;
   if (props && stack && stack.isComponent) {
     const desc = stack.descriptor();
-    if (desc && import_Utils16.default.isModule(desc)) {
+    if (desc && import_Utils17.default.isModule(desc)) {
       let has = getModuleAnnotations(desc, ["hook"]).some((annot) => {
         let result = parseHookAnnotation(annot, ctx.plugin.version, ctx.options.metadata.versions);
         return result && result.type === "polyfills:props";
@@ -8871,7 +9110,7 @@ function createElementNode(ctx, stack, data, children) {
       let desc = stack.description();
       let isVar = stack.is(desc) && desc.isDeclarator;
       if (!isVar) desc = desc.type();
-      if (!isVar && import_Utils16.default.isModule(desc)) {
+      if (!isVar && import_Utils17.default.isModule(desc)) {
         ctx.addDepend(desc, stack.module);
         name = ctx.createIdentifier(
           ctx.getModuleReferenceName(desc, stack.module)
@@ -9035,14 +9274,14 @@ function JSXEmptyExpression_default(ctx, stack) {
 
 // node_modules/@easescript/transform/lib/tokens/JSXExpressionContainer.js
 var import_Namespace8 = __toESM(require("easescript/lib/core/Namespace"));
-var import_Utils17 = __toESM(require("easescript/lib/core/Utils"));
+var import_Utils18 = __toESM(require("easescript/lib/core/Utils"));
 function checkVNodeType(type) {
   if (!type || type.isAnyType) return false;
   if (type.isUnionType) {
     return type.elements.every((el) => checkVNodeType(el.type()));
   }
-  let origin = import_Utils17.default.getOriginType(type);
-  if (origin && import_Utils17.default.isModule(origin)) {
+  let origin = import_Utils18.default.getOriginType(type);
+  if (origin && import_Utils18.default.isModule(origin)) {
     if (origin.isWebComponent() || import_Namespace8.default.globals.get("VNode").is(origin)) {
       return true;
     }
@@ -9072,7 +9311,7 @@ function JSXExpressionContainer_default(ctx, stack) {
   if (node) {
     let isExplicitVNode = false;
     let type = stack.expression.type();
-    let isScalar = stack.expression.isLiteral || import_Utils17.default.isScalar(type);
+    let isScalar = stack.expression.isLiteral || import_Utils18.default.isScalar(type);
     if (type && !isScalar) {
       isExplicitVNode = checkVNodeType(type);
     }
@@ -9214,10 +9453,10 @@ function LogicalExpression_default(ctx, stack) {
 }
 
 // node_modules/@easescript/transform/lib/tokens/MemberExpression.js
-var import_Utils18 = __toESM(require("easescript/lib/core/Utils"));
+var import_Utils19 = __toESM(require("easescript/lib/core/Utils"));
 var import_Namespace9 = __toESM(require("easescript/lib/core/Namespace"));
 function addImportReference(ctx, desc, module2) {
-  if (import_Utils18.default.isStack(desc) && (desc.isDeclaratorVariable || desc.isDeclaratorFunction)) {
+  if (import_Utils19.default.isStack(desc) && (desc.isDeclaratorVariable || desc.isDeclaratorFunction)) {
     let imports = desc.imports;
     if (Array.isArray(imports)) {
       imports.forEach((item) => {
@@ -9236,23 +9475,23 @@ function MemberExpression(ctx, stack) {
   const module2 = stack.module;
   const description = stack.descriptor();
   const objectType = stack.object.type();
-  if (stack.object.isIdentifier && import_Utils18.default.isTypeModule(description) && description.id === stack.object.value()) {
+  if (stack.object.isIdentifier && import_Utils19.default.isTypeModule(description) && description.id === stack.object.value()) {
     ctx.addDepend(description, stack.module);
   } else {
     const objectDescriptor = stack.object.descriptor();
-    if (import_Utils18.default.isTypeModule(objectDescriptor)) {
+    if (import_Utils19.default.isTypeModule(objectDescriptor)) {
       ctx.addDepend(objectDescriptor, stack.module);
     } else {
       addImportReference(ctx, objectDescriptor, module2 || stack.compilation);
       addImportReference(ctx, description, module2 || stack.compilation);
     }
   }
-  if (!description || import_Utils18.default.isType(description) && description.isAnyType && !stack.optional) {
+  if (!description || import_Utils19.default.isType(description) && description.isAnyType && !stack.optional) {
     let isReflect = true;
     if (description) {
       isReflect = false;
       let hasDynamic = description.isComputeType && description.isPropertyExists();
-      if (!hasDynamic && !import_Utils18.default.isLiteralObjectType(objectType)) {
+      if (!hasDynamic && !import_Utils19.default.isLiteralObjectType(objectType)) {
         isReflect = true;
       }
     }
@@ -9271,7 +9510,7 @@ function MemberExpression(ctx, stack) {
   const resolveName = getMethodOrPropertyAlias(ctx, description);
   const privateChain = ctx.options.privateChain;
   if (privateChain && description && description.isMethodDefinition && !(description.static || description.module.static)) {
-    const modifier = import_Utils18.default.getModifierValue(description);
+    const modifier = import_Utils19.default.getModifierValue(description);
     const refModule = description.module;
     if (modifier === "private" && refModule.children.length > 0) {
       let property = resolveName ? ctx.createIdentifier(resolveName, stack.property) : ctx.createToken(stack.property);
@@ -9285,7 +9524,7 @@ function MemberExpression(ctx, stack) {
       );
     }
   }
-  if (objectType && import_Namespace9.default.is(objectType) && (import_Utils18.default.isClassType(description) || import_Utils18.default.isInterface(description) && !description.isStructTable)) {
+  if (objectType && import_Namespace9.default.is(objectType) && (import_Utils19.default.isClassType(description) || import_Utils19.default.isInterface(description) && !description.isStructTable)) {
     ctx.addDepend(description, stack.module);
     if (!stack.hasMatchAutoImporter) {
       return ctx.createIdentifier(
@@ -9340,7 +9579,7 @@ function MemberExpression(ctx, stack) {
   }
   let propertyNode = resolveName ? ctx.createIdentifier(resolveName, stack.property) : ctx.createToken(stack.property);
   if (privateChain && description && description.isPropertyDefinition && !(description.static || description.module.static)) {
-    const modifier = import_Utils18.default.getModifierValue(description);
+    const modifier = import_Utils19.default.getModifierValue(description);
     if ("private" === modifier) {
       const object = ctx.createMemberExpression([
         ctx.createToken(stack.object),
@@ -9365,12 +9604,12 @@ function MemberExpression(ctx, stack) {
 var MemberExpression_default = MemberExpression;
 
 // node_modules/@easescript/transform/lib/tokens/MethodDefinition.js
-var import_Utils19 = __toESM(require("easescript/lib/core/Utils"));
+var import_Utils20 = __toESM(require("easescript/lib/core/Utils"));
 function MethodDefinition_default(ctx, stack, type) {
   const node = FunctionDeclaration_default(ctx, stack, type);
   node.async = stack.expression.async ? true : false;
   node.static = !!stack.static;
-  node.modifier = import_Utils19.default.getModifierValue(stack);
+  node.modifier = import_Utils20.default.getModifierValue(stack);
   node.kind = "method";
   node.isAbstract = !!stack.isAbstract;
   node.isFinal = !!stack.isFinal;
@@ -9394,11 +9633,11 @@ function MethodSetterDefinition_default(ctx, stack, type) {
 }
 
 // node_modules/@easescript/transform/lib/tokens/NewExpression.js
-var import_Utils20 = __toESM(require("easescript/lib/core/Utils"));
+var import_Utils21 = __toESM(require("easescript/lib/core/Utils"));
 function NewExpression_default(ctx, stack) {
   let desc = stack.callee.type();
-  desc = import_Utils20.default.getOriginType(desc);
-  if (desc !== stack.module && import_Utils20.default.isTypeModule(desc)) {
+  desc = import_Utils21.default.getOriginType(desc);
+  if (desc !== stack.module && import_Utils21.default.isTypeModule(desc)) {
     ctx.addDepend(desc, stack.module);
   }
   const node = ctx.createNode(stack);
@@ -9458,7 +9697,7 @@ function Property_default(ctx, stack) {
 }
 
 // node_modules/@easescript/transform/lib/tokens/PropertyDefinition.js
-var import_Utils21 = __toESM(require("easescript/lib/core/Utils"));
+var import_Utils22 = __toESM(require("easescript/lib/core/Utils"));
 function PropertyDefinition_default(ctx, stack) {
   let init = null;
   if (stack.annotations && stack.annotations.length > 0) {
@@ -9489,7 +9728,7 @@ function PropertyDefinition_default(ctx, stack) {
   }
   const node = ctx.createNode(stack);
   const decl = ctx.createToken(stack.declarations[0]);
-  node.modifier = import_Utils21.default.getModifierValue(stack);
+  node.modifier = import_Utils22.default.getModifierValue(stack);
   node.static = !!stack.static;
   node.kind = stack.kind;
   node.key = decl.id;
@@ -9551,6 +9790,17 @@ function StructTableColumnDefinition_default(ctx, stack) {
       node.properties.push(createIdentNode(ctx, item));
     });
   }
+  const defineAnnotations = getMethodAnnotations(stack, ["define"]);
+  node.order = 99;
+  if (defineAnnotations && defineAnnotations.length > 0) {
+    for (let defineAnnotation of defineAnnotations) {
+      const data = parseDefineAnnotation(defineAnnotation);
+      if (data && data.order != null) {
+        node.order = data.order;
+        break;
+      }
+    }
+  }
   return node;
 }
 
@@ -9571,26 +9821,40 @@ function StructTableKeyDefinition_default(ctx, stack) {
   node.prefix = key === "primary" || key === "key" ? null : ctx.createIdentifier("key");
   node.local = ctx.createToken(stack.local);
   node.properties = (stack.properties || []).map((item) => createIdentNode(ctx, item));
+  node.order = 999;
   return node;
 }
 
 // node_modules/@easescript/transform/lib/tokens/StructTableMethodDefinition.js
-var import_Namespace10 = __toESM(require("easescript/lib/core/Namespace"));
+var import_Utils23 = __toESM(require("easescript/lib/core/Utils"));
 function createNode(ctx, item, isKey = false, toLower = false, type = null) {
   if (!item) return null;
   if (type === "enum") {
     if (item.isIdentifier || item.isMemberExpression) {
-      const type2 = import_Namespace10.default.globals.get(item.value());
+      const type2 = item.type();
       const list = [];
-      if (type2 && type2.isModule && type2.isEnum) {
-        Array.from(type2.descriptors.keys()).forEach((key) => {
-          const items = type2.descriptors.get(key);
-          const item2 = items.find((item3) => item3.isEnumProperty);
-          if (item2) {
-            list.push(ctx.createLiteral(item2.init.value()));
-          }
-        });
-      }
+      const make = (type3) => {
+        if (!type3) return;
+        if (type3.isIntersectionType) {
+          make(type3.left.type());
+          make(type3.right.type());
+        } else if (type3.isUnionType) {
+          type3.elements.forEach((item2) => make(item2.type()));
+        } else if (type3.isLiteralType && type3.value != null) {
+          list.push(ctx.createLiteral(String(type3.value)));
+        } else if (import_Utils23.default.isModule(type3) && type3.isEnum) {
+          Array.from(type3.descriptors.keys()).forEach((key) => {
+            const items = type3.descriptors.get(key);
+            const item2 = items.find((item3) => item3.isEnumProperty);
+            if (item2) {
+              list.push(ctx.createLiteral(String(item2.init.value())));
+            }
+          });
+        } else {
+          item.error(10115, item.value());
+        }
+      };
+      make(type2);
       return list;
     }
   }
@@ -9619,12 +9883,19 @@ function StructTablePropertyDefinition_default(ctx, stack) {
   const node = ctx.createNode(stack);
   node.assignment = !!stack.assignment;
   node.key = createIdentNode(ctx, stack.key);
-  node.init = createIdentNode(ctx, stack.init);
+  let init = null;
+  if (stack.init && stack.init.isMemberExpression) {
+    const desc = stack.init.description();
+    if (desc && desc.isEnumProperty) {
+      init = ctx.createLiteral(String(desc.init.value()));
+    }
+  }
+  node.init = init || createIdentNode(ctx, stack.init);
   return node;
 }
 
 // node_modules/@easescript/transform/lib/tokens/SuperExpression.js
-var import_Utils22 = __toESM(require("easescript/lib/core/Utils"));
+var import_Utils24 = __toESM(require("easescript/lib/core/Utils"));
 function SuperExpression_default(ctx, stack) {
   const node = ctx.createNode(stack);
   if (stack.parentStack.isCallExpression && ctx.useClassConstructor(stack.module)) {
@@ -9638,7 +9909,7 @@ function SuperExpression_default(ctx, stack) {
       let identifier = stack.inherit;
       if (stack.inherit && stack.inherit.isIdentifier) {
         let desc = identifier.description();
-        if (import_Utils22.default.isStack(desc) && desc.isDeclarator) {
+        if (import_Utils24.default.isStack(desc) && desc.isDeclarator) {
           refs = stack.inherit.value();
         }
       }
@@ -9716,7 +9987,7 @@ function TypeTransformExpression_default(ctx, stack) {
 }
 
 // node_modules/@easescript/transform/lib/tokens/UnaryExpression.js
-var import_Utils23 = __toESM(require("easescript/lib/core/Utils"));
+var import_Utils25 = __toESM(require("easescript/lib/core/Utils"));
 function UnaryExpression_default(ctx, stack) {
   const operator = stack.operator;
   const prefix = stack.prefix;
@@ -9724,7 +9995,7 @@ function UnaryExpression_default(ctx, stack) {
     const desc = stack.argument.description();
     if (desc && desc.isAnyType) {
       const hasDynamic = desc && desc.isComputeType && desc.isPropertyExists();
-      if (!hasDynamic && !import_Utils23.default.isLiteralObjectType(stack.argument.object.type())) {
+      if (!hasDynamic && !import_Utils25.default.isLiteralObjectType(stack.argument.object.type())) {
         const property = stack.argument.computed ? ctx.createToken(stack.argument.property) : ctx.createLiteral(
           stack.argument.property.value(),
           void 0,
@@ -9748,7 +10019,7 @@ function UnaryExpression_default(ctx, stack) {
 }
 
 // node_modules/@easescript/transform/lib/tokens/UpdateExpression.js
-var import_Utils24 = __toESM(require("easescript/lib/core/Utils"));
+var import_Utils26 = __toESM(require("easescript/lib/core/Utils"));
 function UpdateExpression_default(ctx, stack) {
   const node = ctx.createNode(stack);
   const operator = stack.operator;
@@ -9761,11 +10032,11 @@ function UpdateExpression_default(ctx, stack) {
     let isReflect = false;
     if (stack.argument.computed) {
       const hasDynamic = desc && desc.isComputeType && desc.isPropertyExists();
-      if (!hasDynamic && !import_Utils24.default.isLiteralObjectType(stack.argument.object.type())) {
+      if (!hasDynamic && !import_Utils26.default.isLiteralObjectType(stack.argument.object.type())) {
         isReflect = true;
       }
     } else if (desc && desc.isAnyType) {
-      isReflect = !import_Utils24.default.isLiteralObjectType(stack.argument.object.type());
+      isReflect = !import_Utils26.default.isLiteralObjectType(stack.argument.object.type());
     }
     if (isReflect) {
       const method = operator === "++" ? "incre" : "decre";
@@ -10112,7 +10383,7 @@ function createBuildContext(plugin2, records2 = /* @__PURE__ */ new Map()) {
     const deps = /* @__PURE__ */ new Set();
     ctx.dependencies.forEach((dataset2) => {
       dataset2.forEach((dep) => {
-        if (import_Utils25.default.isModule(dep)) {
+        if (import_Utils27.default.isModule(dep)) {
           if (!dep.isStructTable && dep.isDeclaratorModule) {
             dep = ctx.getVModule(dep.getName());
             if (dep) {
@@ -10123,7 +10394,7 @@ function createBuildContext(plugin2, records2 = /* @__PURE__ */ new Map()) {
           }
         } else if (isVModule(dep)) {
           deps.add(dep);
-        } else if (import_Utils25.default.isCompilation(dep)) {
+        } else if (import_Utils27.default.isCompilation(dep)) {
           deps.add(dep);
         }
       });
@@ -10175,7 +10446,7 @@ function createBuildContext(plugin2, records2 = /* @__PURE__ */ new Map()) {
 }
 
 // node_modules/@easescript/transform/lib/core/Polyfill.js
-var import_Utils26 = __toESM(require("easescript/lib/core/Utils"));
+var import_Utils28 = __toESM(require("easescript/lib/core/Utils"));
 var import_fs5 = __toESM(require("fs"));
 var import_path5 = __toESM(require("path"));
 var TAGS_REGEXP = /(?:[\r\n]+|^)\/\/\/(?:\s+)?<(references|namespaces|export|import|createClass)\s+(.*?)\/>/g;
@@ -10252,7 +10523,7 @@ function parsePolyfillModule(file, createVModule) {
   } else {
     vm.addExport("default", vm.id);
   }
-  vm.file = import_Utils26.default.normalizePath(file);
+  vm.file = import_Utils28.default.normalizePath(file);
   vm.setContent(content);
 }
 function createPolyfillModule(dirname, createVModule) {
@@ -10274,7 +10545,6 @@ function createPolyfillModule(dirname, createVModule) {
 
 // node_modules/@easescript/transform/lib/core/Plugin.js
 var import_events = __toESM(require("events"));
-var import_Utils27 = __toESM(require("easescript/lib/core/Utils"));
 import_Diagnostic.default.register("transform", (definer) => {
   definer(
     1e4,
@@ -10350,6 +10620,11 @@ import_Diagnostic.default.register("transform", (definer) => {
     10114,
     `[es-transform] \u5728\u7ED1\u5B9A\u7684\u88C5\u9970\u5668\u4E2D\u4F20\u5165\u53C2\u6570\uFF0C\u9700\u8981\u5728\u88C5\u9970\u5668\u4E2D\u8FD4\u56DE\u4E00\u4E2A\u88C5\u9970\u5668\u51FD\u6570`,
     `[es-transform] To pass arguments in the bound decorator, need to return a decorator function in the decorator`
+  );
+  definer(
+    10115,
+    `[es-transform] \u5F15\u7528'%s'\u5FC5\u987B\u662F\u4E00\u4E2A\u679A\u4E3E\u7C7B`,
+    `[es-transform] References the '%s' must is a emun class`
   );
 });
 var plugins = /* @__PURE__ */ new Set();
@@ -10451,6 +10726,9 @@ var Plugin = class _Plugin extends import_events.default {
         this.emit("compilation:changed", compilation);
       }
     });
+    this.complier.on("onRefreshDone", (compilations) => {
+      this.emit("compilation:refresh", compilations);
+    });
   }
   async init() {
     if (this.#context) return;
@@ -10474,9 +10752,7 @@ var Plugin = class _Plugin extends import_events.default {
     if (this.#initialized) return;
     this.#complier = complier;
     await this.init();
-    if (this.options.mode === "development" || this.options.hot) {
-      this.watch();
-    }
+    this.watch();
     this.#initialized = true;
   }
   //当任务处理完成后调用。在加载插件或者打包插件时会调用这个方法，用来释放一些资源
@@ -10631,12 +10907,12 @@ __export(tokens_exports2, {
 var ClassBuilder_default2 = ClassBuilder_default;
 
 // lib/core/ESXClassBuilder.js
-var import_Utils29 = __toESM(require("easescript/lib/core/Utils"));
+var import_Utils30 = __toESM(require("easescript/lib/core/Utils"));
 
 // lib/core/Common.js
-var import_Utils28 = __toESM(require("easescript/lib/core/Utils"));
+var import_Utils29 = __toESM(require("easescript/lib/core/Utils"));
 function hasStyleScoped(compilation) {
-  if (!import_Utils28.default.isCompilation(compilation)) return false;
+  if (!import_Utils29.default.isCompilation(compilation)) return false;
   return compilation.jsxStyles.some((style) => {
     return style.openingElement.attributes.some((attr) => {
       if (compare(attr.name.value(), "scoped")) {
@@ -10792,14 +11068,14 @@ var ESXClassBuilder = class extends ClassBuilder_default2 {
       const provider = getMethodAnnotations(stack, ["provider"])[0];
       if (provider) {
         const args = provider.getArguments();
-        this.#provideProperties.push(this.createAddProviderNode(ctx, args[0] ? args[0].value : node.key.value, node.key.value, true, import_Utils29.default.isModifierPrivate(stack)));
+        this.#provideProperties.push(this.createAddProviderNode(ctx, args[0] ? args[0].value : node.key.value, node.key.value, true, import_Utils30.default.isModifierPrivate(stack)));
         node.provider = true;
       }
     } else if (stack.isMethodGetterDefinition || stack.isPropertyDefinition) {
       const provider = getMethodAnnotations(stack, ["provider"])[0];
       if (provider) {
         const args = provider.getArguments();
-        this.#provideProperties.push(this.createAddProviderNode(ctx, args[0] ? args[0].value : node.key.value, node.key.value, false, import_Utils29.default.isModifierPrivate(stack)));
+        this.#provideProperties.push(this.createAddProviderNode(ctx, args[0] ? args[0].value : node.key.value, node.key.value, false, import_Utils30.default.isModifierPrivate(stack)));
         node.provider = true;
       }
     }
@@ -11194,7 +11470,7 @@ var ESXClassBuilder = class extends ClassBuilder_default2 {
           ctx.createProperty(
             ctx.createIdentifier("__ssrCtx"),
             ctx.createLiteral(
-              import_Utils29.default.normalizePath(file)
+              import_Utils30.default.normalizePath(file)
             )
           )
         );
@@ -11377,8 +11653,8 @@ function JSXAttribute_default2(ctx, stack) {
 }
 
 // lib/core/ESXOptimize.js
-var import_Namespace11 = __toESM(require("easescript/lib/core/Namespace"));
-var import_Utils30 = __toESM(require("easescript/lib/core/Utils"));
+var import_Namespace10 = __toESM(require("easescript/lib/core/Namespace"));
+var import_Utils31 = __toESM(require("easescript/lib/core/Utils"));
 var Cache2 = getCacheManager("common");
 var hasStyleScopedKey = Symbol("hasStyleScoped");
 var ELEMENT_TEXT = 1;
@@ -11422,8 +11698,8 @@ function isOpenBlock(stack) {
     return !isShowDirective;
   } else {
     const type = stack.type();
-    if (import_Utils30.default.isModule(type)) {
-      return import_Namespace11.default.globals.get("web.components.Fragment").is(type);
+    if (import_Utils31.default.isModule(type)) {
+      return import_Namespace10.default.globals.get("web.components.Fragment").is(type);
     }
   }
   return false;
@@ -12135,7 +12411,7 @@ function makeElementVNode(ctx, stack, data, childNodes, isBlock) {
     desc = stack.description();
     let isVar = stack.is(desc) && desc.isDeclarator;
     if (!isVar) desc = desc.type();
-    if (!isVar && import_Utils30.default.isModule(desc)) {
+    if (!isVar && import_Utils31.default.isModule(desc)) {
       ctx.addDepend(desc);
       name = ctx.createIdentifier(
         ctx.getModuleReferenceName(desc, stack.module)
@@ -12388,7 +12664,7 @@ function getElementStats(ctx, stack, data, children, isRoot = false) {
   let pureStaticAttributes = data.pureStaticAttributes;
   let hasConditionDirective = data.hasConditionDirective;
   let componentDirective = getComponentDirectiveAnnotation(desc, true);
-  if (isWebComponent && import_Utils30.default.isModule(desc)) {
+  if (isWebComponent && import_Utils31.default.isModule(desc)) {
     let fullname = desc.getName();
     if (fullname === "web.components.KeepAlive") {
       isKeepAlive = true;
@@ -12668,7 +12944,7 @@ var import_dotenv2 = __toESM(require("dotenv"));
 var import_fs6 = __toESM(require("fs"));
 var import_path7 = __toESM(require("path"));
 var import_dotenv_expand2 = __toESM(require("dotenv-expand"));
-var import_Utils31 = __toESM(require("easescript/lib/core/Utils"));
+var import_Utils32 = __toESM(require("easescript/lib/core/Utils"));
 var MakeCode = class extends Token_default {
   #plugin = null;
   #resolvePageDir = void 0;
@@ -12701,7 +12977,7 @@ var MakeCode = class extends Token_default {
     return pageDir;
   }
   isPage(module2) {
-    if (import_Utils31.default.isModule(module2) && module2.file && module2.isWebComponent()) {
+    if (import_Utils32.default.isModule(module2) && module2.file && module2.isWebComponent()) {
       let pageDir = this.getPageDir();
       if (pageDir && module2.file.startsWith(pageDir)) {
         const pageExcludeRegular = this.options.pageExcludeRegular;
@@ -13011,7 +13287,7 @@ export default __$$metadata;`;
     if (!module2) {
       module2 = Array.from(compilation.modules.values()).find((m) => m.getName() === query.id && m.isModule && m.isClass && !m.isDeclaratorModule);
     }
-    if (import_Utils31.default.isModule(module2)) {
+    if (import_Utils32.default.isModule(module2)) {
       return this.makeModuleMetadata(module2, compilation);
     }
     return `export default {};`;
@@ -13019,8 +13295,8 @@ export default __$$metadata;`;
 };
 
 // lib/core/Context.js
-var import_Namespace12 = __toESM(require("easescript/lib/core/Namespace"));
-var import_Utils32 = __toESM(require("easescript/lib/core/Utils"));
+var import_Namespace11 = __toESM(require("easescript/lib/core/Namespace"));
+var import_Utils33 = __toESM(require("easescript/lib/core/Utils"));
 var EXCLUDE_STYLE_RE = /[\\\/]style[\\\/](css|index)$/i;
 var emptyObject2 = {};
 var Context2 = class extends Context_default {
@@ -13117,7 +13393,7 @@ var Context2 = class extends Context_default {
   }
   getAvailableOriginType(type) {
     if (type) {
-      const originType = import_Utils32.default.getOriginType(type);
+      const originType = import_Utils33.default.getOriginType(type);
       switch (originType.id) {
         case "String":
         case "Number":
@@ -13133,16 +13409,16 @@ var Context2 = class extends Context_default {
     return null;
   }
   isWebComponent(module2) {
-    if (import_Utils32.default.isCompilation(module2)) {
+    if (import_Utils33.default.isCompilation(module2)) {
       module2 = module2.mainModule;
     }
-    if (!import_Utils32.default.isModule(module2)) return false;
+    if (!import_Utils33.default.isModule(module2)) return false;
     if (module2.isWebComponent()) return true;
     return this.isApplication(module2);
   }
   isApplication(module2) {
     if (!module2 || !module2.isModule || module2.isDeclaratorModule) return false;
-    const Application = import_Namespace12.default.globals.get("web.Application");
+    const Application = import_Namespace11.default.globals.get("web.Application");
     return Application.is(module2);
   }
   getModuleResourceId(module2, query = {}, extformat = null) {
@@ -13199,7 +13475,7 @@ var Context2 = class extends Context_default {
     return source;
   }
   createDefaultRoutePathNode(module2) {
-    if (import_Utils32.default.isModule(module2)) {
+    if (import_Utils33.default.isModule(module2)) {
       return this.createLiteral(
         this.plugin.makeCode.getDefaultRoutePath(module2)
       );
