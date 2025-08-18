@@ -20,7 +20,7 @@ function Fun(){
 @Define(options, emits, open)
 @Define(options, file, true, type='--literal')
 class Home extends Component{
-
+      
       @Provider
       list:{label:string}[] = [{label:'999999999'}];
 
@@ -117,7 +117,9 @@ class Home extends Component{
             return <div data-title="home" xmlns:local="karma.components" xmlns:ui="web.ui"  xmlns:d="@directives" xmlns:s="@slots"  class={{'roo-con':true}} style={[{width:'auto'}]} >
                        66666666666666 2222--33388866667777
 
-                  <ui:Button on:click={this.showEditor=true}>fdfdfdsf</ui:Button>
+                  <ui:Button on:click={this.showEditor=true} props={{
+                        name:'buttonText',
+                  }}>fdfdfdsf</ui:Button>
                   <ui:Dialog b:value={showEditor}>
                        88866699996666
                   </ui:Dialog>
@@ -200,8 +202,6 @@ class Home extends Component{
                   </div>
 
                   <div>{Lang.fetch('home.start')}</div>
-
-
 
             </div>
       }

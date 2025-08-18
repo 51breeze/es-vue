@@ -7,6 +7,9 @@ package web.components{
 
         static getAttribute<T>(target:Component,name:string):T;
         static getPolyfillValue(value:any, name:string, classModule:class<any>):any;
+        static createComponent<T extends class<Component>>(classModule:T, options:Record):T;
+        static resolveDirective(options:Record):any[];
+        static getCompnentInstanceByVNode<T extends Component=Component>(vnode):T;
 
         constructor(props?:{[key:string]:any});
 
@@ -64,7 +67,7 @@ package web.components{
         forceUpdate();
         provide(name:string, provider:()=>any):void;
         inject<T=any>(name:string, from?:string, defaultValue?:T):T;
-        watch(name: string, callback:(uewVlaue?,oldValue?)=>void, options?:boolean | {immediate?:boolean,deep?:boolean}):void;
+        watch<T=any>(name: string|Function, callback:vue.WatchCallback<T>, options?:boolean | vue.WatchOptions):void;
         getRoute():web.components.Route | null;
         getRefs<T=NodeElementType>(name:string):T;
         getRefs<T=NodeElementType[]>(name:string, toArray:boolean):T;

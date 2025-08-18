@@ -112,7 +112,7 @@ package web{
                             if( bindMethods.hasOwnProperty(key) ){
                                 return bindMethods[key];
                             }
-                            return bindMethods[key] = desc.value.bind(this);
+                            return bindMethods[key] = desc.value.bind(_proxy);
                         }
                     }else{
                         key = String(key);
@@ -191,7 +191,7 @@ package web{
                 set:(target,key,value)=>{
                     const desc = descriptor.getMemberDescriptor(key);
                     if(!desc){
-                        throw new ReferenceError(`Store property the "${key}" 222 is not exist`)
+                        throw new ReferenceError(`Store property the "${key}" is not exist`)
                     }
                     if(!desc.isPublic()){
                         throw new ReferenceError(`Store ${desc.label} the "${key}" is not accessible`)
@@ -215,6 +215,9 @@ package web{
                     }
                 },
                 get:(target,key,receiver)=>{
+                    if(descriptor.isPrivatePropertyKey(key)){
+                        return this[key];
+                    }
                     if(key==="$id"){
                         return store[key];
                     }
@@ -225,21 +228,21 @@ package web{
                         return bindMethods[key] = (this[key] as Function).bind(this);
                     }
                     const desc = descriptor.getMemberDescriptor(key);
-                    if(!desc){
-                        return this.whenPropertyNotExists(String(key))
-                    }
-                    if(!desc.isPublic()){
-                        throw new ReferenceError(`Store ${desc.label} the "${key}" is not accessible`)
-                    }
-                    //getters computed 在服务端使用了缓存导致与客户端状态不同步
-                    when(Env(platform, server)){
-                        when(Env(mode, development)){
-                            if(desc.getter){
-                                return desc.invokeGetter(this)
+                    if(desc){
+                        if(!desc.isPublic()){
+                            throw new ReferenceError(`Store ${desc.label} the "${key}" is not accessible`)
+                        }
+                        //getters computed 在服务端使用了缓存导致与客户端状态不同步
+                        when(Env(platform, server)){
+                            when(Env(mode, development)){
+                                if(desc.getter){
+                                    return desc.invokeGetter(this)
+                                }
                             }
                         }
+                        return store[key];
                     }
-                    return store[key];
+                    return target[key];
                 }
             });
         }
@@ -248,11 +251,19 @@ package web{
         protected storeInstance:StoreInstance= null
 
         protected setState(name:string, value:any){
-            this.storeInstance.$state[':'+name] = value;
+            const state = this.storeInstance.$state;
+            if(state.hasOwnProperty(name)){
+                state[name] = value;
+            }else{
+                const key = ':'+name;
+                state[key] = value;
+            }
         }
 
         protected getState<T=any>(name:string){
-            return this.storeInstance.$state[':'+name] as T;
+            const state = this.storeInstance.$state;
+            const key = ':'+name
+            return (state[key] || state[name]) as T;
         }
 
         protected whenPropertyNotExists(key){

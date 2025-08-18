@@ -128,6 +128,24 @@ class Index extends Application{
             </div>
             <br />
             <Layout />
+            <ui:Dialog appendToBody  closeOnClickModal={false}>
+                <ui:Form  labelPosition="right"  ref="form" size="small">
+                    <ui:FormItem d:each="(config,key) in []" >
+                        <d:if condition={config.type==="input"}>
+                            <ui:Input b:value={this[config.key]} {...config.props||{}}></ui:Input>
+                        </d:if>
+                        <d:elseif condition={config.type==="select"}>
+                            <ui:Select b:value={this[config.key]} {...config.props||{}}>
+                                <ui:Option d:each="(item) in config.options" value={item.value} label={item.label}></ui:Option>
+                            </ui:Select>
+                        </d:elseif>
+                    </ui:FormItem>
+                </ui:Form>
+                <slot:footer>
+                    <ui:Button>重置</ui:Button> 
+                    <ui:Button type="primary">提交</ui:Button>
+                </slot:footer>
+            </ui:Dialog>
         </div>
     }
 

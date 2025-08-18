@@ -4,6 +4,8 @@ import web.components.Component;
 import Tooltip from 'element-plus/lib/components/tooltip'
 import 'element-plus/lib/components/tooltip/style/css'
 
+@Define(slot, content);
+
 /** Tooltip Component */
 declare final class Tooltip extends Component {
   /** Tooltip theme */
@@ -28,7 +30,7 @@ declare final class Tooltip extends Component {
   transition: string
 
   /** Whether an arrow is displayed. For more information, check Vue-popper page */
-  visibleArrow: boolean
+  showArrow: boolean
 
   /** Popper.js parameters */
   popperOptions: object
@@ -50,4 +52,7 @@ declare final class Tooltip extends Component {
 
   /** Tooltip tabindex */
   tabindex: number
+
+  //在触发后多久显示内容，单位毫秒
+  showAfter:number
 }

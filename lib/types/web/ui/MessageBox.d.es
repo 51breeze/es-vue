@@ -31,15 +31,20 @@ declare final class MessageBox extends Component {
   confirmButtonDisabled: boolean
   cancelButtonClass: string
   editorErrorMessage: string
+  /**call message box */
+  (options: MessageBoxOptions, appContext?):Promise<MessageBoxData>
 
    /** Show an alert message box */
-  static alert: MessageBoxShortcutMethod
+  static alert(message: string, title: string, options?: MessageBoxOptions, appContext?):Promise<MessageBoxData>
+  static alert(message: string, options?: MessageBoxOptions, appContext?):Promise<MessageBoxData>
 
   /** Show a confirm message box */
-  static confirm: MessageBoxShortcutMethod
+  static confirm(message: string, title: string, options?: MessageBoxOptions, appContext?):Promise<MessageBoxData>
+  static confirm(message: string, options?: MessageBoxOptions, appContext?):Promise<MessageBoxData>
 
   /** Show a prompt message box */
-  static prompt: MessageBoxShortcutMethod
+  static prompt(message: string, title: string, options?: MessageBoxOptions, appContext?):Promise<MessageBoxData>
+  static prompt(message: string, options?: MessageBoxOptions, appContext?):Promise<MessageBoxData>
 
   /** Set default options of message boxes */
   static setDefaults(defaults: MessageBoxOptions): void
@@ -148,5 +153,3 @@ declare interface MessageBoxOptions {
   /** Whether to distinguish canceling and closing */
   distinguishCancelAndClose?: boolean
 }
-
-declare type MessageBoxShortcutMethod = (message: string, title?: string | MessageBoxOptions, options?: MessageBoxOptions)=> Promise<MessageBoxData>

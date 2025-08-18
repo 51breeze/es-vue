@@ -445,6 +445,11 @@ class List extends Component{
                     
                 </Foreach>
 
+                <ui:Loading value={true}>
+                    <div>Loading...</div>
+
+                </ui:Loading>
+
                 <div d:custom={{name:Loading.directive,value:true}}>
                     loadding...
                 </div>

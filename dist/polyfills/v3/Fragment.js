@@ -7,7 +7,6 @@
 ///<import from='vue' name='Vue' namespaced />
 ///<namespaces name='web.components' />
 ///<createClass value='false' />
-
 function makeChild(value){
     if( Array.isArray(value) ){
         return Vue.h(Vue.Fragment,value.map(child=>makeChild(child)));

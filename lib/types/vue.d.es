@@ -211,6 +211,11 @@ package vue{
         onTrigger?: (event: Record) => void
     }
 
+    declare function unref<T=any>(ref: T): T extends Ref<infer B> ? B : T;
+    declare function isRef<T=any>(value):value is Ref<T>
+    declare function ref<T=any>(target?:T):Ref<T>
+    declare function toRef<T extends object,K extends string>(target:T, propkey:K):Ref<T[K]>
+    declare function toRefs<T extends object>(target:T):Ref<T>
     declare function reactive<T extends object>(target:T):T
     declare function renderList<T>(source: Iterable, renderItem: (value: T, index: number) => VNode): VNode[];
     declare function renderSlot(slots: Record, name: string, props?: Record, fallback?: () => VNode[], noSlotted?: boolean): VNode;
