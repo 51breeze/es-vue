@@ -192,10 +192,22 @@ package vue{
     declare function isVNode(value: any):boolean
     declare function markRaw<T=any>(value:T):T;
 
+    declare function provide(key: any, value: any): void
+    declare function inject<T=any>(key: any, value?:T): T
+    declare function hasInjectionContext(): boolean
+
+    declare function useAttrs(): Record<any, string>
+    declare function useSlots(): Record<(...args: any[]) => VNode[], string>
+
     declare function watch<T=any>(source: WatchSource<T>,callback:WatchCallback<T>,options?:WatchOptions):()=>void
     declare function watch<T=any>(sources: WatchSource<T>[],callback: WatchCallback<T>[],options?:WatchOptions): ()=>void
     declare type WatchCallback<T=any> = (value: T,oldValue: T, onCleanup: (cleanupFn: () => void) => void) => void
     declare type WatchSource<T=any> = Ref<T> | (() => T) | object;
+
+    declare function useModel(props: Record<string, any>, key: string,options?: DefineModelOptions): any
+    declare type DefineModelOptions<T = any> = {get?: (v: T) => any,set?: (v: T) => any}
+
+    declare function useId(): string
 
     declare interface WatchEffectOptions {
         flush?: 'pre' | 'post' | 'sync' // 默认：'pre'
@@ -211,12 +223,49 @@ package vue{
         onTrigger?: (event: Record) => void
     }
 
+    declare interface WatchHandle {
+        (): void // 可调用，与 `stop` 相同
+        pause: () => void
+        resume: () => void
+        stop: () => void
+    }
+
+    declare function watchEffect(effect: (onCleanup: OnCleanup) => void,options?: WatchEffectOptions): WatchHandle
+    declare function watchPostEffect(effect: (onCleanup: OnCleanup) => void,options?: WatchEffectOptions): WatchHandle
+    declare function watchSyncEffect(effect: (onCleanup: OnCleanup) => void,options?: WatchEffectOptions): WatchHandle
+
+    declare type OnCleanup = (cleanupFn: () => void) => void
+
+    declare function onWatcherCleanup(cleanupFn: () => void,failSilently?: boolean): void
+
     declare function unref<T=any>(ref: T): T extends Ref<infer B> ? B : T;
     declare function isRef<T=any>(value):value is Ref<T>
+    declare function isProxy(value: any): boolean
+    declare function isReactive(value: any): boolean
+    declare function isReadonly(value: any): boolean
     declare function ref<T=any>(target?:T):Ref<T>
+    declare function shallowRef<T=any>(target?:T):Ref<T>
+    declare function triggerRef(ref: Ref<any>): void
+    declare function customRef<T>(factory: CustomRefFactory<T>): Ref<T>
+    declare type CustomRefFactory<T> = (track: () => void,trigger: () => void) => {
+        get: () => T,
+        set: (value: T) => void
+    }
     declare function toRef<T extends object,K extends string>(target:T, propkey:K):Ref<T[K]>
     declare function toRefs<T extends object>(target:T):Ref<T>
+    declare function toValue<T>(source: T | Ref<T> | (() => T)): T
     declare function reactive<T extends object>(target:T):T
+    declare function shallowReactive<T extends object>(target: T): T
+    declare function shallowReadonly<T extends object>(target: T): Ref<T>
+    declare function toRaw<T>(proxy: T): T
+    declare function effectScope(detached?: boolean): EffectScope
+    declare interface EffectScope {
+        run<T>(fn: () => T): T | undefined
+        stop(): void
+    }
+    declare function getCurrentScope(): EffectScope | undefined
+    declare function onScopeDispose(fn: () => void, failSilently?: boolean): void
+
     declare function renderList<T>(source: Iterable, renderItem: (value: T, index: number) => VNode): VNode[];
     declare function renderSlot(slots: Record, name: string, props?: Record, fallback?: () => VNode[], noSlotted?: boolean): VNode;
 
