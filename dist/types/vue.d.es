@@ -164,7 +164,7 @@ package vue{
         $options: Record
         $forceUpdate: () => void
         $nextTick: (fn:()=>void)=>void
-        $watch<T extends watchOpt>(source: T, cb:(...args) => any, options?: any): any
+        $watch<T extends watchOpt>(source: T, cb:(...args) => any, options?: any):()=>void
     }
 
     declare type watchOpt = string | (...args) => any

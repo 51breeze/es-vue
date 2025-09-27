@@ -7,7 +7,7 @@ import 'element-plus/lib/components/autocomplete/style/css'
 @Define(emits, blur, focus, input, clear, select, change)
 
 //自定义输入建议，参数为 { item }
-@Define(slot, 'default', scope = 'item' )
+@Define(slot, 'default', scope:{item:Record<any,string>})
 
 //输入框尾部内容
 @Define(slot, 'suffix')
@@ -21,16 +21,18 @@ import 'element-plus/lib/components/autocomplete/style/css'
 //输入框后置内容
 @Define(slot, 'append')
 
-declare final class Autocomplete extends Component{
-    //输入框占位文本
-    @DOMAttribute
-    placeholder:string
-    //禁用
-    disabled:boolean=false
+//下拉列表顶部的内容
+@Define(slot, 'header')
+
+//下拉列表底部的内容
+@Define(slot, 'footer')
+
+//修改加载区域内容
+@Define(slot, 'loading')
+
+declare final class Autocomplete extends Input{
     //输入建议对象中用于显示的键名
     valueKey:string = 'value'
-    //必填值，输入绑定值
-    value:string
     //获取输入建议的去抖延时
     debounce:number=300
     //菜单弹出位置
@@ -41,23 +43,19 @@ declare final class Autocomplete extends Component{
     popperClass:string
     //是否在输入框 focus 时显示建议列表
     triggerOnFocus:boolean=true
-    //原生属性
-    @DOMAttribute
-    name:string
     //在输入没有任何匹配建议的情况下，按下回车是否触发 select 事件
     selectWhenUnmatched:boolean=false
-    //输入框关联的label文字
-    label:string
-    //输入框头部图标
-    prefixIcon:string
-    //输入框尾部图标
-    suffixIcon:string
     //是否隐藏远程加载时的加载图标
     hideLoading:boolean=false
     //是否将下拉列表插入至 body 元素。在下拉列表的定位出现问题时，可将该属性设置为 false
+    @Deprecated
     popperAppendToBody:boolean=true
     //是否默认突出显示远程搜索建议中的第一项
     highlightFirstItem:boolean=false
-    //使 input 获取焦点
-    focus():void
+    //下拉框的宽度是否与输入框相同	
+    fitInputWidth=false
+    //是否将下拉列表元素插入 append-to 指向的元素下
+    teleported = true
+    //下拉框挂载到哪个 DOM 元素
+    appendTo:string|HTMLElement = null
 }

@@ -2389,7 +2389,10 @@ function createJSXAttrHookNode(ctx, stack, desc) {
             } else if (/\.(\w+)($|\?)/.test(value)) {
               const file = stack.compiler.resolveManager.resolveFile(value, stack.compilation.file);
               if (file) {
-                const local = "_" + import_path.default.basename(file, import_path.default.extname(file)) + createUniqueHashId(file, 12);
+                let basename = import_path.default.basename(file);
+                let index = basename.indexOf(".");
+                let name = index >= 0 ? basename.slice(0, index) : basename;
+                const local = "_" + toCamelCase(name) + createUniqueHashId(file, 8);
                 const source = ctx.getSourceFileMappingFolder(file) || file;
                 ctx.addImport(source, local);
                 return ctx.createIdentifier(local);
@@ -3541,11 +3544,13 @@ var Generator2 = class {
         this.newLine();
         this.withString("try");
         this.make(token.block);
-        this.withString("catch");
-        this.withParenthesL();
-        this.make(token.param);
-        this.withParenthesR();
-        this.make(token.handler);
+        if (token.handler) {
+          this.withString("catch");
+          this.withParenthesL();
+          this.make(token.param);
+          this.withParenthesR();
+          this.make(token.handler);
+        }
         if (token.finalizer) {
           this.withString("finally");
           this.make(token.finalizer);
@@ -6222,7 +6227,7 @@ function CallExpression_default(ctx, stack) {
       }
       ctx.addDepend(parent, module2);
     }
-    if (ctx.useClassConstructor(module2)) {
+    if (useClass) {
       return ctx.createCallExpression(
         ctx.createSuperExpression(void 0, stack.callee),
         stack.arguments.map((item) => ctx.createToken(item)),
@@ -6443,7 +6448,7 @@ var ClassBuilder = class {
         "default",
         this.getExportReferenceNode()
       );
-    } else {
+    } else if (!module2.isPrivate) {
       const exportNode = this.getExportReferenceNode();
       if (exportNode) {
         if (exportNode.type === "Identifier") {
@@ -6579,7 +6584,7 @@ var ClassBuilder = class {
             ctx.createCallExpression(
               createStaticReferenceNode(ctx, this.stack, "Class", "getKeySymbols"),
               [
-                ctx.createLiteral(ctx.getHashId())
+                ctx.createLiteral(ctx.getHashId(8, this.module))
               ]
             )
           )
@@ -7026,6 +7031,9 @@ var ClassBuilder = class {
     }
     if (module2.isFinal) {
       kind |= MODIFIER_FINAL;
+    }
+    if (module2.isPrivate) {
+      kind |= MODIFIER_PRIVATE;
     }
     properties2.push(
       ctx.createProperty(
@@ -8330,9 +8338,11 @@ function createChildren(ctx, children, data, stack) {
           return next();
         }
       } else if (child.isSlot && !child.isSlotDeclared) {
-        const name = child.openingElement.name.value();
-        data.slots[name] = childNode.content[0];
-        return next();
+        if (!(childNode.cmd.includes("if") || childNode.cmd.includes("else") || childNode.cmd.includes("elseif"))) {
+          const name = child.openingElement.name.value();
+          data.slots[name] = childNode.content[0];
+          return next();
+        }
       } else if (child.isDirective) {
         childNode.cmd.push(
           child.openingElement.name.value().toLowerCase()
@@ -8365,13 +8375,21 @@ function createChildren(ctx, children, data, stack) {
           result.ifEnd = true;
         } else {
           if (result) result.ifEnd = true;
-          last.content.push(createCommentVNode(ctx, "end if"));
+          const endNode = last.child.isSlot && !last.child.isSlotDeclared ? ctx.createLiteral(void 0) : createCommentVNode(ctx, "end if", true);
+          last.content.push(endNode);
           value = getCascadeConditional(last.content);
         }
       } else if (!(last.ifEnd && last.cmd.includes("else"))) {
         value = last.content;
       }
-      push(content, value);
+      if (value) {
+        if (last.child.isSlot && !last.child.isSlotDeclared && value.type === "ConditionalExpression") {
+          const name = last.stack.openingElement.name.value();
+          data.slots[name] = value;
+        } else {
+          push(content, value);
+        }
+      }
     }
     last = result;
     if (!result) break;
@@ -8589,7 +8607,7 @@ function createAttributes(ctx, stack, data) {
   const forStack = stack.getParentStack((stack2) => {
     return stack2.scope.isForContext || !(stack2.isJSXElement || stack2.isJSXExpressionContainer);
   }, true);
-  const inFor = forStack && forStack.scope && forStack.scope.isForContext ? true : false;
+  let inFor = forStack && forStack.scope && forStack.scope.isForContext ? true : false;
   const descModule = stack.isWebComponent ? stack.descriptor() : null;
   const definedEmits = getComponentEmitAnnotation(descModule);
   const getDefinedEmitName = (name) => {
@@ -8770,24 +8788,8 @@ function createAttributes(ctx, stack, data) {
     }
     if (!ns && (attrLowerName === "ref" || attrLowerName === "refs")) {
       name = propName = "ref";
-      let useArray = inFor || attrLowerName === "refs";
-      if (useArray) {
-        propValue = ctx.createArrowFunctionExpression(
-          ctx.createCallExpression(
-            ctx.createMemberExpression([
-              ctx.createThisExpression(),
-              ctx.createIdentifier("setRefNode")
-            ]),
-            [
-              value.value,
-              ctx.createIdentifier("node"),
-              ctx.createLiteral(true)
-            ]
-          ),
-          [
-            ctx.createIdentifier("node")
-          ]
-        );
+      if (attrLowerName === "refs" && !isDOMAttribute) {
+        inFor = true;
       }
     }
     if (name === "class" || name === "staticClass") {
@@ -8833,11 +8835,18 @@ function createAttributes(ctx, stack, data) {
         }
     }
   });
+  if (data.ref && inFor) {
+    data.attrs.push(ctx.createProperty(
+      ctx.createIdentifier("ref_for"),
+      ctx.createLiteral(true)
+    ));
+  }
   if (!data.key) {
     data.key = createElementKeyPropertyNode(ctx, stack);
   }
 }
 var conditionElements = ["if", "elseif", "else"];
+var forNameds = ["for", "each"];
 function createElementKeyPropertyNode(ctx, stack) {
   const keys2 = ctx.options.esx.complete.keys;
   const fills = Array.isArray(keys2) && keys2.length > 0 ? keys2 : null;
@@ -8848,7 +8857,7 @@ function createElementKeyPropertyNode(ctx, stack) {
     let isForContext = false;
     if (all || fills.includes("for") || fills.includes("each")) {
       if (!stack.isDirective && stack.directives && Array.isArray(stack.directives)) {
-        let directive = stack.directives.find((directive2) => ["for", "each"].includes(directive2.name.value().toLowerCase()));
+        let directive = stack.directives.find((directive2) => forNameds.includes(directive2.name.value().toLowerCase()));
         if (directive) {
           isForContext = true;
           direName = directive.name.value().toLowerCase();
@@ -8858,15 +8867,23 @@ function createElementKeyPropertyNode(ctx, stack) {
           }
         }
       }
-      if (!isForContext && stack.parentStack.isDirective && ["for", "each"].includes(stack.parentStack.openingElement.name.value())) {
-        const attrs = stack.parentStack.openingElement.attributes;
-        const argument = {};
-        isForContext = true;
-        direName = stack.parentStack.openingElement.name.value().toLowerCase();
-        attrs.forEach((attr) => {
-          argument[attr.name.value()] = attr.value.value();
-        });
-        key = argument["index"] || argument["key"];
+      if (!isForContext && stack.scope.isForContext) {
+        let parentStack = stack.parentStack;
+        while (parentStack && parentStack.jsxElement && parentStack.isDirective) {
+          const name = parentStack.openingElement.name.value().toLowerCase();
+          if (forNameds.includes(name)) {
+            const attrs = parentStack.openingElement.attributes;
+            const argument = {};
+            isForContext = true;
+            direName = name;
+            attrs.forEach((attr) => {
+              argument[attr.name.value()] = attr.value.value();
+            });
+            key = argument["index"] || argument["key"];
+            break;
+          }
+          parentStack = parentStack.parentStack;
+        }
       }
     }
     let isCondition = false;
@@ -9070,8 +9087,8 @@ function createSlotElementNode(ctx, stack, children) {
     }
     args.push(props);
   } else if (stack.openingElement.attributes.length > 0) {
-    const attribute = stack.openingElement.attributes[0];
-    if (attribute.value) {
+    const attribute = stack.openingElement.attributes.find((attr) => !attr.isAttributeDirective);
+    if (attribute && attribute.value) {
       const stack2 = attribute.parserSlotScopeParamsStack();
       params.push(
         ctx.createAssignmentExpression(
@@ -9398,7 +9415,7 @@ function JSXNamespacedName_default(ctx, stack) {
 // node_modules/@easescript/transform/lib/tokens/JSXOpeningElement.js
 function JSXOpeningElement_default(ctx, stack) {
   const node = ctx.createNode(stack);
-  node.attributes = stack.attributes.map((attr) => ctx.createToken(attr));
+  node.attributes = stack.attributes.map((attr) => !attr.isAttributeDirective && ctx.createToken(attr)).filter(Boolean);
   node.selfClosing = !!stack.selfClosing;
   if (stack.parentStack.isComponent) {
     const desc = stack.parentStack.description();
@@ -11373,8 +11390,6 @@ var ESXClassBuilder = class extends ClassBuilder_default2 {
   createHMRHotAcceptNode(ctx, moduleId) {
     const opts = ctx.plugin.options;
     if (!opts.hot || opts.mode === "production") return null;
-    if (ctx.__createHMRFlag) return;
-    ctx.__createHMRFlag = true;
     const compilation = this.compilation;
     const records2 = hotRecords.get(compilation);
     const sections = this.getCodeSections(compilation);
@@ -11384,7 +11399,7 @@ var ESXClassBuilder = class extends ClassBuilder_default2 {
     }
     hotRecords.set(compilation, sections);
     const hmrHandler = opts.hmrHandler || "module.hot";
-    const hashIdNode = ctx.createLiteral(ctx.getHashId());
+    const hashIdNode = ctx.createLiteral(ctx.getHashId(8, this.module));
     moduleId = ctx.createIdentifier(moduleId);
     ctx.afterBody.push(ctx.createIfStatement(
       ctx.createChunkExpression(hmrHandler, false, false),
@@ -11647,6 +11662,10 @@ var ESXClassBuilder = class extends ClassBuilder_default2 {
         "default",
         exportNode
       );
+    } else if (module2.isPrivate) {
+      if (!isHot) {
+        ctx.addNodeToAfterBody(exportNode);
+      }
     } else {
       if (exportNode.type === "Identifier") {
         ctx.addExport(
@@ -11923,9 +11942,11 @@ function createChildren2(ctx, children, data) {
         }
       } else if (childStack.isSlot && !childStack.isSlotDeclared) {
         pureStaticChild = false;
-        const name = childStack.openingElement.name.value();
-        data.slots[name] = descriptor.child;
-        return next();
+        if (!(descriptor.cmd.includes("if") || descriptor.cmd.includes("else") || descriptor.cmd.includes("elseif"))) {
+          const name = childStack.openingElement.name.value();
+          data.slots[name] = descriptor.child;
+          return next();
+        }
       } else if (childStack.isDirective) {
         pureStaticChild = false;
         descriptor.cmd.push(
@@ -11958,7 +11979,8 @@ function createChildren2(ctx, children, data) {
           result.ifEnd = true;
         } else {
           if (result) result.ifEnd = true;
-          value = mergeConditionalNode(last.child, createCommentVNode(ctx, "end if", true)).top;
+          const endNode = last.stack.isSlot && !last.stack.isSlotDeclared ? ctx.createLiteral(void 0) : createCommentVNode(ctx, "end if", true);
+          value = mergeConditionalNode(last.child, endNode).top;
           if (last.child.hasKeyAttribute) {
             value.hasKeyAttribute = true;
           }
@@ -11967,7 +11989,12 @@ function createChildren2(ctx, children, data) {
         value = last.child;
       }
       if (value) {
-        content.push(value);
+        if (last.stack.isSlot && !last.stack.isSlotDeclared) {
+          const name = last.stack.openingElement.name.value();
+          data.slots[name] = value;
+        } else {
+          content.push(value);
+        }
       }
     }
     last = result;
@@ -12014,18 +12041,9 @@ function needAddForIndexOfCacheNode(ctx, stack, node) {
   if (parent.parentStack.value() !== "render") {
     return node;
   }
-  let scope = stack.scope;
-  let pStack = stack;
+  let scope = stack.scope.forContextScope;
   node = ctx.createCacheForVNode(stack, node);
-  while (scope && !scope.isForContext && pStack.jsxElement) {
-    pStack = pStack.parentStack;
-    if (pStack) {
-      scope = pStack.scope;
-    } else {
-      break;
-    }
-  }
-  if (!scope.isForContext) {
+  if (!scope) {
     return node;
   }
   let items = forIndexMaps.get(scope);
@@ -12038,7 +12056,8 @@ function needAddForIndexOfCacheNode(ctx, stack, node) {
 function makeNeedAddForIndexOfCacheNodes(ctx, stack, indexNode) {
   if (!stack || !stack.jsxElement) return;
   let scope = stack.scope;
-  if (!scope.isForContext) {
+  let forScope = scope.forContextScope;
+  if (scope !== forScope) {
     scope = stack.jsxElement.jsxRootElement.scope;
   }
   const cacheNodes = forIndexMaps.get(scope);
@@ -12191,7 +12210,12 @@ function createAttributes2(ctx, stack, data) {
       }
     }
     if (ns === "@events" || ns === "@natives") {
-      pushEvent(name, createAttributeBindingEventNode(ctx, item, propValue), "on");
+      const comments = item.comments;
+      let disabledCache = false;
+      if (comments && comments.length > 0) {
+        disabledCache = comments.some((comment) => String(comment.value).toLowerCase() === "disabledcache");
+      }
+      pushEvent(name, createAttributeBindingEventNode(ctx, item, propValue), "on", disabledCache);
       return;
     } else if (ns === "@binding") {
       pureStaticAttributes = false;
@@ -12207,7 +12231,7 @@ function createAttributes2(ctx, stack, data) {
                 stack2.module ? ctx.createIdentifier(stack2.module.id) : ctx.createLiteral(null),
                 ctx.createToken(stack2.object),
                 stack2.computed ? ctx.createToken(stack2.property) : ctx.createLiteral(stack2.property.value()),
-                ctx.createIdentifier("value")
+                ctx.createIdentifier("e")
               ],
               stack2
             );
@@ -12618,7 +12642,7 @@ function createNormalVNode(ctx, childNode, toTextNode = false, disableHoisted = 
   return node;
 }
 function makeChildrenNodes(ctx, children, toTextNode = false, disableHoisted = false, stack = null) {
-  if (!children.length) return null;
+  if (!children.length) return ctx.createArrayExpression([]);
   let num = 0;
   let newLine = false;
   let childNods = ctx.createArrayExpression(children.map((child) => {
@@ -12717,8 +12741,8 @@ function createSlotElementNode2(ctx, stack, children, pureStaticChildWhole = fal
     }
     args.push(props);
   } else if (stack.openingElement.attributes.length > 0) {
-    const attribute = stack.openingElement.attributes[0];
-    if (attribute.value) {
+    const attribute = stack.openingElement.attributes.find((attr) => !attr.isAttributeDirective);
+    if (attribute && attribute.value) {
       const stack2 = attribute.parserSlotScopeParamsStack();
       params.push(
         ctx.createAssignmentExpression(
@@ -12734,6 +12758,18 @@ function createSlotElementNode2(ctx, stack, children, pureStaticChildWhole = fal
       slotFn = ctx.addStaticHoisted(slotFn);
     }
     args.push(slotFn);
+  } else if (stack.isSlot && !stack.isSlotDeclared) {
+    const slots = ctx.createCallExpression(
+      ctx.createMemberExpression([
+        ctx.createThisExpression(),
+        ctx.createIdentifier("slot")
+      ]),
+      [
+        ctx.createLiteral(stack.openingElement.name.value())
+      ]
+    );
+    slots.isReferenceSlotNode = true;
+    return slots;
   }
   return createSlotNode(...args);
 }

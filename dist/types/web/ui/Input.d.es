@@ -30,7 +30,7 @@ import 'element-plus/lib/components/input/style/css'
     clear,
 )
 
-declare final class Input extends Component{
+declare class Input extends Component{
     //类型
     type:'text'|'textarea'|'submit'|'checkbox'|'file'|'password'|'hidden'|'image'|'radio'|'reset'|'color'|'date'|'datetime'|'datetime-local'|'month'|'week'|'time'|'email'|'number'|'range'|'search'|'tel'|'url' = 'text'
     //绑定值
@@ -105,4 +105,6 @@ declare final class Input extends Component{
     blur():void
     //选中 input 中的文字
     select():void
+    //原生 aria-label属性
+    ariaLabel:string
 }

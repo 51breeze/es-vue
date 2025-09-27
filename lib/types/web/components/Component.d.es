@@ -67,8 +67,8 @@ package web.components{
         forceUpdate();
         provide(name:string, provider:()=>any):void;
         inject<T=any>(name:string, from?:string, defaultValue?:T):T;
-        watch<T=any>(name:string, callback:vue.WatchCallback<T>, options?:boolean | vue.WatchOptions):void;
-        watch<T=any>(name:vue.WatchSource<T>, callback:vue.WatchCallback<T>, options?:boolean | vue.WatchOptions):void;
+        watch<T=any>(name:string, callback:vue.WatchCallback<T>, options?:boolean | vue.WatchOptions):()=>void;
+        watch<T=any>(name:vue.WatchSource<T>, callback:vue.WatchCallback<T>, options?:boolean | vue.WatchOptions):()=>void;
         getRoute():web.components.Route | null;
         getRefs<T=NodeElementType>(name:string):T;
         getRefs<T=NodeElementType[]>(name:string, toArray:boolean):T;

@@ -44,11 +44,13 @@ declare final class Tooltip extends Component {
   /** Custom class name for Tooltip's popper */
   popperClass: string
 
+  popperStyle: string|Record
+
   /** Whether the mouse can enter the tooltip	 */
-  enterable: string
+  enterable: boolean
 
   /** Timeout in milliseconds to hide tooltip */
-  hideAfter: string
+  hideAfter: number
 
   /** Tooltip tabindex */
   tabindex: number
