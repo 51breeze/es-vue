@@ -216,7 +216,7 @@ declare class View<TElement extends HTMLElement>{
      * @param views Initial views of the collection.
      * @returns A new collection of view instances.
      */
-    createCollection<T extends View<Element>>(views?: Iterator<T>):any;
+    createCollection<T extends View<HTMLElement>>(views?: Iterator<T>):any;
     /**
      * Registers a new child view under the view instance. Once registered, a child
      * view is managed by its parent, including {@link #render rendering}
@@ -280,7 +280,7 @@ declare class View<TElement extends HTMLElement>{
      *
      * @param children Children views to be registered.
      */
-    registerChild(children: View<Element> | Iterator<View<Element>>): void;
+    registerChild(children: View<HTMLElement> | Iterator<View<HTMLElement>>): void;
     /**
      * The opposite of {@link #registerChild}. Removes a child view from this view instance.
      * Once removed, the child is no longer managed by its parent, e.g. it can safely
@@ -289,7 +289,7 @@ declare class View<TElement extends HTMLElement>{
      * @see #registerChild
      * @param children Child views to be removed.
      */
-    deregisterChild(children: View<Element> | Iterator<View<Element>>): void;
+    deregisterChild(children: View<HTMLElement> | Iterator<View<HTMLElement>>): void;
     /**
      * Sets the {@link #template} of the view with with given definition.
      *

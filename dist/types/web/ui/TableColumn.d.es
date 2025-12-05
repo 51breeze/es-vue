@@ -5,12 +5,13 @@ import web.ui.Popover as PopoverPlacement;
 import {ElTableColumn as TableColumn} from 'element-plus/lib/components/table'
 import 'element-plus/lib/components/table-column/style/css'
 
-
-@Define(slot, header, scope:{$index:number, column:TableColumn});
-@Define(slot, 'default', scope:{$index:number,row:{[key:string]:any}, column:TableColumn});
+@Define(slot, header, scope:ColumnHeaderScope);
+@Define(slot, 'default', scope:ColumnDefaultScope);
+@Define(slot, filterIcon, scope:ColumnFilterIconScope);
+@Define(slot, expand, scope:ColumnExpandScope);
 
 /** TableColumn Component */
-declare final class TableColumn extends Component {
+declare final class TableColumn<T=Record<any,string>> extends Component {
   /** Type of the column. If set to `selection`, the column will display checkbox. If set to `index`, the column will display index of the row (staring from 1). If set to `expand`, the column will display expand icon. */
   type: 'default' | 'selection' | 'index' | 'expand'
 
@@ -33,13 +34,13 @@ declare final class TableColumn extends Component {
   fixed: boolean | 'left' | 'right'
 
   /** Render function for table header of this column */
-  renderHeader: (h: (tag:Component | string,data?:object,children?:[])=>any, data: TableRenderHeaderData) => VNode | Component | string
+  renderHeader: (data: TableRenderHeaderData<T>) => VNode
 
   /** Whether column can be sorted */
   sortable: boolean | 'custom'
 
   /** Sorting method. Works when `sortable` is `true` */
-  sortMethod: (a: any, b: any) => number
+  sortMethod: (a: T, b: T) => number
 
   /** The order of the sorting strategies used when sorting the data. Works when `sortable` is `true`. */
   sortOrders: ('ascending' | 'descending' | null)[]
@@ -48,19 +49,7 @@ declare final class TableColumn extends Component {
   resizable: boolean
 
     /** Function that formats content */
-  formatter: (row: object, column?: {
-    /** Label of the column */
-    label: string,
-  
-    /** Property name of the source data */
-    property: string,
-  
-    /** Type of the column */
-    type: string,
-  
-    /** Whether column is fixed at left/right */
-    fixed: boolean | string
-  },cellValue:any,index?:number) => any
+  formatter: (row: T, column:TableColumn<T>, cellValue:any, index:number) => VNode | string
 
   /** Whether to hide extra content and show them in a tooltip when hovering on the cell */
   showOverflowTooltip: boolean
@@ -78,10 +67,12 @@ declare final class TableColumn extends Component {
   labelClassName: string
 
   /** Function that determines if a certain row can be selected, works when `type` is `'selection'` */
-  selectable: (row: object, index: number) => boolean
+  selectable: (row: T, index: number) => boolean
 
   /** Whether to reserve selection after data refreshing, works when `type` is `'selection'` */
   reserveSelection: boolean
+
+  filterable: boolean | FilterMethods<T> | TableColumnFilter[]
 
   /** An array of data filtering options */
   filters: TableColumnFilter[]
@@ -93,26 +84,39 @@ declare final class TableColumn extends Component {
   filterMultiple: Boolean
 
   /** Data filtering method. If `filter-multiple` is on, this method will be called multiple times for each row, and a row will display if one of the calls returns `true` */
-  filterMethod: (value: any, row: object) => boolean
+  filterMethod: FilterMethods<T>
 
   /** Filter value for selected data, might be useful when table header is rendered with `render-header` */
   filteredValue: TableColumnFilter[]
 }
 
 /** Data used in renderHeader function */
-declare interface TableRenderHeaderData {
+declare type TableRenderHeaderData<T>  = {
   /** The column that is current rendering */
-  column: any,
+  column: TableColumn<T>,
 
   /** The index of the rendering column */
   $index: number
 }
 
 /** Filter Object */
-declare interface TableColumnFilter {
+declare type TableColumnFilter = {
   /** The text to show in the filter's panel */
   text: string,
 
   /** The value of the filter */
   value: any
 }
+
+declare type FilterMethods<T extends {[key:string]:any}> = (value: string, row: T, column: TableColumn<T>) => void;
+
+declare type ColumnDefaultScope<T extends object = {[key:string]:any}> = {
+  $index:number,
+  row:T,
+  column:TableColumn<T>
+}
+
+declare type ColumnHeaderScope = {$index:number, column:TableColumn}
+
+declare type ColumnFilterIconScope = {filterOpened:boolean}
+declare type ColumnExpandScope = {expanded:boolean}

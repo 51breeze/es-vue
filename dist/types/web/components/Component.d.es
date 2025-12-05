@@ -34,7 +34,7 @@ package web.components{
         @Noop
         protected onErrorCaptured():void;
         @Noop
-        protected render():vue.VNode | Component;
+        protected render():VNode | Component;
         protected receivePropValue<T>(value:T,name:string):T;
         protected beforeReceiveProp(value:any,name:string):boolean;
         protected withAsyncContext<T=void>(handler:()=>T):[T, ()=>void]
@@ -55,10 +55,10 @@ package web.components{
         final get app():IApplication
 
         @Deprecated
-        slot( name:string , scope?:boolean, called?:boolean, params?:object ):(vue.VNode|Component)[];
+        slot( name:string , scope?:boolean, called?:boolean, params?:object ):(VNode|Component)[];
 
         hasSlot(name?:string):boolean;
-        renderSlot(name?:string,props?:Record,fallback?:(...args)=>(vue.VNode | Component)[]):vue.VNode;
+        renderSlot(name?:string,props?:Record,fallback?:(...args)=>(VNode | Component)[]):VNode;
 
         reactive<T>(name:string, value?:T, initValue?:any):T;
         reference<T>(value:T,shallowFlag?:boolean):vue.Ref<T>;

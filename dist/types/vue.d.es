@@ -134,6 +134,7 @@ package vue{
         * Bound effect runner to be passed to schedulers
         */
         update: any;
+        provides:Record<any,string>;
         proxy: ComponentPublicInstance | null;
         exposed:Record | null;
         exposeProxy:Record | null;
@@ -172,6 +173,17 @@ package vue{
     declare type VNodeChildAtom = VNode | string | number | boolean | null;
     declare type RawChildren = string | number | boolean | VNode | VNodeChildAtom[] | () => any;
 
+    declare type CustomDirective={
+		created?:(el?:HTMLElement, binding, vnode)=>void,
+		beforeMount?:(el?:HTMLElement, binding, vnode)=>void,
+		mounted?:(el?:HTMLElement, binding, vnode)=>void,
+		beforeUpdate?:(el?:HTMLElement, binding, vnode, prevVnode)=>void,
+		updated?:(el?:HTMLElement, binding, vnode, prevVnode)=>void,
+		beforeUnmount?:(el?:HTMLElement, binding, vnode)=>void,
+		unmounted?:(el?:HTMLElement, binding, vnode)=>void
+	}
+    declare type WithDirectiveItem = [CustomDirective, any, string, Record<any, string>]
+
     declare function h(type: string, children?: RawChildren): VNode;
     declare function h(type: string, props?: Record | null, children?: RawChildren | Record): VNode;
 
@@ -191,6 +203,9 @@ package vue{
     declare function mergeProps<A extends Record, B extends Record, C extends Record, D extends Record>(a:A, b:B, c:C, d:D): A & B & C & D;
     declare function isVNode(value: any):boolean
     declare function markRaw<T=any>(value:T):T;
+    declare function withDirectives<T=global.VNode>(vnode:T, directives:WithDirectiveItem[]):T
+    declare function withCtx<T extends slotFun>(callback:T):T
+    type slotFun = (...args)=>global.VNode[]
 
     declare function provide(key: any, value: any): void
     declare function inject<T=any>(key: any, value?:T): T
@@ -239,10 +254,10 @@ package vue{
     declare function onWatcherCleanup(cleanupFn: () => void,failSilently?: boolean): void
 
     declare function unref<T=any>(ref: T): T extends Ref<infer B> ? B : T;
-    declare function isRef<T=any>(value):value is Ref<T>
+    declare function isRef<T=any>(value:T):value is Ref<T>
     declare function isProxy(value: any): boolean
-    declare function isReactive(value: any): boolean
-    declare function isReadonly(value: any): boolean
+    declare function isReactive<T extends Record<any, string>>(value: T): value is T
+    declare function isReadonly<T extends Record<any, string>>(value: T): value is T
     declare function ref<T=any>(target?:T):Ref<T>
     declare function shallowRef<T=any>(target?:T):Ref<T>
     declare function triggerRef(ref: Ref<any>): void

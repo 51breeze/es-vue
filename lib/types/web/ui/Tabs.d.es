@@ -5,6 +5,7 @@ import Tabs from 'element-plus/lib/components/tabs'
 import 'element-plus/lib/components/tabs/style/css'
 
 /** Divide data collections which are related yet belong to different types */
+@Define(slot, 'add-icon')
 declare final class Tabs extends Component {
   /** Type of Tab */
   type: 'card' | 'border-card'

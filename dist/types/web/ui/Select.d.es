@@ -9,9 +9,9 @@ import 'element-plus/lib/components/select/style/css'
 @Define(slot,'empty')
 @Define(slot,'header')
 @Define(slot,'footer')
-@Define(slot,'tag', props={})
+@Define(slot,'tag', props:Record)
 @Define(slot,'loading')
-@Define(slot,'label')
+@Define(slot,'label', props:{key:number|string,label:string,value:any})
 
 @Define(
     emits,

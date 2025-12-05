@@ -2321,6 +2321,14 @@ function isExcludeDependency(excludes2, source, module2 = null) {
   }
   return false;
 }
+function isGlobalsDependency(globals, source, module2 = null) {
+  if (Array.isArray(globals) && globals.length > 0) {
+    return globals.some((rule) => {
+      return rule == null ? false : checkMatchStringOfRule(rule, source, module2);
+    });
+  }
+  return false;
+}
 function getMethodOrPropertyAlias(ctx, stack, name = null) {
   if (Cache.has(stack, "getMethodOrPropertyAlias")) {
     return Cache.get(stack, "getMethodOrPropertyAlias");
@@ -4634,8 +4642,8 @@ var Context = class _Context extends Token_default {
   createAllDependencies(cache = null) {
     const target = this.target;
     const compilation = import_Utils7.default.isCompilation(target) ? target : null;
-    this.#dependencies.forEach((deps, moduleOrCompi) => {
-      const graph = this.getBuildGraph(moduleOrCompi);
+    this.#dependencies.forEach((deps, moduleOrCompi2) => {
+      const graph = this.getBuildGraph(moduleOrCompi2);
       deps.forEach((depModule) => {
         if (cache && cache.has(depModule)) return;
         let isMod = import_Utils7.default.isModule(depModule);
@@ -4643,11 +4651,14 @@ var Context = class _Context extends Token_default {
         if (depModule === target || compilation && compilation.modules.has(depModule.getName())) {
           return;
         }
-        if (moduleOrCompi !== depModule && this.isNeedBuild(depModule)) {
+        if (moduleOrCompi2 !== depModule && this.isNeedBuild(depModule)) {
           graph.addDepend(depModule);
+          if (isGlobalsDependency(this.options.dependency.globals, depModule.getName(), moduleOrCompi2)) {
+            return;
+          }
           if (!depModule.isDeclaratorModule || this.isVModule(depModule)) {
-            const name = this.getModuleReferenceName(depModule, moduleOrCompi);
-            const source = this.getModuleImportSource(depModule, moduleOrCompi);
+            const name = this.getModuleReferenceName(depModule, moduleOrCompi2);
+            const source = this.getModuleImportSource(depModule, moduleOrCompi2);
             let imported = void 0;
             if (isMod && !depModule.isDeclaratorModule && depModule.compilation.mainModule !== depModule) {
               imported = depModule.id;
@@ -4656,7 +4667,7 @@ var Context = class _Context extends Token_default {
             importSource.setSourceTarget(depModule);
             graph.addImport(importSource);
           } else if (depModule.isDeclaratorModule) {
-            this.createDeclaratorModuleImportReferences(depModule, moduleOrCompi, graph);
+            this.createDeclaratorModuleImportReferences(depModule, moduleOrCompi2, graph);
           }
         }
       });
@@ -4675,6 +4686,9 @@ var Context = class _Context extends Token_default {
       }
       if (module2 !== depModule && this.isNeedBuild(depModule)) {
         graph.addDepend(depModule);
+        if (isGlobalsDependency(this.options.dependency.globals, depModule.getName(), moduleOrCompi)) {
+          return;
+        }
         if (!depModule.isDeclaratorModule || this.isVModule(depModule)) {
           const name = this.getModuleReferenceName(depModule, module2);
           const source = this.getModuleImportSource(depModule, module2);
@@ -5032,6 +5046,9 @@ var Context = class _Context extends Token_default {
   }
   isPermissibleRouteProvider(moduleOrMethodStack) {
     return false;
+  }
+  safeMemberAccessor() {
+    return !!(this.options.strict || this.options.privateChain);
   }
   createVNodeHandleNode(stack, ...args) {
     let handle = this.#vnodeHandleNode;
@@ -6051,7 +6068,7 @@ function AssignmentExpression_default(ctx, stack) {
       isReflect = !import_Utils10.default.isLiteralObjectType(stack.left.object.type());
     }
   }
-  if (isReflect) {
+  if (isReflect && ctx.safeMemberAccessor()) {
     let value = ctx.createToken(stack.right);
     let scopeId = module2 ? ctx.createIdentifier(module2.id) : ctx.createLiteral(null);
     let propertyNode = ctx.createLiteral(
@@ -6235,7 +6252,7 @@ function CallExpression_default(ctx, stack) {
       );
     }
   }
-  if (isMember && !isChainExpression && (!desc || desc.isType && desc.isAnyType)) {
+  if (isMember && !isChainExpression && (!desc || desc.isType && desc.isAnyType) && ctx.safeMemberAccessor()) {
     const property = stack.callee.computed ? ctx.createToken(stack.callee.property) : ctx.createLiteral(
       stack.callee.property.value()
     );
@@ -9268,9 +9285,10 @@ function createElement(ctx, stack) {
     }
     if (data.slots) {
       for (let key in data.slots) {
+        const keyNode = key.includes("-") ? ctx.createLiteral(key) : ctx.createIdentifier(key);
         properties2.push(
           ctx.createProperty(
-            ctx.createIdentifier(key),
+            keyNode,
             data.slots[key]
           )
         );
@@ -9536,24 +9554,26 @@ function MemberExpression(ctx, stack) {
     }
   }
   if (!description || import_Utils19.default.isType(description) && description.isAnyType && !stack.optional) {
-    let isReflect = true;
-    if (description) {
-      isReflect = false;
-      let hasDynamic = description.isComputeType && description.isPropertyExists();
-      if (!hasDynamic && !import_Utils19.default.isLiteralObjectType(objectType)) {
-        isReflect = true;
+    if (ctx.safeMemberAccessor()) {
+      let isReflect = true;
+      if (description) {
+        isReflect = false;
+        let hasDynamic = description.isComputeType && description.isPropertyExists();
+        if (!hasDynamic && !import_Utils19.default.isLiteralObjectType(objectType)) {
+          isReflect = true;
+        }
       }
-    }
-    if (isReflect) {
-      return ctx.createCallExpression(
-        createStaticReferenceNode(ctx, stack, "Reflect", "get"),
-        [
-          module2 ? ctx.createIdentifier(module2.id) : ctx.createLiteral(null),
-          ctx.createToken(stack.object),
-          stack.computed ? ctx.createToken(stack.property) : ctx.createLiteral(stack.property.value())
-        ],
-        stack
-      );
+      if (isReflect) {
+        return ctx.createCallExpression(
+          createStaticReferenceNode(ctx, stack, "Reflect", "get"),
+          [
+            module2 ? ctx.createIdentifier(module2.id) : ctx.createLiteral(null),
+            ctx.createToken(stack.object),
+            stack.computed ? ctx.createToken(stack.property) : ctx.createLiteral(stack.property.value())
+          ],
+          stack
+        );
+      }
     }
   }
   const resolveName = getMethodOrPropertyAlias(ctx, description);
@@ -10932,7 +10952,8 @@ var defaultConfig = {
   dependency: {
     externals: [],
     includes: [],
-    excludes: []
+    excludes: [],
+    globals: []
   }
 };
 function getOptions(...options) {
@@ -10970,6 +10991,23 @@ function hasStyleScoped(compilation) {
       }
     });
   });
+}
+function hasDynamicRef(scope, stack) {
+  if (!stack) return false;
+  if (stack.isIdentifier) {
+    return scope.isDefine(stack.value(), "function");
+  } else if (stack.isCallExpression) {
+    return stack.arguments.some((stack2) => hasDynamicRef(scope, stack2));
+  } else if (stack.isParenthesizedExpression) {
+    return hasDynamicRef(scope, stack.expression);
+  } else if (stack.isMemberExpression) {
+    return hasDynamicRef(scope, stack.getFirstMemberStack());
+  } else if (stack.isLogicalExpression) {
+    return hasDynamicRef(scope, stack.left) || hasDynamicRef(scope, stack.right);
+  } else if (stack.isConditionalExpression) {
+    return hasDynamicRef(scope, stack.test) || hasDynamicRef(scope, stack.consequent) || hasDynamicRef(scope, stack.alternate);
+  }
+  return false;
 }
 
 // lib/core/ESXClassBuilder.js
@@ -11401,7 +11439,7 @@ var ESXClassBuilder = class extends ClassBuilder_default2 {
     const hmrHandler = opts.hmrHandler || "module.hot";
     const hashIdNode = ctx.createLiteral(ctx.getHashId(8, this.module));
     moduleId = ctx.createIdentifier(moduleId);
-    ctx.afterBody.push(ctx.createIfStatement(
+    ctx.hotBody.push(ctx.createIfStatement(
       ctx.createChunkExpression(hmrHandler, false, false),
       ctx.createBlockStatement([
         ctx.createExpressionStatement(
@@ -11497,7 +11535,7 @@ var ESXClassBuilder = class extends ClassBuilder_default2 {
         ctx.createProperty(
           ctx.createIdentifier("__hmrId"),
           ctx.createLiteral(
-            ctx.getHashId()
+            ctx.getHashId(8, this.module)
           )
         )
       );
@@ -11629,8 +11667,10 @@ var ESXClassBuilder = class extends ClassBuilder_default2 {
             propertyNode = arrayNode.elements[0];
           }
         }
-        return ctx.createProperty(ctx.createIdentifier(key), propertyNode);
-      });
+        if (propertyNode) {
+          return ctx.createProperty(ctx.createIdentifier(key), propertyNode);
+        }
+      }).filter(Boolean);
     }
     return [];
   }
@@ -11709,13 +11749,20 @@ function JSXAttribute_default2(ctx, stack) {
     if (!scopeId) return null;
     const options = ctx.plugin.options;
     const vueOpts = options.vue || {};
-    const node = ctx.createNode(stack);
-    node.namespace = null;
-    node.name = ctx.createLiteral((vueOpts.scopePrefix || "") + scopeId);
-    node.value = ctx.createLiteral("");
-    return node;
+    const node2 = ctx.createNode(stack);
+    node2.namespace = null;
+    node2.name = ctx.createLiteral((vueOpts.scopePrefix || "") + scopeId);
+    node2.value = ctx.createLiteral("");
+    return node2;
   }
-  return JSXAttribute_default(ctx, stack);
+  const scope = stack.scope.forContextScope;
+  let dynamicRefs = false;
+  if (scope && stack.value && stack.value.isJSXExpressionContainer) {
+    dynamicRefs = hasDynamicRef(scope, stack.value.expression);
+  }
+  const node = JSXAttribute_default(ctx, stack);
+  node.hasDynamicRefs = dynamicRefs;
+  return node;
 }
 
 // lib/core/ESXOptimize.js
@@ -11784,15 +11831,21 @@ function createDirectiveDescriptor(ctx, stack, child, prev = null) {
   if (!child) return null;
   let hasKeyAttribute = child.hasKeyAttribute;
   let pureStaticChild = child.pureStaticChild;
-  if (stack.isJSXExpressionContainer && isArrayVNode(stack.type())) {
-    child = createFragmentVNode2(
-      ctx,
-      child,
-      ctx.createObjectExpression([createElementKeyNode(ctx, stack)]),
-      null
-    );
-  } else if (stack.isJSXExpressionContainer && !child.isExplicitVNode) {
-    child = createNormalVNode(ctx, child, false, false, stack);
+  if (stack.isJSXExpressionContainer) {
+    if (isArrayVNode(stack.type())) {
+      child = createFragmentVNode2(
+        ctx,
+        child,
+        ctx.createObjectExpression([createElementKeyNode(ctx, stack)]),
+        null
+      );
+    } else if (!child.isExplicitVNode) {
+      child = createNormalVNode(ctx, child, false, false, stack);
+    }
+    const scope = stack.scope.forContextScope;
+    if (scope && hasDynamicRef(scope, stack.expression)) {
+      child.hasDynamicRefs = true;
+    }
   }
   const cmd = [];
   if (!stack.directives || !(stack.directives.length > 0)) {
@@ -11897,6 +11950,7 @@ function createChildren2(ctx, children, data) {
   let last = null;
   let result = null;
   let pureStaticChild = true;
+  let hasDynamicRefs = false;
   let next = () => {
     if (index < len) {
       const childStack = children[index++];
@@ -11906,6 +11960,11 @@ function createChildren2(ctx, children, data) {
         ctx.createToken(childStack),
         last
       ) || next();
+      if (!descriptor) return null;
+      if (descriptor.child.hasDynamicRefs) {
+        hasDynamicRefs = true;
+        pureStaticChild = false;
+      }
       if (pureStaticChild) {
         if (childStack.directives && childStack.directives.length > 0) {
           pureStaticChild = false;
@@ -12000,8 +12059,15 @@ function createChildren2(ctx, children, data) {
     last = result;
     if (!result) break;
   }
-  data.hasConditionDirective = hasConditionDirective;
-  data.pureStaticChild = pureStaticChild;
+  if (hasConditionDirective) {
+    data.hasConditionDirective = true;
+  }
+  if (!pureStaticChild) {
+    data.pureStaticChild = false;
+  }
+  if (hasDynamicRefs) {
+    data.hasDynamicRefs = true;
+  }
   if (content.length > 1) {
     content = content.reduce((acc, item) => {
       if ((item.type === "Literal" || item.isScalarType && item.isExpressionContainer) && acc.length > 0) {
@@ -12136,6 +12202,7 @@ function createAttributes2(ctx, stack, data) {
     return name;
   };
   let pureStaticAttributes = true;
+  let hasDynamicRefs = false;
   stack.openingElement.attributes.forEach((item) => {
     if (item.isAttributeXmlns) return;
     if (item.isAttributeDirective) {
@@ -12177,6 +12244,10 @@ function createAttributes2(ctx, stack, data) {
     }
     let value = ctx.createToken(item);
     if (!value) return;
+    if (value.hasDynamicRefs) {
+      hasDynamicRefs = true;
+      pureStaticAttributes = false;
+    }
     let ns = value.namespace;
     let name = value.name.value;
     let propName = name;
@@ -12411,7 +12482,12 @@ function createAttributes2(ctx, stack, data) {
       pureStaticAttributes = false;
     }
   }
-  data.pureStaticAttributes = pureStaticAttributes;
+  if (!pureStaticAttributes) {
+    data.pureStaticAttributes = false;
+  }
+  if (hasDynamicRefs) {
+    data.hasDynamicRefs = hasDynamicRefs;
+  }
 }
 function createTextVNode(ctx, node, flags = null) {
   let args = [
@@ -12524,6 +12600,7 @@ function makeElementVNode(ctx, stack, data, childNodes, isBlock) {
   } else {
     name = ctx.createLiteral(stack.openingElement.name.value());
   }
+  delete data.hasDynamicRefs;
   let dataObject = createElementPropsNode(ctx, data, stack, excludes);
   let items = [name, null, null, null, null];
   let pos = 1;
@@ -12781,10 +12858,12 @@ function getElementStats(ctx, stack, data, children, isRoot = false) {
   let pureStaticChild = false;
   let isKeepAlive = false;
   let isTeleport = false;
+  let isForVNode = false;
   let isWebComponent = stack.isWebComponent;
   let hasInheritDirectiveAttr = false;
   let pureStaticAttributes = data.pureStaticAttributes;
   let hasConditionDirective = data.hasConditionDirective;
+  let hasDynamicRefs = !!data.hasDynamicRefs;
   let componentDirective = getComponentDirectiveAnnotation(desc, true);
   if (isWebComponent && import_Utils31.default.isModule(desc)) {
     let fullname = desc.getName();
@@ -12799,6 +12878,10 @@ function getElementStats(ctx, stack, data, children, isRoot = false) {
   } else if (stack.isComponent && isDirectiveInterface(desc)) {
     componentDirective = true;
   }
+  isForVNode = stack.directives ? stack.directives.some((b) => {
+    const bb = b.name.value().toLowerCase();
+    return bb === "each" || bb === "for";
+  }) : false;
   if (!componentDirective) {
     if (stack.parentStack && stack.parentStack.isDirective) {
       let dName = stack.parentStack.openingElement.name.value().toLowerCase();
@@ -12838,16 +12921,19 @@ function getElementStats(ctx, stack, data, children, isRoot = false) {
   children.forEach((child) => {
     hasKeys = !!child.hasKeyAttribute;
     pureStaticChild = data.pureStaticChild ? isPureStaticChild(child) : false;
-    if (child.isForVNode || child.hasForNode) {
-      hasForNode = true;
+    if (child.hasDynamicRefs) {
+      hasDynamicRefs = true;
       if (isWebComponent) {
         hasDynamicSlots = true;
       }
     }
-    if (isWebComponent && (child.hasDynamicSlots || child.isReferenceExpressionNode || child.isExpressionContainer && !child.isScalarType)) {
-      hasDynamicSlots = true;
+    if (child.isForVNode || child.hasForNode) {
+      hasForNode = true;
     }
   });
+  if (hasDynamicRefs) {
+    pureStaticChild = false;
+  }
   let isBlock = isKeepAlive || isTeleport || isRoot || data.hasKeyReference || isOpenBlock(stack);
   let isStaticHoisted = !(isWebComponent || stack.isDirective || stack.isSlot || isBlock || hasUseDirective) && pureStaticAttributes && pureStaticChild;
   return {
@@ -12857,8 +12943,10 @@ function getElementStats(ctx, stack, data, children, isRoot = false) {
     hasConditionDirective,
     hasInheritDirectiveAttr,
     hasForNode,
+    isForVNode,
     hasKeys,
     hasDynamicSlots,
+    hasDynamicRefs,
     isStaticHoisted,
     isBlock,
     isWebComponent,
@@ -12886,7 +12974,9 @@ function createElement2(ctx, stack) {
     componentDirective,
     hasUseDirective,
     hasConditionDirective,
+    hasDynamicRefs,
     hasForNode,
+    isForVNode,
     hasKeys,
     hasDynamicSlots,
     isStaticHoisted,
@@ -12917,7 +13007,6 @@ function createElement2(ctx, stack) {
       nodeElement = createNormalVNode(ctx, children[0], false, true, stack);
     }
     nodeElement.hasForNode = hasForNode;
-    nodeElement.hasDynamicSlots = hasDynamicSlots;
     nodeElement.hasKeyAttribute = hasKeys;
     nodeElement.pureStaticChild = false;
   } else {
@@ -12938,12 +13027,11 @@ function createElement2(ctx, stack) {
         isStaticHoisted
       );
       nodeElement.hasForNode = hasForNode;
-      nodeElement.hasDynamicSlots = hasDynamicSlots;
     } else if (stack.isDirective) {
       nodeElement = createDirectiveElementNode2(ctx, stack, children, hasKeys, hasForNode);
-      nodeElement.hasDynamicSlots = hasDynamicSlots;
       if (nodeElement.isForVNode) {
         hasForNode = true;
+        isForVNode = true;
       }
     } else {
       if (stack.isJSXFragment || isRoot && stack.openingElement.name.value() === "root") {
@@ -12984,16 +13072,17 @@ function createElement2(ctx, stack) {
           }
           if (data.slots) {
             for (let key in data.slots) {
+              const keyNode = key.includes("-") ? ctx.createLiteral(key) : ctx.createIdentifier(key);
               properties2.push(
                 ctx.createProperty(
-                  ctx.createIdentifier(key),
+                  keyNode,
                   data.slots[key]
                 )
               );
             }
           }
           if (properties2.length > 0) {
-            const flags = data.patchFlag & ELEMENT_DYNAMIC_SLOTS || hasForNode ? 2 : 1;
+            const flags = data.patchFlag & ELEMENT_DYNAMIC_SLOTS ? 2 : 1;
             properties2.push(ctx.createProperty(
               ctx.createIdentifier("_"),
               ctx.createLiteral(flags)
@@ -13021,6 +13110,9 @@ function createElement2(ctx, stack) {
       nodeElement.isWithDirective = true;
     }
     nodeElement.pureStaticChild = isStaticHoisted;
+    if (!isForVNode) {
+      nodeElement.hasDynamicRefs = hasDynamicRefs;
+    }
     nodeElement.hasKeyAttribute = stack.isSlot || stack.isDirective ? hasKeys : !!data.key;
     nodeElement.isElementVNode = true;
   }
@@ -13435,6 +13527,7 @@ var EXCLUDE_STYLE_RE = /[\\\/]style[\\\/](css|index)$/i;
 var emptyObject2 = {};
 var Context2 = class extends Context_default {
   #styleScopeId = void 0;
+  #hotBody = [];
   getStyleScopeId(compilation) {
     let present = this.#styleScopeId;
     if (present === void 0) {
@@ -13465,6 +13558,9 @@ var Context2 = class extends Context_default {
   get staticHoistedItems() {
     return Array.from(this.#staticHoisted.values());
   }
+  get hotBody() {
+    return this.#hotBody;
+  }
   getLayouts(imports, body, externals, exports2) {
     return [
       ...imports,
@@ -13473,6 +13569,7 @@ var Context2 = class extends Context_default {
       ...body,
       ...this.afterBody,
       ...externals,
+      ...this.hotBody,
       ...exports2
     ];
   }
@@ -13845,12 +13942,11 @@ var package_default = {
     "@vue/compiler-sfc": "^3.2.31",
     "babel-loader": "^8.2.3",
     "css-loader": "^6.5.1",
-    dotenv: "^16.3.1",
-    "dotenv-expand": "^10.0.0",
     easescript: "latest",
     "easescript-cli": "latest",
     "element-plus": "^2.4.1",
     "es-loader": "latest",
+    esbuild: "^0.25.10",
     "esbuild-plugin-copy": "^2.1.1",
     "file-loader": "^6.2.0",
     "html-webpack-plugin": "^5.5.0",

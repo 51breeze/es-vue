@@ -95,9 +95,9 @@ const config = {
   devtool:"source-map",
   target:"web",
   entry:{
-    //index: path.join(workspace,"Index.es"),
+   // index: path.join(workspace,"Index.es"),
 
-    index: path.join(workspace,"karma/Test.es"),  
+   index: path.join(workspace,"karma/Test.es"),  
     //index: path.resolve( "./test/build/Person.vue" ),  
   },
   output: {

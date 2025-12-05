@@ -37,7 +37,7 @@ class FullScreen extends Plugin{
 				if(target.classList.contains('rich-text-editor')){
 					return target;
 				}else{
-					target = target.parentNode;
+					target = target.parentElement;
 				}
 			}
 			return null;
